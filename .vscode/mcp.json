@@ -1,0 +1,32 @@
+{
+  "servers": {
+    "dart": {
+      "type": "stdio",
+      "command": "C:\\Users\\carlos.silva\\src\\flutter\\bin\\cache\\dart-sdk\\bin\\dart.exe",
+      "args": [
+        "mcp-server",
+        "--force-roots-fallback"
+      ]
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${env:CONTEXT7_API_KEY}"
+      }
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "C:\\Windows\\System32\\cmd.exe",
+      "args": [
+        "/c",
+        "C:\\Users\\carlos.silva\\AppData\\Roaming\\nodejs\\npx.cmd",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "env": {
+        "DISABLE_THOUGHT_LOGGING": "true"
+      }
+    }
+  }
+}

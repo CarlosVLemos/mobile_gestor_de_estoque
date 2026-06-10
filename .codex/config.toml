@@ -1,0 +1,40 @@
+# MCPs do projeto Arara-Gastos Mobile.
+# A configuracao e carregada pelo Codex CLI e pela extensao IDE quando este
+# repositorio esta aberto como projeto confiavel.
+
+[mcp_servers.dart]
+command = "C:\\Users\\carlos.silva\\src\\flutter\\bin\\cache\\dart-sdk\\bin\\dart.exe"
+args = ["mcp-server", "--force-roots-fallback"]
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+enabled = true
+
+[mcp_servers.context7]
+url = "https://mcp.context7.com/mcp"
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+enabled = true
+env_http_headers = { CONTEXT7_API_KEY = "CONTEXT7_API_KEY" }
+
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PAT_TOKEN"
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+enabled = false
+
+[mcp_servers.sequential-thinking]
+command = "C:\\Windows\\System32\\cmd.exe"
+args = [
+  "/c",
+  "C:\\Users\\carlos.silva\\AppData\\Roaming\\nodejs\\npx.cmd",
+  "-y",
+  "@modelcontextprotocol/server-sequential-thinking",
+]
+startup_timeout_sec = 60
+tool_timeout_sec = 120
+enabled = true
+
+[mcp_servers.sequential-thinking.env]
+DISABLE_THOUGHT_LOGGING = "true"
