@@ -1,0 +1,5 @@
+.codex/config.toml text eol=lf
+.vscode/mcp.json text eol=lf
+AGENTS.md text eol=lf
+arquitetura.md text eol=lf
+"para mobile/*.md" text eol=lf
