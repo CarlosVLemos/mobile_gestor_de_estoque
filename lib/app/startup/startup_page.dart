@@ -1,81 +1,95 @@
 import 'package:flutter/material.dart';
 
 import '../localization/app_strings.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_decorations.dart';
+import '../theme/app_icons.dart';
+import '../theme/app_sizes.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_theme_context.dart';
 
 class StartupPage extends StatelessWidget {
   const StartupPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  border: Border.all(color: theme.colorScheme.outline),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.textPrimary.withValues(alpha: 0.06),
-                      blurRadius: 32,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
+      body: DecoratedBox(
+        decoration: AppDecorations.atmosphericBackground(context),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: AppSpacing.screenPadding,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppSizes.compactContentMaxWidth,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(14),
-                          child: Icon(
-                            Icons.insights_rounded,
-                            color: Colors.white,
-                            size: 28,
+                child: DecoratedBox(
+                  decoration: AppDecorations.elevatedCard(context),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xxl),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DecoratedBox(
+                          decoration: AppDecorations.hero(context),
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            child: Icon(
+                              AppIcons.dashboard,
+                              color: context.appColors.onSurfaceHero,
+                              size: AppSizes.emphasisIcon + 6,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 28),
-                      Text(
-                        AppStrings.startupLabel,
-                        style: theme.textTheme.labelMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        AppStrings.appName,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontSize: 32,
+                        const SizedBox(height: AppSpacing.xl),
+                        Text(
+                          AppStrings.startupLabel,
+                          style: context.textTheme.labelMedium?.copyWith(
+                            color: context.colors.primary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppStrings.startupTitle,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
+                        Text(
+                          AppStrings.appName,
+                          style: context.textTheme.headlineLarge,
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        AppStrings.startupMessage,
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                    ],
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          AppStrings.startupTitle,
+                          style: context.textTheme.titleLarge?.copyWith(
+                            color: context.colors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          AppStrings.startupMessage,
+                          style: context.textTheme.bodyLarge?.copyWith(
+                            color: context.appColors.onSurfaceMuted,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+                        DecoratedBox(
+                          decoration: AppDecorations.tonalBadge(
+                            context,
+                            AppStatusTone.restricted,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.md,
+                              vertical: AppSpacing.sm,
+                            ),
+                            child: Text(
+                              'Tema global pronto para receber features reais.',
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: context.appColors.onRestricted,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
