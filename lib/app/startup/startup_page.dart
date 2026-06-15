@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../localization/app_strings.dart';
+import '../router/app_routes.dart';
 import '../theme/app_decorations.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_sizes.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_theme_context.dart';
+import 'startup_controller.dart';
 
-class StartupPage extends StatelessWidget {
+class StartupPage extends ConsumerWidget {
   const StartupPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(startupControllerProvider, (previous, next) {
+      if (next.status == StartupStatus.ready) {
+        context.go(AppRoutes.dashboard);
+      }
+    });
+
+    final state = ref.watch(startupControllerProvider);
+
     return Scaffold(
       body: DecoratedBox(
         decoration: AppDecorations.atmosphericBackground(context),
@@ -69,25 +81,46 @@ class StartupPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xl),
-                        DecoratedBox(
-                          decoration: AppDecorations.tonalBadge(
-                            context,
-                            AppStatusTone.restricted,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.md,
-                              vertical: AppSpacing.sm,
+                        if (state.status == StartupStatus.loading)
+                          const LinearProgressIndicator()
+                        else
+                          DecoratedBox(
+                            decoration: AppDecorations.tonalBadge(
+                              context,
+                              AppStatusTone.error,
                             ),
-                            child: Text(
-                              'Tema global pronto para receber features reais.',
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: context.appColors.onRestricted,
-                                fontWeight: FontWeight.w600,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                                vertical: AppSpacing.sm,
+                              ),
+                              child: Text(
+                                state.message ??
+                                    'Falha ao iniciar o bootstrap.',
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: context.colors.onErrorContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        if (state.status == StartupStatus.failure) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          TextButton(
+                            onPressed: () => ref
+                                .read(startupControllerProvider.notifier)
+                                .retry(),
+                            child: const Text('Tentar novamente'),
+                          ),
+                        ] else ...[
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            'Bootstrap local controlado até a futura autenticação mobile.',
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: context.appColors.onSurfaceMuted,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

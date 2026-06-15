@@ -9,18 +9,20 @@ abstract final class AppShadows {
     if (brightness == Brightness.dark) {
       return [
         BoxShadow(
-          color: AppColors.black.withValues(alpha: 0.16),
-          blurRadius: 18,
-          offset: const Offset(0, 8),
+          color: AppColors.black.withValues(alpha: 0.12),
+          blurRadius: 28,
+          spreadRadius: 1,
+          offset: const Offset(0, 6),
         ),
       ];
     }
 
     return [
       BoxShadow(
-        color: AppColors.foreground.withValues(alpha: 0.06),
-        blurRadius: 20,
-        offset: const Offset(0, 8),
+        color: AppColors.foreground.withValues(alpha: 0.04),
+        blurRadius: 28,
+        spreadRadius: 1,
+        offset: const Offset(0, 6),
       ),
     ];
   }
@@ -29,18 +31,18 @@ abstract final class AppShadows {
     if (brightness == Brightness.dark) {
       return [
         BoxShadow(
-          color: AppColors.black.withValues(alpha: 0.26),
-          blurRadius: 30,
-          offset: const Offset(0, 14),
+          color: AppColors.black.withValues(alpha: 0.22),
+          blurRadius: 32,
+          offset: const Offset(0, 12),
         ),
       ];
     }
 
     return [
       BoxShadow(
-        color: AppColors.foreground.withValues(alpha: 0.12),
+        color: AppColors.foreground.withValues(alpha: 0.10),
         blurRadius: 36,
-        offset: const Offset(0, 18),
+        offset: const Offset(0, 12),
       ),
     ];
   }
@@ -49,18 +51,19 @@ abstract final class AppShadows {
     if (brightness == Brightness.dark) {
       return [
         BoxShadow(
-          color: AppColors.black.withValues(alpha: 0.28),
-          blurRadius: 32,
-          offset: const Offset(0, 16),
+          color: AppColors.black.withValues(alpha: 0.22),
+          blurRadius: 40,
+          offset: const Offset(0, 14),
         ),
       ];
     }
 
     return [
       BoxShadow(
-        color: AppColors.foreground.withValues(alpha: 0.14),
-        blurRadius: 34,
-        offset: const Offset(0, 16),
+        color: AppColors.foreground.withValues(alpha: 0.10),
+        blurRadius: 40,
+        offset: const Offset(0, 14),
+        spreadRadius: 1,
       ),
     ];
   }

@@ -18,13 +18,24 @@ void main() {
   test('.gitkeep existe apenas em diretórios sem implementação', () {
     for (final path in _requiredEmptyDirectories()) {
       final entries = Directory(path).listSync();
-
-      expect(entries, hasLength(1), reason: 'Marcador inválido em $path');
-      expect(
-        normalizeProjectPath(entries.single.path),
-        endsWith('/.gitkeep'),
-        reason: 'Diretório vazio sem .gitkeep: $path',
+      final hasImplementation = entries.any(
+        (entry) => entry is File && entry.path.endsWith('.dart'),
       );
+
+      if (hasImplementation) {
+        expect(
+          File('$path/.gitkeep').existsSync(),
+          isFalse,
+          reason: 'Diretório com código ainda contém .gitkeep: $path',
+        );
+      } else {
+        expect(entries, hasLength(1), reason: 'Marcador inválido em $path');
+        expect(
+          normalizeProjectPath(entries.single.path),
+          endsWith('/.gitkeep'),
+          reason: 'Diretório vazio sem .gitkeep: $path',
+        );
+      }
     }
 
     for (final path in _implementedDirectories) {

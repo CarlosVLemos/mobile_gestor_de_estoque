@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'app_colors.dart';
 import 'app_radius.dart';
 import 'app_shadows.dart';
 import 'app_theme_context.dart';
@@ -71,10 +72,45 @@ abstract final class AppDecorations {
     );
   }
 
-  static BoxDecoration tonalBadge(
-    BuildContext context,
-    AppStatusTone tone,
-  ) {
+  static BoxDecoration glassSurface(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.colors;
+
+    return BoxDecoration(
+      color: colors.surface.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.72 : 0.88,
+      ),
+      borderRadius: AppRadius.heroBorder,
+      border: Border.all(
+        color: theme.brightness == Brightness.dark
+            ? colors.onSurface.withValues(alpha: 0.08)
+            : AppColors.white.withValues(alpha: 0.72),
+      ),
+      boxShadow: AppShadows.floating(theme.brightness),
+    );
+  }
+
+  /// Variante de vidro sem borderRadius, para uso em barras de navegação
+  /// que são recortadas pelo container pai com [ClipRRect].
+  static BoxDecoration glassSurfaceBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = context.colors;
+
+    return BoxDecoration(
+      color: colors.surface.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.72 : 0.88,
+      ),
+      border: Border(
+        top: BorderSide(
+          color: theme.brightness == Brightness.dark
+              ? colors.onSurface.withValues(alpha: 0.08)
+              : AppColors.white.withValues(alpha: 0.72),
+        ),
+      ),
+    );
+  }
+
+  static BoxDecoration tonalBadge(BuildContext context, AppStatusTone tone) {
     final colors = context.colors;
     final tokens = context.appColors;
 
@@ -87,10 +123,7 @@ abstract final class AppDecorations {
         tokens.warningContainer,
         tokens.onWarningContainer,
       ),
-      AppStatusTone.error => (
-        colors.errorContainer,
-        colors.onErrorContainer,
-      ),
+      AppStatusTone.error => (colors.errorContainer, colors.onErrorContainer),
       AppStatusTone.restricted => (tokens.restricted, tokens.onRestricted),
     };
 

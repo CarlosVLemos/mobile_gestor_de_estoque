@@ -87,7 +87,9 @@ abstract final class AppTheme {
         labelStyle: textTheme.bodyMedium?.copyWith(
           color: tokens.onSurfaceMuted,
         ),
-        helperStyle: textTheme.bodySmall?.copyWith(color: tokens.onSurfaceMuted),
+        helperStyle: textTheme.bodySmall?.copyWith(
+          color: tokens.onSurfaceMuted,
+        ),
         errorStyle: textTheme.bodySmall?.copyWith(color: colorScheme.error),
         prefixIconColor: tokens.onSurfaceMuted,
         suffixIconColor: tokens.onSurfaceMuted,
@@ -111,7 +113,7 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: ButtonStyle(
           minimumSize: const WidgetStatePropertyAll(
-            Size.fromHeight(AppSizes.buttonHeight),
+            Size(0, AppSizes.buttonHeight),
           ),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -138,7 +140,7 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: ButtonStyle(
           minimumSize: const WidgetStatePropertyAll(
-            Size.fromHeight(AppSizes.buttonHeight),
+            Size(0, AppSizes.buttonHeight),
           ),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -149,7 +151,9 @@ abstract final class AppTheme {
           textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
           side: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) {
-              return BorderSide(color: tokens.borderSubtle.withValues(alpha: 0.5));
+              return BorderSide(
+                color: tokens.borderSubtle.withValues(alpha: 0.5),
+              );
             }
             return BorderSide(color: tokens.borderSubtle);
           }),
@@ -170,10 +174,13 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
           minimumSize: const WidgetStatePropertyAll(
-            Size.fromHeight(AppSizes.buttonHeight),
+            Size(0, AppSizes.buttonHeight),
           ),
           padding: const WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
           ),
           textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
@@ -259,16 +266,17 @@ abstract final class AppTheme {
           );
         }),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        showDragHandle: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: AppRadius.radiusHero),
-        ),
-      ).copyWith(
-        backgroundColor: colorScheme.surfaceContainerLow,
-        surfaceTintColor: Colors.transparent,
-        modalBackgroundColor: colorScheme.surfaceContainerLow,
-      ),
+      bottomSheetTheme:
+          const BottomSheetThemeData(
+            showDragHandle: true,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: AppRadius.radiusHero),
+            ),
+          ).copyWith(
+            backgroundColor: colorScheme.surfaceContainerLow,
+            surfaceTintColor: Colors.transparent,
+            modalBackgroundColor: colorScheme.surfaceContainerLow,
+          ),
       dialogTheme: DialogThemeData(
         backgroundColor: colorScheme.surfaceContainerLow,
         surfaceTintColor: Colors.transparent,
@@ -419,11 +427,16 @@ abstract final class AppTheme {
     chart3: AppColors.chart3Light,
     chart4: AppColors.chart4Light,
     chart5: AppColors.chart5Light,
-    atmosphericGradient: RadialGradient(
-      center: Alignment.topLeft,
-      radius: 1.45,
-      colors: [Color(0xFFFFFFFF), Color(0xFFF3F7FC), Color(0xFFF8FAFC)],
-      stops: [0.0, 0.44, 1.0],
+    atmosphericGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0xFFE8F0FE),
+        Color(0xFFF3F7FC),
+        Color(0xFFF8FAFC),
+        Color(0xFFFFFBF0),
+      ],
+      stops: [0.0, 0.35, 0.7, 1.0],
     ),
     heroGradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -464,11 +477,16 @@ abstract final class AppTheme {
     chart3: AppColors.chart3Dark,
     chart4: AppColors.chart4Dark,
     chart5: AppColors.chart5Dark,
-    atmosphericGradient: RadialGradient(
-      center: Alignment.topLeft,
-      radius: 1.55,
-      colors: [Color(0xFF13243A), Color(0xFF0A1627), Color(0xFF07111F)],
-      stops: [0.0, 0.45, 1.0],
+    atmosphericGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0xFF152A45),
+        Color(0xFF0D1E33),
+        Color(0xFF091623),
+        Color(0xFF0B1520),
+      ],
+      stops: [0.0, 0.35, 0.7, 1.0],
     ),
     heroGradient: LinearGradient(
       begin: Alignment.topLeft,

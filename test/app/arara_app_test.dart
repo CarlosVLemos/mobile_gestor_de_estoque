@@ -20,18 +20,24 @@ void main() {
   });
 
   for (final brightness in [Brightness.light, Brightness.dark]) {
-    testWidgets('inicia na tela transitoria em ${brightness.name}', (
+    testWidgets('parte de startup e entra na shell em ${brightness.name}', (
       tester,
     ) async {
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
       await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+      await tester.pump();
+
+      expect(find.text(AppStrings.startupTitle), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 350));
       await tester.pumpAndSettle();
 
-      expect(find.text(AppStrings.appName), findsOneWidget);
-      expect(find.text(AppStrings.startupTitle), findsOneWidget);
-      expect(find.text(AppStrings.startupMessage), findsOneWidget);
+      expect(find.text(AppStrings.shellDashboard), findsOneWidget);
+      expect(find.text(AppStrings.shellProducts), findsOneWidget);
+      expect(find.text(AppStrings.shellMore), findsOneWidget);
+      expect(find.textContaining('Operação de'), findsOneWidget);
       expect(find.byType(Scaffold), findsOneWidget);
 
       final context = tester.element(find.byType(Scaffold));
@@ -51,7 +57,7 @@ void main() {
 
   for (final size in [const Size(360, 800), const Size(390, 844)]) {
     testWidgets(
-      'StartupPage permanece utilizavel em ${size.width.toInt()}x${size.height.toInt()}',
+      'shell operacional permanece utilizavel em ${size.width.toInt()}x${size.height.toInt()}',
       (tester) async {
         tester.view.physicalSize = size;
         tester.view.devicePixelRatio = 1;
@@ -59,11 +65,13 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+        await tester.pump(const Duration(milliseconds: 350));
         await tester.pumpAndSettle();
 
         expect(tester.takeException(), isNull);
-        expect(find.text(AppStrings.appName), findsOneWidget);
-        expect(find.textContaining('Tema global pronto'), findsOneWidget);
+        expect(find.text(AppStrings.shellDashboard), findsOneWidget);
+        expect(find.text(AppStrings.shellProducts), findsOneWidget);
+        expect(find.text(AppStrings.shellMore), findsOneWidget);
 
         final constrainedBoxes = tester
             .widgetList<ConstrainedBox>(find.byType(ConstrainedBox))

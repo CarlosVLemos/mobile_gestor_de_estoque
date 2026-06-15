@@ -139,37 +139,58 @@ class AppColorTokens extends ThemeExtension<AppColorTokens> {
       onSurfaceMuted: Color.lerp(onSurfaceMuted, other.onSurfaceMuted, t)!,
       success: Color.lerp(success, other.success, t)!,
       onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
-      successContainer:
-          Color.lerp(successContainer, other.successContainer, t)!,
-      onSuccessContainer:
-          Color.lerp(onSuccessContainer, other.onSuccessContainer, t)!,
+      successContainer: Color.lerp(
+        successContainer,
+        other.successContainer,
+        t,
+      )!,
+      onSuccessContainer: Color.lerp(
+        onSuccessContainer,
+        other.onSuccessContainer,
+        t,
+      )!,
       warning: Color.lerp(warning, other.warning, t)!,
       onWarning: Color.lerp(onWarning, other.onWarning, t)!,
-      warningContainer:
-          Color.lerp(warningContainer, other.warningContainer, t)!,
-      onWarningContainer:
-          Color.lerp(onWarningContainer, other.onWarningContainer, t)!,
+      warningContainer: Color.lerp(
+        warningContainer,
+        other.warningContainer,
+        t,
+      )!,
+      onWarningContainer: Color.lerp(
+        onWarningContainer,
+        other.onWarningContainer,
+        t,
+      )!,
       restricted: Color.lerp(restricted, other.restricted, t)!,
       onRestricted: Color.lerp(onRestricted, other.onRestricted, t)!,
       borderSubtle: Color.lerp(borderSubtle, other.borderSubtle, t)!,
       focusRing: Color.lerp(focusRing, other.focusRing, t)!,
-      sidebarOperational:
-          Color.lerp(sidebarOperational, other.sidebarOperational, t)!,
+      sidebarOperational: Color.lerp(
+        sidebarOperational,
+        other.sidebarOperational,
+        t,
+      )!,
       sidebarOperationalForeground: Color.lerp(
         sidebarOperationalForeground,
         other.sidebarOperationalForeground,
         t,
       )!,
       sidebarAdmin: Color.lerp(sidebarAdmin, other.sidebarAdmin, t)!,
-      sidebarAdminAccent:
-          Color.lerp(sidebarAdminAccent, other.sidebarAdminAccent, t)!,
+      sidebarAdminAccent: Color.lerp(
+        sidebarAdminAccent,
+        other.sidebarAdminAccent,
+        t,
+      )!,
       chart1: Color.lerp(chart1, other.chart1, t)!,
       chart2: Color.lerp(chart2, other.chart2, t)!,
       chart3: Color.lerp(chart3, other.chart3, t)!,
       chart4: Color.lerp(chart4, other.chart4, t)!,
       chart5: Color.lerp(chart5, other.chart5, t)!,
-      atmosphericGradient:
-          Gradient.lerp(atmosphericGradient, other.atmosphericGradient, t)!,
+      atmosphericGradient: Gradient.lerp(
+        atmosphericGradient,
+        other.atmosphericGradient,
+        t,
+      )!,
       heroGradient: Gradient.lerp(heroGradient, other.heroGradient, t)!,
       authGradient: Gradient.lerp(authGradient, other.authGradient, t)!,
     );
