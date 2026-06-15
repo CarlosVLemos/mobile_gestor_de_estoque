@@ -1,0 +1,562 @@
+.
+├── AGENTS.md
+├── README.md
+├── analysis_options.yaml
+├── android
+│   ├── app
+│   │   ├── build.gradle.kts
+│   │   └── src
+│   │       ├── debug
+│   │       │   └── AndroidManifest.xml
+│   │       ├── main
+│   │       │   ├── AndroidManifest.xml
+│   │       │   ├── java
+│   │       │   │   └── io
+│   │       │   │       └── flutter
+│   │       │   │           └── plugins
+│   │       │   │               └── GeneratedPluginRegistrant.java
+│   │       │   ├── kotlin
+│   │       │   │   └── com
+│   │       │   │       └── example
+│   │       │   │           └── gestor_de_estoque
+│   │       │   │               └── MainActivity.kt
+│   │       │   └── res
+│   │       │       ├── drawable
+│   │       │       │   └── launch_background.xml
+│   │       │       ├── drawable-v21
+│   │       │       │   └── launch_background.xml
+│   │       │       ├── mipmap-hdpi
+│   │       │       │   └── ic_launcher.png
+│   │       │       ├── mipmap-mdpi
+│   │       │       │   └── ic_launcher.png
+│   │       │       ├── mipmap-xhdpi
+│   │       │       │   └── ic_launcher.png
+│   │       │       ├── mipmap-xxhdpi
+│   │       │       │   └── ic_launcher.png
+│   │       │       ├── mipmap-xxxhdpi
+│   │       │       │   └── ic_launcher.png
+│   │       │       ├── values
+│   │       │       │   └── styles.xml
+│   │       │       └── values-night
+│   │       │           └── styles.xml
+│   │       └── profile
+│   │           └── AndroidManifest.xml
+│   ├── build.gradle.kts
+│   ├── gestor_de_estoque_android.iml
+│   ├── gradle
+│   │   └── wrapper
+│   │       ├── gradle-wrapper.jar
+│   │       └── gradle-wrapper.properties
+│   ├── gradle.properties
+│   ├── gradlew
+│   ├── gradlew.bat
+│   ├── local.properties
+│   └── settings.gradle.kts
+├── arquitetura.md
+├── build
+│   ├── 0ea6338a9744699c4765127c07d5f7ae.cache.dill.track.dill
+│   ├── d39698180d00b6ce8ae56087fb1ba337
+│   │   ├── _composite.stamp
+│   │   ├── gen_dart_plugin_registrant.stamp
+│   │   └── gen_localizations.stamp
+│   ├── flutter_assets
+│   │   ├── AssetManifest.bin
+│   │   ├── AssetManifest.bin.json
+│   │   ├── FontManifest.json
+│   │   ├── NOTICES
+│   │   ├── fonts
+│   │   │   └── MaterialIcons-Regular.otf
+│   │   └── shaders
+│   │       ├── ink_sparkle.frag
+│   │       └── stretch_effect.frag
+│   ├── native_assets
+│   │   └── windows
+│   │       └── native_assets.json
+│   ├── test_cache
+│   │   └── build
+│   │       └── 0ea6338a9744699c4765127c07d5f7ae.cache.dill.track.dill
+│   └── unit_test_assets
+│       ├── AssetManifest.bin
+│       ├── FontManifest.json
+│       ├── NOTICES.Z
+│       ├── NativeAssetsManifest.json
+│       ├── fonts
+│       │   └── MaterialIcons-Regular.otf
+│       └── shaders
+│           ├── ink_sparkle.frag
+│           └── stretch_effect.frag
+├── docs
+│   └── specs
+│       ├── 001-fundacao-arquitetural
+│       │   ├── review.md
+│       │   ├── spec.md
+│       │   ├── tasks.md
+│       │   └── test.md
+│       ├── 002-tema-global
+│       │   ├── review.md
+│       │   ├── spec.md
+│       │   ├── tasks.md
+│       │   └── test.md
+│       ├── 003-interface-operacional-inicial
+│       │   ├── components.md
+│       │   ├── review.md
+│       │   ├── spec.md
+│       │   ├── tasks.md
+│       │   └── test.md
+│       └── Img
+│           ├── Indicadores.png
+│           ├── Produitos.png
+│           ├── Vendas.png
+│           └── low_bar.png
+├── gestor_de_estoque.iml
+├── ios
+│   ├── Flutter
+│   │   ├── AppFrameworkInfo.plist
+│   │   ├── Debug.xcconfig
+│   │   ├── Generated.xcconfig
+│   │   ├── Release.xcconfig
+│   │   ├── ephemeral
+│   │   │   ├── Packages
+│   │   │   │   └── FlutterGeneratedPluginSwiftPackage
+│   │   │   │       ├── Package.swift
+│   │   │   │       └── Sources
+│   │   │   │           └── FlutterGeneratedPluginSwiftPackage
+│   │   │   │               └── FlutterGeneratedPluginSwiftPackage.swift
+│   │   │   ├── flutter_lldb_helper.py
+│   │   │   ├── flutter_lldbinit
+│   │   │   └── flutter_native_integration.env
+│   │   └── flutter_export_environment.sh
+│   ├── Runner
+│   │   ├── AppDelegate.swift
+│   │   ├── Assets.xcassets
+│   │   │   ├── AppIcon.appiconset
+│   │   │   │   ├── Contents.json
+│   │   │   │   ├── Icon-App-1024x1024@1x.png
+│   │   │   │   ├── Icon-App-20x20@1x.png
+│   │   │   │   ├── Icon-App-20x20@2x.png
+│   │   │   │   ├── Icon-App-20x20@3x.png
+│   │   │   │   ├── Icon-App-29x29@1x.png
+│   │   │   │   ├── Icon-App-29x29@2x.png
+│   │   │   │   ├── Icon-App-29x29@3x.png
+│   │   │   │   ├── Icon-App-40x40@1x.png
+│   │   │   │   ├── Icon-App-40x40@2x.png
+│   │   │   │   ├── Icon-App-40x40@3x.png
+│   │   │   │   ├── Icon-App-60x60@2x.png
+│   │   │   │   ├── Icon-App-60x60@3x.png
+│   │   │   │   ├── Icon-App-76x76@1x.png
+│   │   │   │   ├── Icon-App-76x76@2x.png
+│   │   │   │   └── Icon-App-83.5x83.5@2x.png
+│   │   │   └── LaunchImage.imageset
+│   │   │       ├── Contents.json
+│   │   │       ├── LaunchImage.png
+│   │   │       ├── LaunchImage@2x.png
+│   │   │       ├── LaunchImage@3x.png
+│   │   │       └── README.md
+│   │   ├── Base.lproj
+│   │   │   ├── LaunchScreen.storyboard
+│   │   │   └── Main.storyboard
+│   │   ├── GeneratedPluginRegistrant.h
+│   │   ├── GeneratedPluginRegistrant.m
+│   │   ├── Info.plist
+│   │   ├── Runner-Bridging-Header.h
+│   │   └── SceneDelegate.swift
+│   ├── Runner.xcodeproj
+│   │   ├── project.pbxproj
+│   │   ├── project.xcworkspace
+│   │   │   ├── contents.xcworkspacedata
+│   │   │   └── xcshareddata
+│   │   │       ├── IDEWorkspaceChecks.plist
+│   │   │       └── WorkspaceSettings.xcsettings
+│   │   └── xcshareddata
+│   │       └── xcschemes
+│   │           └── Runner.xcscheme
+│   ├── Runner.xcworkspace
+│   │   ├── contents.xcworkspacedata
+│   │   └── xcshareddata
+│   │       ├── IDEWorkspaceChecks.plist
+│   │       └── WorkspaceSettings.xcsettings
+│   └── RunnerTests
+│       └── RunnerTests.swift
+├── lib
+│   ├── app
+│   │   ├── arara_app.dart
+│   │   ├── localization
+│   │   │   └── app_strings.dart
+│   │   ├── router
+│   │   │   ├── app_router.dart
+│   │   │   └── app_routes.dart
+│   │   ├── startup
+│   │   │   ├── startup_controller.dart
+│   │   │   └── startup_page.dart
+│   │   └── theme
+│   │       ├── app_color_tokens.dart
+│   │       ├── app_colors.dart
+│   │       ├── app_decorations.dart
+│   │       ├── app_icons.dart
+│   │       ├── app_radius.dart
+│   │       ├── app_shadows.dart
+│   │       ├── app_sizes.dart
+│   │       ├── app_spacing.dart
+│   │       ├── app_theme.dart
+│   │       ├── app_theme_context.dart
+│   │       └── app_typography.dart
+│   ├── bootstrap.dart
+│   ├── core
+│   │   ├── auth
+│   │   ├── background
+│   │   ├── config
+│   │   │   └── fixture_access_profile.dart
+│   │   ├── database
+│   │   ├── errors
+│   │   ├── images
+│   │   ├── logging
+│   │   ├── network
+│   │   ├── result
+│   │   ├── security
+│   │   └── sync
+│   ├── features
+│   │   ├── auth
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   └── value_objects
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       ├── pages
+│   │   │       ├── state
+│   │   │       └── widgets
+│   │   ├── catalog
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   │       └── load_catalog_use_case.dart
+│   │   │   ├── catalog_providers.dart
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   │   └── catalog_fixture.dart
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   │       └── fixture_catalog_repository.dart
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   │   └── catalog_product.dart
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   │   └── catalog_repository.dart
+│   │   │   │   └── value_objects
+│   │   │   │       └── catalog_query.dart
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       │   └── catalog_controller.dart
+│   │   │       ├── pages
+│   │   │       │   └── catalog_page.dart
+│   │   │       ├── state
+│   │   │       │   └── catalog_state.dart
+│   │   │       └── widgets
+│   │   │           └── catalog_filter_bar.dart
+│   │   ├── clients
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   └── value_objects
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       ├── pages
+│   │   │       ├── state
+│   │   │       └── widgets
+│   │   ├── dashboard
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   │       └── load_dashboard_use_case.dart
+│   │   │   ├── dashboard_providers.dart
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   │   └── dashboard_fixture.dart
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   │       └── fixture_dashboard_repository.dart
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   │   └── dashboard_overview.dart
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   │   └── dashboard_repository.dart
+│   │   │   │   └── value_objects
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       │   └── dashboard_controller.dart
+│   │   │       ├── pages
+│   │   │       │   └── dashboard_page.dart
+│   │   │       ├── state
+│   │   │       │   └── dashboard_state.dart
+│   │   │       └── widgets
+│   │   ├── inventory
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   └── value_objects
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       ├── pages
+│   │   │       ├── state
+│   │   │       └── widgets
+│   │   ├── reports
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   └── value_objects
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       ├── pages
+│   │   │       ├── state
+│   │   │       └── widgets
+│   │   ├── sales
+│   │   │   ├── application
+│   │   │   │   ├── services
+│   │   │   │   └── use_cases
+│   │   │   ├── data
+│   │   │   │   ├── dto
+│   │   │   │   ├── local
+│   │   │   │   ├── mappers
+│   │   │   │   ├── remote
+│   │   │   │   └── repositories
+│   │   │   ├── domain
+│   │   │   │   ├── entities
+│   │   │   │   ├── failures
+│   │   │   │   ├── repositories
+│   │   │   │   └── value_objects
+│   │   │   └── presentation
+│   │   │       ├── controllers
+│   │   │       ├── pages
+│   │   │       ├── state
+│   │   │       └── widgets
+│   │   └── settings
+│   │       ├── application
+│   │       │   ├── services
+│   │       │   └── use_cases
+│   │       │       └── get_operational_context_use_case.dart
+│   │       ├── data
+│   │       │   ├── dto
+│   │       │   ├── local
+│   │       │   │   └── operational_context_fixture.dart
+│   │       │   ├── mappers
+│   │       │   ├── remote
+│   │       │   └── repositories
+│   │       │       └── fixture_operational_context_repository.dart
+│   │       ├── domain
+│   │       │   ├── entities
+│   │       │   │   └── operational_context.dart
+│   │       │   ├── failures
+│   │       │   ├── repositories
+│   │       │   │   └── operational_context_repository.dart
+│   │       │   └── value_objects
+│   │       ├── presentation
+│   │       │   ├── controllers
+│   │       │   │   └── operational_context_controller.dart
+│   │       │   ├── pages
+│   │       │   │   ├── more_page.dart
+│   │       │   │   └── operational_context_page.dart
+│   │       │   ├── state
+│   │       │   │   └── operational_context_state.dart
+│   │       │   └── widgets
+│   │       │       └── module_status_tile.dart
+│   │       └── settings_providers.dart
+│   ├── main.dart
+│   └── shared
+│       ├── formatters
+│       │   ├── app_currency_formatter.dart
+│       │   ├── app_date_formatter.dart
+│       │   └── app_stock_formatter.dart
+│       ├── ui_states
+│       │   └── view_status.dart
+│       ├── validators
+│       └── widgets
+│           ├── app_bottom_navigation.dart
+│           ├── app_shell_scaffold.dart
+│           ├── empty_state_card.dart
+│           ├── failure_state_card.dart
+│           ├── feature_pill.dart
+│           ├── kpi_card.dart
+│           ├── movement_list_item.dart
+│           ├── offline_state_banner.dart
+│           ├── operational_page_header.dart
+│           ├── permission_list_tile.dart
+│           ├── product_card.dart
+│           ├── restricted_info_card.dart
+│           ├── section_header.dart
+│           ├── status_badge.dart
+│           └── tenant_context_card.dart
+├── linux
+│   ├── CMakeLists.txt
+│   ├── flutter
+│   │   ├── CMakeLists.txt
+│   │   ├── generated_plugin_registrant.cc
+│   │   ├── generated_plugin_registrant.h
+│   │   └── generated_plugins.cmake
+│   └── runner
+│       ├── CMakeLists.txt
+│       ├── main.cc
+│       ├── my_application.cc
+│       └── my_application.h
+├── macos
+│   ├── Flutter
+│   │   ├── Flutter-Debug.xcconfig
+│   │   ├── Flutter-Release.xcconfig
+│   │   ├── GeneratedPluginRegistrant.swift
+│   │   └── ephemeral
+│   │       ├── Flutter-Generated.xcconfig
+│   │       ├── Packages
+│   │       │   └── FlutterGeneratedPluginSwiftPackage
+│   │       │       ├── Package.swift
+│   │       │       └── Sources
+│   │       │           └── FlutterGeneratedPluginSwiftPackage
+│   │       │               └── FlutterGeneratedPluginSwiftPackage.swift
+│   │       ├── flutter_export_environment.sh
+│   │       └── flutter_native_integration.env
+│   ├── Runner
+│   │   ├── AppDelegate.swift
+│   │   ├── Assets.xcassets
+│   │   │   └── AppIcon.appiconset
+│   │   │       ├── Contents.json
+│   │   │       ├── app_icon_1024.png
+│   │   │       ├── app_icon_128.png
+│   │   │       ├── app_icon_16.png
+│   │   │       ├── app_icon_256.png
+│   │   │       ├── app_icon_32.png
+│   │   │       ├── app_icon_512.png
+│   │   │       └── app_icon_64.png
+│   │   ├── Base.lproj
+│   │   │   └── MainMenu.xib
+│   │   ├── Configs
+│   │   │   ├── AppInfo.xcconfig
+│   │   │   ├── Debug.xcconfig
+│   │   │   ├── Release.xcconfig
+│   │   │   └── Warnings.xcconfig
+│   │   ├── DebugProfile.entitlements
+│   │   ├── Info.plist
+│   │   ├── MainFlutterWindow.swift
+│   │   └── Release.entitlements
+│   ├── Runner.xcodeproj
+│   │   ├── project.pbxproj
+│   │   ├── project.xcworkspace
+│   │   │   └── xcshareddata
+│   │   │       └── IDEWorkspaceChecks.plist
+│   │   └── xcshareddata
+│   │       └── xcschemes
+│   │           └── Runner.xcscheme
+│   ├── Runner.xcworkspace
+│   │   ├── contents.xcworkspacedata
+│   │   └── xcshareddata
+│   │       └── IDEWorkspaceChecks.plist
+│   └── RunnerTests
+│       └── RunnerTests.swift
+├── para mobile
+│   ├── 00-contexto-operacional.md
+│   ├── 01-visao-geral-mobile.md
+│   ├── 02-definicoes-de-interface.md
+│   ├── 03-endpoints-mobile.md
+│   ├── 04-regras-e-necessidades-mobile.md
+│   ├── 05-arquitetura-mobile.md
+│   ├── 06-registro-decisoes.md
+│   ├── 07-uso-de-mcps.md
+│   ├── 08-processo-de-trabalho.md
+│   ├── AGENTS.md
+│   ├── README.md
+│   └── designmobile.md
+├── pubspec.lock
+├── pubspec.yaml
+├── test
+│   ├── app
+│   │   └── arara_app_test.dart
+│   ├── architecture
+│   │   ├── architecture_validator.dart
+│   │   ├── layer_boundaries_test.dart
+│   │   └── project_structure_test.dart
+│   ├── features
+│   │   ├── catalog
+│   │   │   └── catalog_page_test.dart
+│   │   ├── dashboard
+│   │   │   └── dashboard_page_test.dart
+│   │   └── settings
+│   │       └── operational_context_page_test.dart
+│   └── theme
+│       ├── app_theme_context_test.dart
+│       └── app_theme_test.dart
+├── tree.txt
+├── web
+│   ├── favicon.png
+│   ├── icons
+│   │   ├── Icon-192.png
+│   │   ├── Icon-512.png
+│   │   ├── Icon-maskable-192.png
+│   │   └── Icon-maskable-512.png
+│   ├── index.html
+│   └── manifest.json
+└── windows
+    ├── CMakeLists.txt
+    ├── flutter
+    │   ├── CMakeLists.txt
+    │   ├── generated_plugin_registrant.cc
+    │   ├── generated_plugin_registrant.h
+    │   └── generated_plugins.cmake
+    └── runner
+        ├── CMakeLists.txt
+        ├── Runner.rc
+        ├── flutter_window.cpp
+        ├── flutter_window.h
+        ├── main.cpp
+        ├── resource.h
+        ├── resources
+        │   └── app_icon.ico
+        ├── runner.exe.manifest
+        ├── utils.cpp
+        ├── utils.h
+        ├── win32_window.cpp
+        └── win32_window.h
+
+287 directories, 273 files

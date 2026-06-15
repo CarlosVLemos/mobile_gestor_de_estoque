@@ -2,11 +2,7 @@
 
 ## Status
 
-Proposta em 11 de junho de 2026.
-
-Esta spec ainda nao foi implementada. O status deve mudar para `Implementada`
-somente depois da conclusao das tarefas, dos testes e do fechamento em
-`review.md`.
+Implementada em 11 de junho de 2026.
 
 ## Classificacao
 
