@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_decorations.dart';
+import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_theme_context.dart';
 import 'status_badge.dart';
+
+enum KpiTone { neutral, positive, warning, critical, restricted }
 
 class KpiCard extends StatelessWidget {
   const KpiCard({
@@ -11,71 +14,101 @@ class KpiCard extends StatelessWidget {
     required this.label,
     required this.value,
     this.subtitle,
-    this.restrictedLabel,
-    this.highlight = false,
+    this.tone = KpiTone.neutral,
   });
 
   final String label;
   final String? value;
   final String? subtitle;
-  final String? restrictedLabel;
-  final bool highlight;
+  final KpiTone tone;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.appColors;
-    final textColor = highlight
-        ? tokens.onSurfaceHero
-        : context.colors.onSurface;
 
-    return DecoratedBox(
-      decoration: highlight
-          ? AppDecorations.hero(context)
-          : AppDecorations.card(context),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final (
+      backgroundColor,
+      textColor,
+      valueColor,
+      subtitleColor,
+      borderColor,
+    ) = switch (tone) {
+      KpiTone.neutral => (
+        context.colors.surfaceContainerLow,
+        tokens.onSurfaceMuted,
+        context.colors.onSurface,
+        tokens.onSurfaceMuted,
+        tokens.borderSubtle,
+      ),
+      KpiTone.positive => (
+        tokens.successContainer,
+        tokens.onSuccessContainer,
+        tokens.onSuccessContainer,
+        tokens.onSuccessContainer.withValues(alpha: 0.8),
+        tokens.successContainer,
+      ),
+      KpiTone.warning => (
+        tokens.warningContainer,
+        tokens.onWarningContainer,
+        tokens.onWarningContainer,
+        tokens.onWarningContainer.withValues(alpha: 0.8),
+        tokens.warningContainer,
+      ),
+      KpiTone.critical => (
+        context.colors.errorContainer,
+        context.colors.onErrorContainer,
+        context.colors.onErrorContainer,
+        context.colors.onErrorContainer.withValues(alpha: 0.8),
+        context.colors.errorContainer,
+      ),
+      KpiTone.restricted => (
+        tokens.restricted,
+        tokens.onRestricted,
+        tokens.onRestricted,
+        tokens.onRestricted.withValues(alpha: 0.8),
+        tokens.restricted,
+      ),
+    };
+
+    return Container(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: const BorderRadius.all(AppRadius.radiusXl),
+        border: Border.all(color: borderColor),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: context.textTheme.labelMedium?.copyWith(color: textColor),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (tone == KpiTone.restricted || value == null)
+            const StatusBadge(
+              label: 'Financeiro restrito',
+              tone: AppStatusTone.restricted,
+            )
+          else
             Text(
-              label.toUpperCase(),
-              style: context.textTheme.labelMedium?.copyWith(
-                color: highlight ? tokens.onSurfaceHero : tokens.onSurfaceMuted,
+              value!,
+              style: context.textTheme.headlineSmall?.copyWith(
+                color: valueColor,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            if (value != null)
-              Text(
-                value!,
-                style: context.textTheme.headlineSmall?.copyWith(
-                  color: textColor,
-                ),
-              )
-            else
-              const StatusBadge(
-                label: 'Financeiro restrito',
-                tone: AppStatusTone.restricted,
+          if (subtitle != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              subtitle!,
+              style: context.textTheme.bodySmall?.copyWith(
+                color: subtitleColor,
               ),
-            if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                subtitle!,
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: highlight
-                      ? tokens.sidebarOperationalForeground
-                      : tokens.onSurfaceMuted,
-                ),
-              ),
-            ],
-            if (restrictedLabel != null && value != null) ...[
-              const SizedBox(height: AppSpacing.md),
-              StatusBadge(
-                label: restrictedLabel!,
-                tone: AppStatusTone.restricted,
-              ),
-            ],
+            ),
           ],
-        ),
+        ],
       ),
     );
   }

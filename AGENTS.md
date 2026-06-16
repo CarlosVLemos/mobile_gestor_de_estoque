@@ -52,6 +52,16 @@ estivesse implementado.
 - Não inventar campos ou endpoints ausentes.
 - Não alterar decisões aceitas silenciosamente; registrar a mudança primeiro.
 
+## Erros de interface que não podem voltar
+
+- Não recriar overflow horizontal em componentes mobile, especialmente em cards de catálogo.
+- Houve um erro real em `lib/shared/widgets/product_card.dart`: um `Row` estourou `12 px` à direita no celular porque `coreContent` e `infoContent` tentaram coexistir na mesma linha sem reflow suficiente para larguras compactas.
+- Em Flutter, `Row` com texto, badges, preço e metadados não pode assumir largura de desktop ou web. Sempre prever telas estreitas e textos maiores.
+- Quando houver conteúdo principal e trailing no mesmo eixo horizontal, o bloco que pode encolher deve usar `Expanded` ou `Flexible`, e o trailing deve respeitar limite de largura ou quebrar para baixo.
+- Textos variáveis devem usar `maxLines` e `TextOverflow.ellipsis` quando a perda controlada de conteúdo for aceitável.
+- Se nome, SKU, marca, badges e preço disputarem espaço, prefira reflow vertical em largura compacta em vez de forçar tudo na mesma linha.
+- Mudanças em cards, listas e barras horizontais devem ser validadas pelo menos em largura mobile compacta e com `textScaler` alto, para evitar novos `RenderFlex overflowed by ... pixels`.
+
 ## Qualidade
 
 Toda alteração deve executar o menor conjunto relevante:

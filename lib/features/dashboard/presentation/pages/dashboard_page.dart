@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_decorations.dart';
-import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
+import '../../../../shared/widgets/dashboard_hero.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/interactive_feedback.dart';
 import '../../../../shared/widgets/kpi_card.dart';
+import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
-import '../../../../shared/widgets/operational_page_header.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
@@ -31,78 +31,33 @@ class DashboardPage extends ConsumerWidget {
     final state = ref.watch(dashboardControllerProvider);
     final controller = ref.read(dashboardControllerProvider.notifier);
 
-    return RefreshIndicator(
-      onRefresh: controller.refresh,
-      child: ListView(
-        padding: AppSpacing.screenPadding,
-        children: [
-          OperationalPageHeader(
-            eyebrow: 'PAINEL OPERACIONAL',
-            title: state.overview?.headerTitle ?? 'Painel operacional',
-            description:
-                state.overview?.headerMessage ??
-                'Preparando o resumo operacional do tenant.',
-            icon: AppIcons.insights,
-            tone: OperationalPageHeaderTone.dark,
-            action: OutlinedButton.icon(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                foregroundColor: context.appColors.onSurfaceHero,
-                side: BorderSide(
-                  color: context.appColors.onSurfaceHero.withValues(
-                    alpha: 0.16,
-                  ),
-                ),
-                backgroundColor: context.colors.surface.withValues(alpha: 0.08),
-              ),
-              icon: const Icon(AppIcons.openInNew),
-              label: const Text('Abrir web'),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: const OperationalTopBar(title: 'Painel'),
+      body: RefreshIndicator(
+        onRefresh: controller.refresh,
+        child: ListView(
+          padding: AppSpacing.screenPadding,
+          children: [
+            DashboardHero(
+              title: state.overview?.headerTitle ?? 'Painel operacional',
+              message:
+                  state.overview?.headerMessage ??
+                  'Preparando o resumo operacional do tenant.',
+              updatedAtLabel: state.overview?.updatedAtLabel ?? 'Carregando...',
+              financialAccess: state.overview?.canViewFinancial ?? false,
             ),
-            tags: [
-              if (state.overview?.updatedAtLabel case final updatedAtLabel?)
-                OperationalHeaderTag(
-                  label: updatedAtLabel,
-                  tone: AppStatusTone.restricted,
-                ),
-              const OperationalHeaderTag(
-                label: 'Bootstrap local',
-                tone: AppStatusTone.restricted,
-              ),
-              OperationalHeaderTag(
-                label: state.overview?.canViewFinancial ?? false
-                    ? 'Financeiro liberado'
-                    : 'Financeiro protegido',
-                tone: state.overview?.canViewFinancial ?? false
-                    ? AppStatusTone.success
-                    : AppStatusTone.warning,
-              ),
-            ],
-            metrics: [
-              OperationalHeaderMetric(
-                label: 'Alertas',
-                value: state.overview == null
-                    ? 'Carregando'
-                    : '${state.overview!.lowStockAlerts.length} pontos',
-                icon: AppIcons.warning,
-              ),
-              OperationalHeaderMetric(
-                label: 'Movimentos',
-                value: state.overview == null
-                    ? 'Aguardando'
-                    : '${state.overview!.recentMovements.length} recentes',
-                icon: AppIcons.schedule,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sectionGap),
-          if (state.status == ViewStatus.offline && state.message != null) ...[
-            OfflineStateBanner(message: state.message!),
             const SizedBox(height: AppSpacing.sectionGap),
+            if (state.status == ViewStatus.offline &&
+                state.message != null) ...[
+              OfflineStateBanner(message: state.message!),
+              const SizedBox(height: AppSpacing.sectionGap),
+            ],
+            AnimatedStateSwitcher(
+              child: _buildStateContent(context, state, controller),
+            ),
           ],
-          AnimatedStateSwitcher(
-            child: _buildStateContent(context, state, controller),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -206,7 +161,11 @@ class DashboardPage extends ConsumerWidget {
                             ? 'R\$ ${kpi.value}'
                             : kpi.value,
                         subtitle: kpi.subtitle,
-                        highlight: kpi.isHighlighted,
+                        tone: kpi.isRestricted
+                            ? KpiTone.restricted
+                            : (kpi.isHighlighted
+                                  ? KpiTone.critical
+                                  : KpiTone.neutral),
                       ),
                     ),
                   ),

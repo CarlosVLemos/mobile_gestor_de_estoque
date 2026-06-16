@@ -76,7 +76,7 @@ AppShellScaffold(
 
 **Objetivo**
 
-- encapsular a `NavigationBar` do app com API pequena e orientada a destinos.
+- encapsular a navegação inferior customizada do app, com tamanho de toque acessível e sem dependência de barra Material.
 
 **Onde usar**
 
@@ -104,8 +104,8 @@ AppBottomNavigation(
 
 **Estados suportados**
 
-- item selecionado;
-- troca de destino.
+- item selecionado com indicador discreto;
+- absorção de Safe Area inferior (insets).
 
 **Exemplo**
 
@@ -119,7 +119,7 @@ AppBottomNavigation(
 
 **Observacoes**
 
-- nao faz `go_router` sozinho; recebe callback externo.
+- calcula e absorve o padding de Safe Area inferior apenas uma vez.
 
 ### `SectionHeader`
 
@@ -396,12 +396,107 @@ const RestrictedInfoCard(
 
 - usar copy distinta para permissao e feature.
 
+### `OperationalTopBar`
+
+**Objetivo**
+
+- substituir o cabeçalho hero em páginas compactas por um cabeçalho simples de uma ou duas linhas que suporta ações e botão voltar.
+
+**Onde usar**
+
+- catálogo, Mais e contexto operacional.
+
+**Onde nao usar**
+
+- painel principal (dashboard) que pede visual rico.
+
+**API publica**
+
+```dart
+OperationalTopBar(
+  title: 'Produtos',
+  subtitle: 'Consulta rápida',
+  leading: null,
+  actions: const [],
+)
+```
+
+**Variacoes**
+
+- com ou sem botão voltar (leading);
+- com ou sem subtítulo;
+- com ou sem ações rápidas (actions).
+
+**Estados suportados**
+
+- reflow automático sob text scaling aumentado (ações movem para linha inferior).
+
+**Exemplo**
+
+```dart
+OperationalTopBar(
+  title: 'Produtos',
+  subtitle: 'Consulta rápida e estoque operacional',
+)
+```
+
+**Observacoes**
+
+- limita o título a no máximo duas linhas com reticências.
+
+### `DashboardHero`
+
+**Objetivo**
+
+- cabeçalho de destaque exclusivo do dashboard, com gradiente navy escuro e metadados secundários de contexto.
+
+**Onde usar**
+
+- topo da página de dashboard.
+
+**Onde nao usar**
+
+- páginas comuns ou sub-telas de navegação secundária.
+
+**API publica**
+
+```dart
+DashboardHero(
+  title: 'Painel operacional',
+  message: 'Resumo do tenant',
+  updatedAtLabel: 'Atualizado agora',
+  financialAccess: true,
+)
+```
+
+**Variacoes**
+
+- dados de tenant e status financeiro.
+
+**Estados suportados**
+
+- com acesso financeiro liberado ou restrito.
+
+**Exemplo**
+
+```dart
+DashboardHero(
+  title: 'Painel Operacional',
+  message: 'Recorte local do tenant ativo',
+  updatedAtLabel: 'Atualizado às 09:40',
+  financialAccess: false,
+)
+```
+
+**Observacoes**
+
+- no máximo dois metadados secundários em formato tag.
+
 ### `KpiCard`
 
 **Objetivo**
 
-- consolidar o visual dos indicadores do dashboard, incluindo variante hero e
-  restricao financeira explicita.
+- consolidar o visual dos indicadores do dashboard, incluindo suporte a tom semântico (neutral, positive, warning, critical, restricted).
 
 **Onde usar**
 
@@ -418,15 +513,13 @@ const KpiCard(
   label: 'Pedidos em campo',
   value: '128',
   subtitle: '26 aguardando conferencia',
-  highlight: true,
+  tone: KpiTone.neutral,
 )
 ```
 
 **Variacoes**
 
-- hero destacado;
-- card padrao;
-- valor restrito.
+- neutral, positive, warning, critical, restricted.
 
 **Estados suportados**
 
@@ -440,19 +533,19 @@ const KpiCard(
   label: 'Receita prevista',
   value: null,
   subtitle: 'Liberada apenas para perfis com permissao financeira',
+  tone: KpiTone.restricted,
 )
 ```
 
 **Observacoes**
 
-- recebe valor ja pronto para exibicao.
+- cresce verticalmente para evitar estouros com textos aumentados.
 
 ### `ProductCard`
 
 **Objetivo**
 
-- renderizar item de catalogo com dados de apresentacao, sem depender da
-  entidade da feature.
+- renderizar item de catalogo com dados de apresentacao em linha compacta, mapeando ícones de categoria correspondentes.
 
 **Onde usar**
 
@@ -477,20 +570,19 @@ const ProductCard(
     price: null,
     categoryName: 'Protecao',
   ),
+  categoryIcon: AppIcons.productProtection,
 )
 ```
 
 **Variacoes**
 
-- com preco;
-- com preco restrito;
-- com categorias e estados de estoque diferentes.
+- com ou sem preço (mostra preço restrito se nulo);
+- ícone de categoria mapeado dinamicamente.
 
 **Estados suportados**
 
 - estoque disponivel, baixo ou zerado;
-- venda disponivel ou revalidada;
-- preco presente ou restrito.
+- preço presente ou restrito.
 
 **Exemplo**
 
@@ -506,12 +598,13 @@ const ProductCard(
     updatedAtLabel: '12 jun, 08:42',
     price: 49.9,
   ),
+  categoryIcon: AppIcons.productElectrical,
 )
 ```
 
 **Observacoes**
 
-- o componente nao carrega imagem nem consulta repositorio.
+- realiza reflow da quantidade e do preço para a linha inferior com text scaling alto.
 
 ### `MovementListItem`
 

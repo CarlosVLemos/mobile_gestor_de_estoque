@@ -8,13 +8,45 @@ detalhes sem reler toda a pasta.
 
 ## Estado atual
 
-- O repositório Flutter ainda está próximo do projeto inicial.
-- A arquitetura alvo está definida, mas ainda não foi materializada em `lib/`.
+- A fundação Flutter já está materializada em `lib/`, com tema claro/escuro,
+  bootstrap, `go_router`, Riverpod e organização inicial por feature e camada.
+- O `main` contém uma shell operacional e fluxos locais explícitos para
+  dashboard, catálogo, Mais e contexto do usuário.
+- Dashboard e catálogo ainda usam fixtures por meio de repositórios. Eles não
+  comprovam integração remota, persistência local ou sincronização.
+- A Spec 005 foi implementada no working tree e introduz Instrument Sans local,
+  iconografia Lucide encapsulada, navegação inferior própria, headers
+  operacionais e revisão visual das telas existentes.
+- A implementação da Spec 005 passou por formatação, análise estática e 64
+  testes automatizados, incluindo seis goldens em `390x844`, claro e escuro.
+- A validação visual manual em `360x800`, `390x844` e `412x915`, além da
+  aprovação visual do usuário, continua pendente.
 - Existem contratos remotos documentados para perfil, dashboard e produtos.
 - Autenticação mobile por token e vendas offline continuam dependentes de
   contratos ainda não implementados.
-- A pasta `para mobile` contém especificação e contexto, não comprovação de que
-  cada item já existe no aplicativo.
+- Drift, Dio, armazenamento seguro, sincronização incremental e outbox fazem
+  parte da arquitetura aceita, mas ainda não estão materializados no app.
+- Documentação descreve intenção e decisões; somente código, testes e evidências
+  de execução comprovam o que já existe.
+
+## Situação do working tree
+
+Fotografia em 15 de junho de 2026:
+
+- branch `main`, sincronizada com `origin/main` no commit `9c956d5`;
+- implementação da Spec 005 ainda não commitada;
+- alterações amplas já estão staged, incluindo fontes, dependência Lucide,
+  componentes, páginas, testes e goldens;
+- correções posteriores da revisão permanecem unstaged em arquivos já staged,
+  aparecendo como `MM` ou `AM` no `git status`;
+- essas correções incluem carregamento obrigatório da fonte Lucide nos goldens,
+  encapsulamento do ícone de voltar, testes de escala de texto e ajuste da
+  navegação inferior para evitar overflow em escala `2.0`;
+- mudanças em `docs/specs/Img/` também estão no status e devem ser preservadas
+  como material do usuário.
+
+Antes de criar o próximo commit, revisar e adicionar também as alterações
+unstaged para evitar registrar somente a versão anterior da implementação.
 
 ## Produto
 
@@ -117,14 +149,17 @@ Dados locais podem continuar visíveis durante refresh ou falha remota.
 
 ## Próxima sequência recomendada
 
-1. Corrigir a fundação do projeto e remover o contador padrão.
-2. Criar bootstrap, tema, router e configuração de ambientes.
-3. Criar contratos de erro, resultado e cliente HTTP.
-4. Criar banco Drift e estratégia de migração.
+1. Validar manualmente a Spec 005 nos tamanhos previstos e obter aprovação
+   visual do usuário.
+2. Revisar o escopo staged e unstaged, atualizar o fechamento da Spec 005 e
+   criar commits coerentes sem perder as correções posteriores.
+3. Criar contratos compartilhados de erro, resultado e cliente HTTP.
+4. Criar banco Drift e estratégia segura de migração.
 5. Implementar sessão e contexto do usuário quando o contrato de autenticação
    estiver disponível.
-6. Implementar dashboard e catálogo lendo por repositórios.
-7. Introduzir sincronização incremental.
+6. Substituir fixtures de dashboard e catálogo por fontes locais/remotas sem
+   romper os estados operacionais existentes.
+7. Introduzir sincronização incremental quando houver contrato confirmado.
 8. Implementar outbox somente junto de uma operação offline real.
 
 Não antecipar toda a infraestrutura de vendas offline antes de existir um caso

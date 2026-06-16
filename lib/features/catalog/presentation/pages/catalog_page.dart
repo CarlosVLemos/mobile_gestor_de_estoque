@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../shared/ui_states/view_status.dart';
@@ -10,7 +9,7 @@ import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/interactive_feedback.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
-import '../../../../shared/widgets/operational_page_header.dart';
+import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/product_card.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../domain/entities/catalog_product.dart';
@@ -22,74 +21,59 @@ import '../widgets/catalog_filter_bar.dart';
 class CatalogPage extends ConsumerWidget {
   const CatalogPage({super.key});
 
+  IconData _getCategoryIcon(String? categoryName) {
+    if (categoryName == null) return AppIcons.productFallback;
+    final normalized = categoryName.toLowerCase().trim();
+    if (normalized == 'proteção' || normalized == 'protecao') {
+      return AppIcons.productProtection;
+    }
+    if (normalized == 'elétrica' || normalized == 'eletrica') {
+      return AppIcons.productElectrical;
+    }
+    if (normalized == 'acessórios' || normalized == 'acessorios') {
+      return AppIcons.productAccessories;
+    }
+    return AppIcons.productFallback;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(catalogControllerProvider);
     final controller = ref.read(catalogControllerProvider.notifier);
 
-    return RefreshIndicator(
-      onRefresh: controller.refresh,
-      child: ListView(
-        padding: AppSpacing.screenPadding,
-        children: [
-          OperationalPageHeader(
-            eyebrow: 'CATÁLOGO OPERACIONAL',
-            title: 'Produtos para consulta rápida',
-            description:
-                'Busca operacional, estoque visível e preço opcional respeitando o contexto do usuário.',
-            icon: AppIcons.products,
-            tags: [
-              OperationalHeaderTag(
-                label: state.query.category ?? 'Todas as categorias',
-                tone: AppStatusTone.restricted,
-              ),
-              OperationalHeaderTag(
-                label: state.items.any((item) => item.price == null)
-                    ? 'Preço parcialmente protegido'
-                    : 'Preço liberado',
-                tone: state.items.any((item) => item.price == null)
-                    ? AppStatusTone.warning
-                    : AppStatusTone.success,
-              ),
-            ],
-            metrics: [
-              OperationalHeaderMetric(
-                label: 'Produtos visíveis',
-                value: state.items.isEmpty ? '0' : '${state.items.length}',
-                icon: AppIcons.storefront,
-              ),
-              OperationalHeaderMetric(
-                label: 'Filtros ativos',
-                value:
-                    state.query.category == null &&
-                        state.query.search.trim().isEmpty
-                    ? 'Base padrão'
-                    : 'Refinados',
-                icon: AppIcons.tune,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          CatalogFilterBar(
-            searchValue: state.query.search,
-            categories: state.categories,
-            selectedCategory: state.query.category ?? 'Todos',
-            onSearchChanged: (value) {
-              controller.updateSearch(value);
-            },
-            onCategorySelected: (value) {
-              controller.updateCategory(value);
-            },
-          ),
-          const SizedBox(height: AppSpacing.sectionGap),
-          if (state.status == ViewStatus.offline && state.message != null) ...[
-            OfflineStateBanner(message: state.message!),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: const OperationalTopBar(
+        title: 'Produtos',
+        subtitle: 'Consulta rápida e estoque operacional',
+      ),
+      body: RefreshIndicator(
+        onRefresh: controller.refresh,
+        child: ListView(
+          padding: AppSpacing.screenPadding,
+          children: [
+            CatalogFilterBar(
+              searchValue: state.query.search,
+              categories: state.categories,
+              selectedCategory: state.query.category ?? 'Todos',
+              onSearchChanged: (value) {
+                controller.updateSearch(value);
+              },
+              onCategorySelected: (value) {
+                controller.updateCategory(value);
+              },
+            ),
             const SizedBox(height: AppSpacing.sectionGap),
+            if (state.status == ViewStatus.offline &&
+                state.message != null) ...[
+              OfflineStateBanner(message: state.message!),
+              const SizedBox(height: AppSpacing.sectionGap),
+            ],
+            AnimatedStateSwitcher(
+              child: _buildContent(context, state, controller),
+            ),
           ],
-          AnimatedStateSwitcher(
-            child: _buildContent(context, state, controller),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -170,6 +154,7 @@ class CatalogPage extends ConsumerWidget {
         for (final product in state.items) ...[
           InteractiveFeedback(
             child: ProductCard(
+              categoryIcon: _getCategoryIcon(product.categoryName),
               product: ProductCardData(
                 name: product.name,
                 sku: product.sku,

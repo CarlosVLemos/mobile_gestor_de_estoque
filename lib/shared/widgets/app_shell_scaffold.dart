@@ -3,11 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_decorations.dart';
+import '../../app/theme/app_sizes.dart';
 import '../../app/theme/app_spacing.dart';
 import 'app_bottom_navigation.dart';
-
-/// Altura estimada da bottom navigation bar para compensação de padding.
-const double _kBottomNavHeight = 76;
 
 class AppShellScaffold extends StatelessWidget {
   const AppShellScaffold({
@@ -27,19 +25,19 @@ class AppShellScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Padding inferior para compensar o extendBody — garante que o último
-    // item do conteúdo não fique permanentemente oculto sob a bottom nav.
+    final isTextLarge = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    final navigationHeight = isTextLarge
+        ? AppSizes.bottomNavigationExpandedHeight
+        : AppSizes.bottomNavigationHeight;
     final bottomPadding =
-        _kBottomNavHeight + MediaQuery.of(context).padding.bottom;
+        navigationHeight + MediaQuery.paddingOf(context).bottom;
 
     return Scaffold(
       extendBody: true,
       body: DecoratedBox(
         decoration: AppDecorations.atmosphericBackground(context),
         child: SafeArea(
-          // Preserva proteção superior (status bar, notch, câmera).
-          // O padding inferior é gerenciado manualmente para funcionar
-          // junto com extendBody: true.
+          // Preserves top safe area. Bottom is handled manually below with extendBody
           bottom: false,
           child: Column(
             children: [
@@ -74,13 +72,10 @@ class AppShellScaffold extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: DecoratedBox(
             decoration: AppDecorations.glassSurfaceBar(context),
-            child: SafeArea(
-              top: false,
-              child: AppBottomNavigation(
-                currentIndex: currentIndex,
-                destinations: destinations,
-                onSelect: onSelect,
-              ),
+            child: AppBottomNavigation(
+              currentIndex: currentIndex,
+              destinations: destinations,
+              onSelect: onSelect,
             ),
           ),
         ),

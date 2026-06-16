@@ -234,38 +234,6 @@ abstract final class AppTheme {
         iconSize: AppSizes.emphasisIcon,
         shape: const RoundedRectangleBorder(borderRadius: AppRadius.xlBorder),
       ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
-        height: 76,
-        indicatorColor: colorScheme.primaryContainer,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return textTheme.labelMedium?.copyWith(
-              color: colorScheme.primary,
-              letterSpacing: 0.4,
-            );
-          }
-          return textTheme.labelMedium?.copyWith(
-            color: tokens.onSurfaceMuted,
-            letterSpacing: 0.4,
-          );
-        }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return IconThemeData(
-              color: colorScheme.primary,
-              size: AppSizes.navigationIcon,
-            );
-          }
-          return IconThemeData(
-            color: tokens.onSurfaceMuted,
-            size: AppSizes.navigationIcon,
-          );
-        }),
-      ),
       bottomSheetTheme:
           const BottomSheetThemeData(
             showDragHandle: true,

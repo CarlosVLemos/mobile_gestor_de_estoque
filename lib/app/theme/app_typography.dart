@@ -4,7 +4,7 @@ abstract final class AppTypography {
   const AppTypography._();
 
   static const String instrumentSansFamily = 'Instrument Sans';
-  static const bool hasInstrumentSansAssets = false;
+  static const bool hasInstrumentSansAssets = true;
 
   static String? get fontFamily =>
       hasInstrumentSansAssets ? instrumentSansFamily : null;

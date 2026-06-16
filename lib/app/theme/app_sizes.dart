@@ -10,4 +10,6 @@ abstract final class AppSizes {
   static const double navigationIcon = 22;
   static const double emphasisIcon = 24;
   static const double compactContentMaxWidth = 440;
+  static const double bottomNavigationHeight = 64;
+  static const double bottomNavigationExpandedHeight = 120;
 }

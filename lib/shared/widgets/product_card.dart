@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_decorations.dart';
+import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_theme_context.dart';
 import '../formatters/app_currency_formatter.dart';
@@ -34,122 +35,156 @@ class ProductCardData {
 }
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.product});
+  const ProductCard({
+    super.key,
+    required this.product,
+    required this.categoryIcon,
+  });
 
   final ProductCardData product;
+  final IconData categoryIcon;
 
   @override
   Widget build(BuildContext context) {
-    final stockTone = _stockBadgeTone(product.stockTone);
+    final textScaler = MediaQuery.textScalerOf(context);
+    final isTextLarge = textScaler.scale(1) > 1.3;
 
-    return DecoratedBox(
-      decoration: AppDecorations.elevatedCard(context),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final stockTone = _stockBadgeTone(product.stockTone);
+    final stockLabel = _stockLabel(product.stockTone);
+
+    // Placeholder box: 48x48, radius 12, primaryContainer neutral background
+    final placeholder = Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: context.colors.primaryContainer,
+        borderRadius: const BorderRadius.all(AppRadius.radiusLg),
+      ),
+      child: Center(
+        child: Icon(
+          categoryIcon,
+          size: 22,
+          color: context.colors.onPrimaryContainer,
+        ),
+      ),
+    );
+
+    // Name & SKU/Brand
+    final coreContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          product.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: context.colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          '${product.brand} • ${product.sku}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.bodySmall?.copyWith(
+            color: context.appColors.onSurfaceMuted,
+          ),
+        ),
+      ],
+    );
+
+    // Quantity, Price & Stock status tag
+    final infoContent = Column(
+      crossAxisAlignment: isTextLarge
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          AppStockFormatter.units(product.stockQuantity),
+          style: context.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: context.colors.onSurface,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          alignment: isTextLarge ? WrapAlignment.start : WrapAlignment.end,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ImagePlaceholder(name: product.name, tone: stockTone),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              product.name,
-                              style: context.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          if (product.price != null)
-                            DecoratedBox(
-                              decoration: AppDecorations.tonalBadge(
-                                context,
-                                AppStatusTone.success,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.sm,
-                                  vertical: AppSpacing.xs,
-                                ),
-                                child: Text(
-                                  AppCurrencyFormatter.format(product.price!),
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: context.appColors.onSuccessContainer,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        '${product.brand} • ${product.sku}',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.appColors.onSurfaceMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                StatusBadge(
-                  label: _stockLabel(product.stockTone),
-                  tone: stockTone,
-                ),
-                StatusBadge(
-                  label: product.availableForSale
-                      ? 'Disponível para venda'
-                      : 'Venda depende de revalidação',
-                  tone: product.availableForSale
-                      ? AppStatusTone.success
-                      : AppStatusTone.restricted,
-                ),
-                if (product.categoryName != null)
-                  StatusBadge(
-                    label: product.categoryName!,
-                    tone: AppStatusTone.restricted,
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              AppStockFormatter.units(product.stockQuantity),
-              style: context.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Atualizado em ${product.updatedAtLabel}',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: context.appColors.onSurfaceMuted,
-              ),
-            ),
-            if (product.price == null) ...[
-              const SizedBox(height: AppSpacing.md),
+            StatusBadge(label: stockLabel, tone: stockTone),
+            if (product.price != null)
+              StatusBadge(
+                label: AppCurrencyFormatter.format(product.price!),
+                tone: AppStatusTone.success,
+              )
+            else
               const StatusBadge(
                 label: 'Preço restrito',
                 tone: AppStatusTone.restricted,
               ),
-            ],
           ],
         ),
+      ],
+    );
+
+    // Borda/indicador sutil baseada no estoque
+    final borderSide = BorderSide(
+      color: switch (product.stockTone) {
+        ProductCardStockTone.available => context.appColors.borderSubtle,
+        ProductCardStockTone.low => context.appColors.warning,
+        ProductCardStockTone.out => context.colors.error,
+      },
+      width: product.stockTone == ProductCardStockTone.available ? 1 : 1.5,
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colors.surfaceContainerLow,
+        borderRadius: const BorderRadius.all(AppRadius.radiusXl),
+        border: Border.fromBorderSide(borderSide),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final shouldStackTrailing = isTextLarge || constraints.maxWidth < 320;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (shouldStackTrailing) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    placeholder,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(child: coreContent),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                infoContent,
+              ] else ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    placeholder,
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(child: coreContent),
+                    const SizedBox(width: AppSpacing.md),
+                    Flexible(
+                      child: Align(
+                        alignment: Alignment.topRight,
+                        child: infoContent,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -167,45 +202,6 @@ class ProductCard extends StatelessWidget {
       ProductCardStockTone.available => AppStatusTone.success,
       ProductCardStockTone.low => AppStatusTone.warning,
       ProductCardStockTone.out => AppStatusTone.error,
-    };
-  }
-}
-
-class _ImagePlaceholder extends StatelessWidget {
-  const _ImagePlaceholder({required this.name, required this.tone});
-
-  final String name;
-  final AppStatusTone tone;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: AppDecorations.tonalBadge(
-        context,
-        tone,
-      ).copyWith(borderRadius: BorderRadius.circular(22)),
-      child: SizedBox(
-        width: 72,
-        height: 72,
-        child: Center(
-          child: Text(
-            (name.isNotEmpty ? name[0] : '?').toUpperCase(),
-            style: context.textTheme.titleLarge?.copyWith(
-              color: _foreground(context),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _foreground(BuildContext context) {
-    return switch (tone) {
-      AppStatusTone.success => context.appColors.onSuccessContainer,
-      AppStatusTone.warning => context.appColors.onWarningContainer,
-      AppStatusTone.error => context.colors.onErrorContainer,
-      AppStatusTone.restricted => context.appColors.onRestricted,
     };
   }
 }

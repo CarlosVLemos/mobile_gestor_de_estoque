@@ -27,7 +27,7 @@ abstract final class AppDecorations {
 
     return BoxDecoration(
       color: colors.surfaceContainerLow,
-      borderRadius: AppRadius.heroBorder,
+      borderRadius: AppRadius.xlBorder,
       border: Border.all(color: tokens.borderSubtle),
       boxShadow: AppShadows.card(theme.brightness),
     );
@@ -40,7 +40,7 @@ abstract final class AppDecorations {
 
     return BoxDecoration(
       color: colors.surfaceContainer,
-      borderRadius: AppRadius.heroBorder,
+      borderRadius: AppRadius.xlBorder,
       border: Border.all(color: tokens.borderSubtle),
       boxShadow: AppShadows.floating(theme.brightness),
     );

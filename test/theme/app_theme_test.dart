@@ -178,13 +178,12 @@ void main() {
       expect(dark.useMaterial3, isTrue);
       expect(
         light.filledButtonTheme.style?.minimumSize?.resolve(<WidgetState>{}),
-        const Size.fromHeight(AppSizes.buttonHeight),
+        const Size(0, AppSizes.buttonHeight),
       );
       expect(
         dark.outlinedButtonTheme.style?.side?.resolve(<WidgetState>{}),
         isA<BorderSide>(),
       );
-      expect(light.navigationBarTheme.height, 76);
       expect(dark.progressIndicatorTheme.color, dark.colorScheme.primary);
     });
   });
@@ -220,13 +219,13 @@ void main() {
   });
 
   group('tipografia', () {
-    test('usa fallback do sistema quando Instrument Sans nao existe', () {
+    test('usa Instrument Sans quando a fonte está disponível', () {
       final textTheme = AppTheme.light.textTheme;
 
-      expect(AppTypography.hasInstrumentSansAssets, isFalse);
+      expect(AppTypography.hasInstrumentSansAssets, isTrue);
       expect(
         textTheme.bodyLarge?.fontFamily,
-        isNot(AppTypography.instrumentSansFamily),
+        equals(AppTypography.instrumentSansFamily),
       );
       expect(textTheme.bodyLarge?.fontSize, inInclusiveRange(14, 16));
       expect(textTheme.bodySmall?.fontSize, inInclusiveRange(12, 13));

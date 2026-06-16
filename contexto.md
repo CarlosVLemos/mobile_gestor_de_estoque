@@ -11,7 +11,7 @@ Use junto com `tree.txt`:
 ## Estado Atual
 
 O projeto ja tem uma base Flutter funcional com navegacao, tema global e uma
-primeira interface operacional montada.
+interface operacional montada por feature.
 
 Hoje o que ja esta mais materializado:
 
@@ -19,22 +19,53 @@ Hoje o que ja esta mais materializado:
 - componentes compartilhados em `lib/shared`;
 - telas operacionais principais em `lib/features/dashboard`,
   `lib/features/catalog` e `lib/features/settings`;
-- testes iniciais de arquitetura, tema e algumas telas em `test/`;
+- tema claro e escuro com Instrument Sans local;
+- iconografia Lucide encapsulada por `AppIcons`;
+- shell com navegacao inferior propria e suporte a Safe Area;
+- testes de arquitetura, tema, widgets, paginas e goldens em `test/`;
 - especificacoes e historico de implementacao em `docs/specs/`.
 
-O que ainda aparenta estar em fase de base, fixture ou estrutura:
+O que ainda esta em fase de fixture, planejamento ou estrutura:
 
 - autenticacao real;
 - integracoes remotas completas;
-- persistencia offline definitiva;
+- banco Drift e persistencia offline definitiva;
+- cliente Dio e sincronizacao incremental;
+- armazenamento seguro e sessao remota;
+- outbox para operacoes offline reais;
 - fluxo operacional completo de vendas, estoque e sincronizacao;
 - varias features com estrutura criada, mas ainda pouco preenchidas.
 
 Resumo pratico:
 
-- a arquitetura ja esta apontada;
-- a interface inicial ja existe;
-- parte relevante dos dados e fluxos ainda esta em modo mock/fixture.
+- a fundacao arquitetural e visual ja existe;
+- dashboard, catalogo, Mais e contexto operacional estao navegaveis;
+- dashboard e catalogo ainda leem fixtures por repositorios;
+- a Spec 005 esta implementada no working tree e validada tecnicamente;
+- validacao manual e aprovacao visual do usuario continuam pendentes.
+
+## Situacao Git Atual
+
+Fotografia em 15 de junho de 2026:
+
+- branch `main` sincronizada com `origin/main` no commit `9c956d5`;
+- implementacao da Spec 005 ainda nao commitada;
+- 47 entradas possuem mudancas staged;
+- 17 entradas possuem mudancas unstaged, varias sobre arquivos ja staged
+  (`MM` ou `AM`);
+- nao existem arquivos untracked;
+- alteracoes em `docs/specs/Img/` sao material do usuario e devem ser
+  preservadas.
+
+Antes do proximo commit, adicionar as correcoes unstaged para evitar registrar
+uma versao anterior dos goldens, testes e ajustes de acessibilidade.
+
+Validacao tecnica mais recente:
+
+- `dart format`: 88 arquivos, nenhuma alteracao necessaria;
+- `flutter analyze`: nenhum problema;
+- `flutter test`: 64 testes aprovados;
+- seis goldens em `390x844`, nos temas claro e escuro.
 
 ## Leitura Canonica
 
@@ -137,7 +168,8 @@ produto atual.
 
 Exemplos de widgets presentes:
 
-- `operational_page_header.dart`
+- `operational_top_bar.dart`
+- `dashboard_hero.dart`
 - `app_shell_scaffold.dart`
 - `app_bottom_navigation.dart`
 - `tenant_context_card.dart`
@@ -183,7 +215,8 @@ ter o mesmo nivel de preenchimento das tres areas acima.
 Como voce pediu melhoria geral nas telas, principalmente na area superior, os
 lugares mais provaveis para atuar primeiro sao:
 
-- `lib/shared/widgets/operational_page_header.dart`
+- `lib/shared/widgets/operational_top_bar.dart`
+- `lib/shared/widgets/dashboard_hero.dart`
 - `lib/shared/widgets/app_shell_scaffold.dart`
 - `lib/shared/widgets/app_bottom_navigation.dart`
 - paginas em `lib/features/dashboard/presentation/pages/`
@@ -193,10 +226,10 @@ lugares mais provaveis para atuar primeiro sao:
 Se a ideia for deixar a aplicacao mais bonita de forma ampla, a ordem mais
 produtiva costuma ser:
 
-1. ajustar o header compartilhado;
-2. alinhar espacamentos, cards e tipografia da shell;
-3. refinar as tres telas operacionais principais;
-4. consolidar tokens no tema global em `lib/app/theme/`.
+1. validar manualmente a implementacao atual da Spec 005;
+2. corrigir inconsistencias visuais encontradas nos tamanhos previstos;
+3. refinar componentes compartilhados antes de ajustes isolados por tela;
+4. manter tokens e aliases centralizados em `lib/app/theme/`.
 
 ## `docs/` e Specs
 
@@ -206,15 +239,19 @@ menos estas frentes:
 - `001-fundacao-arquitetural`
 - `002-tema-global`
 - `003-interface-operacional-inicial`
+- `004-revitalizacao-estetica`
+- `005-identidade-visual-operacional`
 
 Leitura pratica:
 
 - `001`: explica a base arquitetural;
 - `002`: explica a construcao do tema;
-- `003`: explica a interface operacional inicial hoje visivel.
+- `003`: explica a primeira interface operacional;
+- `004`: registra a etapa anterior de revitalizacao estetica;
+- `005`: define e implementa a identidade visual operacional atual.
 
-Se voce quiser entender porque a UI atual esta desse jeito, essa pasta e o
-melhor lugar para voltar no historico.
+Para entender a UI atual, comece pela Spec 005 e use as Specs 003/004 como
+historico das decisoes substituidas ou evoluidas.
 
 ## `test/`
 
@@ -228,10 +265,13 @@ Pelo que foi encontrado:
 - `test/features/catalog/`: testes da tela de catalogo;
 - `test/features/dashboard/`: testes da tela de dashboard;
 - `test/features/settings/`: testes da area operacional de settings;
-- `test/theme/`: testes do tema.
+- `test/theme/`: testes do tema;
+- `test/shared/widgets/`: comportamento e acessibilidade dos componentes;
+- `test/goldens/`: referencias visuais de shell, dashboard e catalogo.
 
-Se voce alterar layout nessas areas, vale olhar os testes correspondentes antes
-de mexer.
+Os goldens carregam Instrument Sans e Lucide obrigatoriamente. Alteracoes de
+layout devem executar os testes correspondentes e passar por inspecao visual,
+nao apenas regenerar as imagens.
 
 ## Atalhos de Navegacao
 
@@ -240,7 +280,8 @@ Se voce quer ir direto ao ponto:
 - entender o projeto antes de tudo: `para mobile/00-contexto-operacional.md`
 - encontrar qualquer caminho rapidamente: `tree.txt`
 - mexer no visual global: `lib/app/theme/`
-- mexer no topo das telas: `lib/shared/widgets/operational_page_header.dart`
+- mexer no topo operacional: `lib/shared/widgets/operational_top_bar.dart`
+- mexer no hero do dashboard: `lib/shared/widgets/dashboard_hero.dart`
 - mexer na moldura geral das paginas: `lib/shared/widgets/app_shell_scaffold.dart`
 - mexer na tela inicial: `lib/features/dashboard/`
 - mexer em produtos/catalogo: `lib/features/catalog/`
@@ -267,7 +308,7 @@ Se a tarefa for arquitetural:
 
 Se a tarefa for entender o estado atual da interface:
 
-1. `docs/specs/003-interface-operacional-inicial/`
+1. `docs/specs/005-identidade-visual-operacional/`
 2. `lib/shared/widgets/`
 3. `lib/features/dashboard/`
 4. `lib/features/catalog/`

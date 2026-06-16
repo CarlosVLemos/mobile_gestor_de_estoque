@@ -2,7 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
+import 'package:gestor_de_estoque/features/dashboard/dashboard_providers.dart';
+import 'package:gestor_de_estoque/features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'package:gestor_de_estoque/features/dashboard/data/local/dashboard_fixture.dart';
 import 'package:gestor_de_estoque/features/dashboard/presentation/pages/dashboard_page.dart';
+
+class MockDashboardRepository implements DashboardRepository {
+  const MockDashboardRepository();
+
+  @override
+  Future<DashboardLoadResult> load() async {
+    return DashboardLoadResult.ready(buildDashboardFixture());
+  }
+}
 
 void main() {
   testWidgets('dashboard renderiza KPIs e restrição financeira explícita', (
@@ -10,6 +22,11 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          dashboardRepositoryProvider.overrideWithValue(
+            const MockDashboardRepository(),
+          ),
+        ],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const Scaffold(body: DashboardPage()),
@@ -17,10 +34,12 @@ void main() {
       ),
     );
 
+    // Let the controller load trigger
+    await tester.pump();
     await tester.pumpAndSettle();
 
-    expect(find.text('Pedidos em campo'), findsOneWidget);
-    expect(find.text('Financeiro restrito'), findsOneWidget);
+    expect(find.text('PEDIDOS EM CAMPO'), findsOneWidget);
+    expect(find.text('Financeiro restrito'), findsNWidgets(2));
     expect(find.text('Movimentos recentes'), findsOneWidget);
   });
 }
