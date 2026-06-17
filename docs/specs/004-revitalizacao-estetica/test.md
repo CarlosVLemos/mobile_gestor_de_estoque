@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Validar que o acabamento estético e as micro-animações reativas foram implementados com sucesso, sem introduzir regressões de layout, quebras em testes existentes ou degradação na performance visual (ex: travamentos com BackdropFilter).
+Validar que o acabamento estético e as micro-animações reativas foram implementados com sucesso, sem introduzir regressões de layout, quebras em testes existentes ou degradação na performance visual (ex: travamentos com BackdropFilter). Os testes automatizados não decem ser rodados, é necessario pedir ao usuario para rodar os testes para então ele retornar se houve erros ou não
 
 ## Ambiente de referencia
 
