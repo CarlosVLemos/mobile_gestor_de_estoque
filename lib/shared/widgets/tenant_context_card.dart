@@ -99,8 +99,9 @@ class TenantContextCard extends StatelessWidget {
                           Text(
                             'Usuário conectado',
                             style: context.textTheme.labelSmall?.copyWith(
-                              color: context.appColors.onSurfaceHero
-                                  .withValues(alpha: 0.68),
+                              color: context.appColors.onSurfaceHero.withValues(
+                                alpha: 0.68,
+                              ),
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xxs),

@@ -12,6 +12,6 @@ class PendingSalesController extends Notifier<List<PendingSale>> {
   List<PendingSale> build() => const [];
 
   void enqueue(PendingSale sale) {
-    state = [sale, ...state];
+    state = List.unmodifiable([sale, ...state]);
   }
 }

@@ -1,12 +1,14 @@
 import '../../domain/entities/sale_reference_data.dart';
 
 class SalesState {
-  const SalesState({
-    required this.clients,
-    required this.products,
-    required this.cartItems,
+  SalesState({
+    required List<SaleClientOption> clients,
+    required List<SaleProductOption> products,
+    required Map<String, SaleCartItem> cartItems,
     this.selectedClient,
-  });
+  }) : clients = List.unmodifiable(clients),
+       products = List.unmodifiable(products),
+       cartItems = Map.unmodifiable(cartItems);
 
   final List<SaleClientOption> clients;
   final List<SaleProductOption> products;

@@ -1,12 +1,12 @@
 import 'sale_reference_data.dart';
 
 class PendingSale {
-  const PendingSale({
+  PendingSale({
     required this.clientRequestId,
     required this.client,
-    required this.items,
+    required List<PendingSaleItem> items,
     required this.createdAtLabel,
-  });
+  }) : items = List.unmodifiable(items);
 
   final String clientRequestId;
   final SaleClientOption client;

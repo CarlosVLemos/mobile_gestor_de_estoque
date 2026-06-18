@@ -1,8 +1,8 @@
 import '../../domain/entities/sale_reference_data.dart';
 
 SalesDraftSeed buildSalesDraftSeedFixture() {
-  return const SalesDraftSeed(
-    clients: [
+  return SalesDraftSeed(
+    clients: const [
       SaleClientOption(
         id: 'client-1',
         name: 'Loja Horizonte',
@@ -22,7 +22,7 @@ SalesDraftSeed buildSalesDraftSeedFixture() {
         city: 'Sorocaba',
       ),
     ],
-    products: [
+    products: const [
       SaleProductOption(
         id: 'prod-1',
         name: 'Capacete Trail Pro',

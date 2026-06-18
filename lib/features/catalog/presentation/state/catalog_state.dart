@@ -4,16 +4,17 @@ import '../../domain/repositories/catalog_repository.dart';
 import '../../domain/value_objects/catalog_query.dart';
 
 class CatalogState {
-  const CatalogState({
+  CatalogState({
     required this.status,
     required this.query,
-    this.items = const [],
-    this.categories = const ['Todos'],
+    List<CatalogProduct> items = const [],
+    List<String> categories = const ['Todos'],
     this.message,
     this.restrictionKind,
-  });
+  }) : items = List.unmodifiable(items),
+       categories = List.unmodifiable(categories);
 
-  const CatalogState.initial()
+  CatalogState.initial()
     : this(status: ViewStatus.initial, query: const CatalogQuery());
 
   CatalogState copyWith({

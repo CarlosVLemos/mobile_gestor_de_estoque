@@ -158,4 +158,102 @@ void main() {
     expect(find.text('Ver conta'), findsOneWidget);
     expect(find.text('Alterar nome'), findsOneWidget);
   });
+
+  testWidgets('drawer abre conta e retorna ao painel', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(AppIcons.menu).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ver conta'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conta'), findsWidgets);
+    expect(find.text('Vínculo da conta'), findsOneWidget);
+
+    await tester.tap(find.byIcon(AppIcons.arrowBack));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Painel'), findsWidgets);
+  });
+
+  testWidgets('todas as rotas da shell suportam 320px com textScaler 2.0', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    _expectNoFlutterException(tester, 'Painel');
+
+    for (final label in [
+      AppStrings.shellProducts,
+      AppStrings.shellSales,
+      AppStrings.shellMore,
+      AppStrings.shellDashboard,
+    ]) {
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AppBottomNavigation),
+          matching: find.text(label),
+        ),
+      );
+      await tester.pumpAndSettle();
+      _expectNoFlutterException(tester, label);
+    }
+  });
+
+  testWidgets('drawer e edição de nome suportam layout compacto ampliado', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(AppIcons.menu).first);
+    await tester.pumpAndSettle();
+    _expectNoFlutterException(tester, 'Drawer');
+
+    final actionFinder = find.text('Alterar nome');
+    await tester.drag(
+      find.descendant(
+        of: find.byType(Drawer),
+        matching: find.byType(ListView),
+      ),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(actionFinder);
+    await tester.pumpAndSettle();
+    _expectNoFlutterException(tester, 'Edição de nome');
+    expect(find.text('Cancelar'), findsOneWidget);
+    expect(find.text('Salvar'), findsOneWidget);
+  });
+}
+
+void _expectNoFlutterException(WidgetTester tester, String context) {
+  final error = tester.takeException();
+  if (error is FlutterError) {
+    fail('$context apresentou erro:\n${error.toStringDeep()}');
+  }
+  expect(
+    error,
+    isNull,
+    reason: 'A rota $context apresentou erro em layout compacto.',
+  );
 }

@@ -9,7 +9,6 @@ import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
-import '../../../../shared/widgets/offline_state_banner.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
@@ -66,10 +65,7 @@ class SalesPage extends ConsumerWidget {
             )
           else ...[
             if (pendingSales.isNotEmpty) ...[
-              OfflineStateBanner(
-                message:
-                    '${pendingSales.length} venda${pendingSales.length > 1 ? 's' : ''} armazenada${pendingSales.length > 1 ? 's' : ''} localmente. A fila física entra em uma etapa futura.',
-              ),
+              _SessionDraftBanner(count: pendingSales.length),
               const SizedBox(height: AppSpacing.sectionGap),
             ],
             _ClientCard(
@@ -110,7 +106,7 @@ class SalesPage extends ConsumerWidget {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            'Venda ${pendingSale.clientRequestId.substring(0, 8)} armazenada offline.',
+                            'Rascunho ${pendingSale.clientRequestId.substring(0, 8)} mantido somente nesta sessão.',
                           ),
                         ),
                       );
@@ -383,7 +379,7 @@ class _SummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeader(title: 'Registro offline'),
+            const SectionHeader(title: 'Rascunho da sessão'),
             const SizedBox(height: AppSpacing.md),
             Text(
               _totalLabel(),
@@ -394,17 +390,20 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               pendingCount == 0
-                  ? 'Pronto para criar a primeira intenção local.'
-                  : 'Fila em memória com $pendingCount registro${pendingCount > 1 ? 's' : ''}.',
+                  ? 'Nenhum rascunho foi criado nesta sessão.'
+                  : '$pendingCount rascunho${pendingCount > 1 ? 's' : ''} ainda não persistido${pendingCount > 1 ? 's' : ''}.',
             ),
             const SizedBox(height: AppSpacing.md),
-            const StatusBadge(label: 'Offline', tone: AppStatusTone.warning),
+            const StatusBadge(
+              label: 'Não persistido',
+              tone: AppStatusTone.warning,
+            ),
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: onRegister,
-                child: const Text('Registrar venda'),
+                child: const Text('Criar rascunho'),
               ),
             ),
           ],
@@ -431,6 +430,35 @@ class _SummaryCard extends StatelessWidget {
       (sum, item) => sum + (item.subtotal ?? 0),
     );
     return 'Total ${AppCurrencyFormatter.format(total)}';
+  }
+}
+
+class _SessionDraftBanner extends StatelessWidget {
+  const _SessionDraftBanner({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: AppDecorations.card(context),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const StatusBadge(
+              label: 'Somente nesta sessão',
+              tone: AppStatusTone.warning,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              '$count rascunho${count > 1 ? 's' : ''} em memória. Fechar o app descarta ${count > 1 ? 'esses dados' : 'esse dado'}.',
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

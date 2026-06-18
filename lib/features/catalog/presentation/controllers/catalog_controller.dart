@@ -10,6 +10,7 @@ final catalogControllerProvider =
 
 class CatalogController extends Notifier<CatalogState> {
   var _initialized = false;
+  var _requestSequence = 0;
 
   @override
   CatalogState build() {
@@ -17,19 +18,46 @@ class CatalogController extends Notifier<CatalogState> {
       _initialized = true;
       Future<void>.microtask(load);
     }
-    return const CatalogState.initial();
+    return CatalogState.initial();
   }
 
   Future<void> load() async {
-    state = state.copyWith(status: ViewStatus.loading, clearMessage: true);
-    final result = await ref.read(loadCatalogUseCaseProvider).call(state.query);
-    _applyResult(result);
+    final requestId = ++_requestSequence;
+    final query = state.query;
+    state = state.copyWith(
+      status: state.items.isEmpty ? ViewStatus.loading : ViewStatus.refreshing,
+      clearMessage: true,
+    );
+    try {
+      final result = await ref.read(loadCatalogUseCaseProvider).call(query);
+      if (requestId != _requestSequence) {
+        return;
+      }
+      _applyResult(result);
+    } on Object {
+      if (requestId != _requestSequence) {
+        return;
+      }
+      _applyUnexpectedFailure();
+    }
   }
 
   Future<void> refresh() async {
+    final requestId = ++_requestSequence;
+    final query = state.query;
     state = state.copyWith(status: ViewStatus.refreshing, clearMessage: true);
-    final result = await ref.read(loadCatalogUseCaseProvider).call(state.query);
-    _applyResult(result);
+    try {
+      final result = await ref.read(loadCatalogUseCaseProvider).call(query);
+      if (requestId != _requestSequence) {
+        return;
+      }
+      _applyResult(result);
+    } on Object {
+      if (requestId != _requestSequence) {
+        return;
+      }
+      _applyUnexpectedFailure();
+    }
   }
 
   Future<void> updateSearch(String search) async {
@@ -94,5 +122,13 @@ class CatalogController extends Notifier<CatalogState> {
           clearRestrictionKind: true,
         );
     }
+  }
+
+  void _applyUnexpectedFailure() {
+    state = state.copyWith(
+      status: ViewStatus.failure,
+      message: 'Não foi possível carregar o catálogo neste momento.',
+      clearRestrictionKind: true,
+    );
   }
 }

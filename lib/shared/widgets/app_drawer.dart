@@ -140,23 +140,40 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancelar'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(controller.text),
-                      child: const Text('Salvar'),
-                    ),
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final shouldStack =
+                      MediaQuery.textScalerOf(context).scale(1) > 1.3 ||
+                      constraints.maxWidth < 320;
+                  final cancelButton = OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancelar'),
+                  );
+                  final saveButton = FilledButton(
+                    onPressed: () =>
+                        Navigator.of(context).pop(controller.text),
+                    child: const Text('Salvar'),
+                  );
+
+                  if (shouldStack) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        cancelButton,
+                        const SizedBox(height: AppSpacing.sm),
+                        saveButton,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: cancelButton),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(child: saveButton),
+                    ],
+                  );
+                },
               ),
             ],
           ),

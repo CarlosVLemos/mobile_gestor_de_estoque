@@ -8,12 +8,12 @@ import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
 import '../../../../app/theme/app_theme_mode_controller.dart';
+import '../../../../shared/formatters/app_currency_formatter.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
-import '../../../../shared/widgets/interactive_feedback.dart';
 import '../../../../shared/widgets/kpi_card.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
@@ -22,6 +22,7 @@ import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
 import '../../domain/entities/dashboard_overview.dart';
 import '../controllers/dashboard_controller.dart';
+import '../state/dashboard_state.dart';
 
 const int _kMaxInlineItems = 5;
 
@@ -77,8 +78,8 @@ class DashboardPage extends ConsumerWidget {
 
   Widget _buildStateContent(
     BuildContext context,
-    dynamic state,
-    dynamic controller,
+    DashboardState state,
+    DashboardController controller,
   ) {
     if (state.status == ViewStatus.loading && state.overview == null) {
       return const Center(
@@ -163,32 +164,26 @@ class DashboardPage extends ConsumerWidget {
                 for (final kpi in overview.kpis)
                   SizedBox(
                     width: cardWidth,
-                    child: InteractiveFeedback(
-                      child: KpiCard(
-                        label: kpi.label,
-                        value: kpi.isCurrency && kpi.value != null
-                            ? 'R\$ ${kpi.value}'
-                            : kpi.value,
-                        subtitle: kpi.subtitle,
-                        tone: kpi.isRestricted
-                            ? KpiTone.restricted
-                            : (kpi.isHighlighted
-                                  ? KpiTone.critical
-                                  : KpiTone.neutral),
-                      ),
+                    child: KpiCard(
+                      label: kpi.label,
+                      value: _formatKpiValue(kpi),
+                      subtitle: kpi.subtitle,
+                      tone: kpi.isRestricted
+                          ? KpiTone.restricted
+                          : (kpi.isHighlighted
+                                ? KpiTone.critical
+                                : KpiTone.neutral),
                     ),
                   ),
                 SizedBox(
                   width: cardWidth,
-                  child: InteractiveFeedback(
-                    child: KpiCard(
-                      label: 'Atualização',
-                      value: overview.updatedAtLabel,
-                      subtitle: overview.canViewFinancial
-                          ? 'Financeiro liberado'
-                          : 'Financeiro restrito',
-                      tone: KpiTone.neutral,
-                    ),
+                  child: KpiCard(
+                    label: 'Atualização',
+                    value: overview.updatedAtLabel,
+                    subtitle: overview.canViewFinancial
+                        ? 'Financeiro liberado'
+                        : 'Financeiro restrito',
+                    tone: KpiTone.neutral,
                   ),
                 ),
               ],
@@ -207,7 +202,12 @@ class DashboardPage extends ConsumerWidget {
         SectionHeader(
           title: 'Alertas',
           action: overview.lowStockAlerts.length > _kMaxInlineItems
-              ? TextButton(onPressed: () {}, child: const Text('Ver todos'))
+              ? Text(
+                  '$_kMaxInlineItems de ${overview.lowStockAlerts.length}',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.appColors.onSurfaceMuted,
+                  ),
+                )
               : null,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -233,7 +233,11 @@ class DashboardPage extends ConsumerWidget {
               children: [
                 for (
                   var i = 0;
-                  i < math.min(overview.lowStockAlerts.length, _kMaxInlineItems);
+                  i <
+                      math.min(
+                        overview.lowStockAlerts.length,
+                        _kMaxInlineItems,
+                      );
                   i++
                 ) ...[
                   if (i > 0)
@@ -247,7 +251,8 @@ class DashboardPage extends ConsumerWidget {
                       children: [
                         StatusBadge(
                           label: overview.lowStockAlerts[i].toneLabel,
-                          tone: overview.lowStockAlerts[i].toneLabel == 'Ruptura'
+                          tone:
+                              overview.lowStockAlerts[i].toneLabel == 'Ruptura'
                               ? AppStatusTone.error
                               : AppStatusTone.warning,
                         ),
@@ -279,7 +284,12 @@ class DashboardPage extends ConsumerWidget {
         SectionHeader(
           title: 'Movimentos',
           action: overview.recentMovements.length > _kMaxInlineItems
-              ? TextButton(onPressed: () {}, child: const Text('Ver todos'))
+              ? Text(
+                  '$_kMaxInlineItems de ${overview.recentMovements.length}',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.appColors.onSurfaceMuted,
+                  ),
+                )
               : null,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -305,7 +315,11 @@ class DashboardPage extends ConsumerWidget {
               children: [
                 for (
                   var i = 0;
-                  i < math.min(overview.recentMovements.length, _kMaxInlineItems);
+                  i <
+                      math.min(
+                        overview.recentMovements.length,
+                        _kMaxInlineItems,
+                      );
                   i++
                 ) ...[
                   if (i > 0)
@@ -334,6 +348,16 @@ class DashboardPage extends ConsumerWidget {
       const SnackBar(content: Text('Busca global ainda não entrou no app.')),
     );
   }
+
+  String? _formatKpiValue(DashboardKpi kpi) {
+    final value = kpi.value;
+    if (!kpi.isCurrency || value == null || value.startsWith('R\$')) {
+      return value;
+    }
+
+    final parsed = double.tryParse(value);
+    return parsed == null ? value : AppCurrencyFormatter.format(parsed);
+  }
 }
 
 class _GoalChartCard extends StatelessWidget {
@@ -357,15 +381,17 @@ class _GoalChartCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               chart.currentLabel,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.sm),
             ClipRRect(
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
-                value: chart.progress,
+                value: chart.progress.isFinite
+                    ? chart.progress.clamp(0.0, 1.0).toDouble()
+                    : 0,
                 minHeight: 10,
               ),
             ),
@@ -405,14 +431,18 @@ class _StockLevelChartCard extends StatelessWidget {
             for (final point in points)
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('${point.value}'),
+                      Text('${math.max(point.value, 0)}'),
                       const SizedBox(height: AppSpacing.sm),
                       Container(
-                        height: 120 * (point.value / highestValue),
+                        height:
+                            120 *
+                            (math.max(point.value, 0) / highestValue),
                         decoration: BoxDecoration(
                           color: _barColor(context, point.toneLabel),
                           borderRadius: BorderRadius.circular(18),

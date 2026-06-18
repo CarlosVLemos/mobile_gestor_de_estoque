@@ -11,6 +11,7 @@ final dashboardControllerProvider =
 
 class DashboardController extends Notifier<DashboardState> {
   var _initialized = false;
+  var _requestSequence = 0;
 
   @override
   DashboardState build() {
@@ -22,18 +23,46 @@ class DashboardController extends Notifier<DashboardState> {
   }
 
   Future<void> load() async {
+    final requestId = ++_requestSequence;
     state = DashboardState.loading(previous: state.overview);
-    final result = await ref.read(loadDashboardUseCaseProvider).call();
-    _applyResult(result);
+    try {
+      final result = await ref.read(loadDashboardUseCaseProvider).call();
+      if (requestId != _requestSequence) {
+        return;
+      }
+      _applyResult(result);
+    } on Object {
+      if (requestId != _requestSequence) {
+        return;
+      }
+      state = DashboardState.failure(
+        'Não foi possível carregar o painel neste momento.',
+        previous: state.overview,
+      );
+    }
   }
 
   Future<void> refresh() async {
+    final requestId = ++_requestSequence;
     final current = state.overview;
-    if (current != null) {
-      state = DashboardState.refreshing(current);
+    state = current == null
+        ? const DashboardState.loading()
+        : DashboardState.refreshing(current);
+    try {
+      final result = await ref.read(loadDashboardUseCaseProvider).call();
+      if (requestId != _requestSequence) {
+        return;
+      }
+      _applyResult(result);
+    } on Object {
+      if (requestId != _requestSequence) {
+        return;
+      }
+      state = DashboardState.failure(
+        'Não foi possível atualizar o painel neste momento.',
+        previous: current,
+      );
     }
-    final result = await ref.read(loadDashboardUseCaseProvider).call();
-    _applyResult(result);
   }
 
   void _applyResult(DashboardLoadResult result) {

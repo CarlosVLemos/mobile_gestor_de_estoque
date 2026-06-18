@@ -15,7 +15,14 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.onSearchPressed,
     this.themeMode,
     this.onThemeToggle,
-  });
+  }) : assert(
+         !showSearchAction || onSearchPressed != null,
+         'Search action requires an onSearchPressed callback.',
+       ),
+       assert(
+         (themeMode == null) == (onThemeToggle == null),
+         'Theme mode and toggle callback must be provided together.',
+       );
 
   final String title;
   final String? subtitle;
@@ -28,8 +35,6 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textScaler = MediaQuery.textScalerOf(context);
-    final isTextLarge = textScaler.scale(1) > 1.3;
     final colors = context.colors;
     final tokens = context.appColors;
 
@@ -39,7 +44,7 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
       children: [
         Text(
           title,
-          maxLines: 2,
+          maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: context.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
@@ -58,15 +63,11 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
       ],
     );
 
-    final leadingWidget =
-        leading ??
-        IconButton(icon: const Icon(AppIcons.menu), onPressed: () {});
-
     final builtInActions = <Widget>[
       if (showSearchAction)
         IconButton(
           icon: const Icon(AppIcons.search),
-          onPressed: onSearchPressed ?? () {},
+          onPressed: onSearchPressed,
         ),
       if (themeMode != null && onThemeToggle != null)
         IconButton(
@@ -74,48 +75,22 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: onThemeToggle,
         ),
     ];
-    final actionsList = actions.isNotEmpty || builtInActions.isNotEmpty
-        ? [...builtInActions, ...actions]
-        : [IconButton(icon: const Icon(AppIcons.search), onPressed: () {})];
+    final actionsList = [...builtInActions, ...actions];
 
-    Widget content;
-    if (isTextLarge) {
-      content = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              leadingWidget,
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: titleWidget),
-            ],
-          ),
-          if (actionsList.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.md,
-              runSpacing: AppSpacing.sm,
-              children: actionsList,
-            ),
-          ],
-        ],
-      );
-    } else {
-      content = Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          leadingWidget,
+    final content = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (leading != null) ...[
+          leading!,
           const SizedBox(width: AppSpacing.md),
-          Expanded(child: titleWidget),
-          if (actionsList.isNotEmpty) ...[
-            const SizedBox(width: AppSpacing.md),
-            Row(mainAxisSize: MainAxisSize.min, children: actionsList),
-          ],
         ],
-      );
-    }
+        Expanded(child: titleWidget),
+        if (actionsList.isNotEmpty) ...[
+          const SizedBox(width: AppSpacing.sm),
+          Row(mainAxisSize: MainAxisSize.min, children: actionsList),
+        ],
+      ],
+    );
 
     return Container(
       color: colors.surface,
@@ -140,7 +115,9 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 24);
+  Size get preferredSize => Size.fromHeight(
+    subtitle == null ? kToolbarHeight + 24 : kToolbarHeight + 48,
+  );
 
   IconData _themeToggleIcon(BuildContext context) {
     final effectiveBrightness = switch (themeMode) {

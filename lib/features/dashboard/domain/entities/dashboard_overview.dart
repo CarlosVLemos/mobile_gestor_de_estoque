@@ -1,14 +1,17 @@
 class DashboardOverview {
-  const DashboardOverview({
-    required this.kpis,
-    required this.lowStockAlerts,
-    required this.recentMovements,
-    required this.stockLevelChart,
+  DashboardOverview({
+    required List<DashboardKpi> kpis,
+    required List<DashboardStockAlert> lowStockAlerts,
+    required List<DashboardMovement> recentMovements,
+    required List<DashboardStockLevelPoint> stockLevelChart,
     required this.operationalGoalChart,
     required this.canViewFinancial,
     required this.webDashboardUrl,
     required this.updatedAtLabel,
-  });
+  }) : kpis = List.unmodifiable(kpis),
+       lowStockAlerts = List.unmodifiable(lowStockAlerts),
+       recentMovements = List.unmodifiable(recentMovements),
+       stockLevelChart = List.unmodifiable(stockLevelChart);
 
   final List<DashboardKpi> kpis;
   final List<DashboardStockAlert> lowStockAlerts;

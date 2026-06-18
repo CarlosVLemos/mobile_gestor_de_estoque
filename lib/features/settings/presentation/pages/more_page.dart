@@ -11,6 +11,7 @@ import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
+import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
 import '../controllers/operational_context_controller.dart';
@@ -80,7 +81,14 @@ class MorePage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sectionGap),
-          if (state.status == ViewStatus.failure)
+          if (state.status == ViewStatus.restricted)
+            RestrictedInfoCard(
+              title: 'Contexto operacional restrito',
+              message:
+                  state.message ??
+                  'Seu perfil não pode consultar este contexto no momento.',
+            )
+          else if (state.status == ViewStatus.failure)
             FailureStateCard(
               title: 'Não foi possível montar o contexto auxiliar',
               message: state.message ?? 'Tente novamente em instantes.',

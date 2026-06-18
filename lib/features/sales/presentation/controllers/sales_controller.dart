@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../sales_providers.dart';
@@ -80,9 +78,15 @@ class SalesController extends Notifier<SalesState> {
   }
 
   PendingSale registerSale() {
-    final client = state.selectedClient!;
+    final client = state.selectedClient;
+    if (client == null || state.cartItems.isEmpty) {
+      throw StateError(
+        'Uma venda local exige cliente selecionado e ao menos um item.',
+      );
+    }
+
     final sale = PendingSale(
-      clientRequestId: _generateUuid(),
+      clientRequestId: ref.read(salesIdGeneratorProvider)(),
       client: client,
       items: [
         for (final item in state.cartItems.values)
@@ -93,7 +97,7 @@ class SalesController extends Notifier<SalesState> {
             unitPrice: item.unitPrice,
           ),
       ],
-      createdAtLabel: _buildCreatedAtLabel(),
+      createdAtLabel: _buildCreatedAtLabel(ref.read(salesClockProvider)()),
     );
 
     ref.read(pendingSalesProvider.notifier).enqueue(sale);
@@ -101,27 +105,9 @@ class SalesController extends Notifier<SalesState> {
     return sale;
   }
 
-  String _buildCreatedAtLabel() {
-    final now = DateTime.now();
+  String _buildCreatedAtLabel(DateTime now) {
     final hour = now.hour.toString().padLeft(2, '0');
     final minute = now.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
-  }
-
-  String _generateUuid() {
-    final random = Random.secure();
-    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    final buffer = StringBuffer();
-    for (var i = 0; i < bytes.length; i++) {
-      buffer.write(bytes[i].toRadixString(16).padLeft(2, '0'));
-    }
-    final hex = buffer.toString();
-    return '${hex.substring(0, 8)}-'
-        '${hex.substring(8, 12)}-'
-        '${hex.substring(12, 16)}-'
-        '${hex.substring(16, 20)}-'
-        '${hex.substring(20)}';
   }
 }

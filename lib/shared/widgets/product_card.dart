@@ -18,9 +18,7 @@ class ProductCardData {
     required this.stockQuantity,
     required this.stockTone,
     required this.availableForSale,
-    required this.updatedAtLabel,
     this.price,
-    this.categoryName,
   });
 
   final String name;
@@ -29,9 +27,7 @@ class ProductCardData {
   final int stockQuantity;
   final ProductCardStockTone stockTone;
   final bool availableForSale;
-  final String updatedAtLabel;
   final double? price;
-  final String? categoryName;
 }
 
 class ProductCard extends StatelessWidget {
@@ -102,7 +98,9 @@ class ProductCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          AppStockFormatter.units(product.stockQuantity),
+          AppStockFormatter.units(
+            product.stockQuantity < 0 ? 0 : product.stockQuantity,
+          ),
           style: context.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w700,
             color: context.colors.onSurface,
@@ -115,6 +113,11 @@ class ProductCard extends StatelessWidget {
           alignment: isTextLarge ? WrapAlignment.start : WrapAlignment.end,
           children: [
             StatusBadge(label: stockLabel, tone: stockTone),
+            if (!product.availableForSale)
+              const StatusBadge(
+                label: 'Venda indisponível',
+                tone: AppStatusTone.restricted,
+              ),
             if (product.price != null)
               StatusBadge(
                 label: AppCurrencyFormatter.format(product.price!),

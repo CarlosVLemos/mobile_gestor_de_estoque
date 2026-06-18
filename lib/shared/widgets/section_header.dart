@@ -17,33 +17,56 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+    final textScaler = MediaQuery.textScalerOf(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final shouldStack =
+            action != null &&
+            (textScaler.scale(1) > 1.3 || constraints.maxWidth < 320);
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: context.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: AppSpacing.xs),
               Text(
-                title,
-                style: context.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+                subtitle!,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.appColors.onSurfaceMuted,
                 ),
               ),
-              if (subtitle != null) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  subtitle!,
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: context.appColors.onSurfaceMuted,
-                  ),
-                ),
-              ],
             ],
-          ),
-        ),
-        if (action != null) ...[const SizedBox(width: AppSpacing.md), action!],
-      ],
+          ],
+        );
+
+        if (shouldStack) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              content,
+              const SizedBox(height: AppSpacing.sm),
+              action!,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: content),
+            if (action != null) ...[
+              const SizedBox(width: AppSpacing.md),
+              action!,
+            ],
+          ],
+        );
+      },
     );
   }
 }

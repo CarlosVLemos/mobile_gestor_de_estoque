@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/shell/shell_profile.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
@@ -10,9 +11,11 @@ import '../../../../app/theme/app_theme_context.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
+import '../../../../shared/widgets/permission_list_tile.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/tenant_context_card.dart';
+import '../../domain/entities/operational_context.dart';
 import '../controllers/operational_context_controller.dart';
 
 class OperationalContextPage extends ConsumerWidget {
@@ -29,7 +32,13 @@ class OperationalContextPage extends ConsumerWidget {
         title: 'Conta',
         leading: IconButton(
           icon: const Icon(AppIcons.arrowBack),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.more);
+            }
+          },
         ),
       ),
       body: ListView(
@@ -58,8 +67,7 @@ class OperationalContextPage extends ConsumerWidget {
             ),
             _ when state.context != null => _OperationalContextContent(
               userName: shellProfile.userName,
-              userEmail: state.context!.userEmail,
-              tenantName: state.context!.tenantName,
+              operationalContext: state.context!,
             ),
             _ => const SizedBox.shrink(),
           },
@@ -72,13 +80,11 @@ class OperationalContextPage extends ConsumerWidget {
 class _OperationalContextContent extends StatelessWidget {
   const _OperationalContextContent({
     required this.userName,
-    required this.userEmail,
-    required this.tenantName,
+    required this.operationalContext,
   });
 
   final String userName;
-  final String userEmail;
-  final String tenantName;
+  final OperationalContext operationalContext;
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +92,9 @@ class _OperationalContextContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TenantContextCard(
-          tenantName: tenantName,
+          tenantName: operationalContext.tenantName,
           userName: userName,
-          userEmail: userEmail,
+          userEmail: operationalContext.userEmail,
         ),
         const SizedBox(height: AppSpacing.sectionGap),
         const SectionHeader(
@@ -111,7 +117,7 @@ class _OperationalContextContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  tenantName,
+                  operationalContext.tenantName,
                   style: context.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -125,6 +131,38 @@ class _OperationalContextContent extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sectionGap),
+        const SectionHeader(
+          title: 'Permissões operacionais',
+          subtitle:
+              'A interface usa estas permissões como orientação; o servidor continua soberano.',
+        ),
+        const SizedBox(height: AppSpacing.md),
+        PermissionListTile(
+          label: 'Consultar catálogo',
+          description: 'Visualizar produtos e disponibilidade operacional.',
+          allowed: operationalContext.permissionGranted('products_view'),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        PermissionListTile(
+          label: 'Registrar vendas',
+          description: 'Criar rascunhos e futuras intenções de venda.',
+          allowed: operationalContext.permissionGranted('sales_create'),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        PermissionListTile(
+          label: 'Ver relatórios',
+          description: 'Acessar relatórios quando o módulo estiver disponível.',
+          allowed: operationalContext.permissionGranted('reports_view'),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        PermissionListTile(
+          label: 'Ver métricas financeiras',
+          description: 'Exibir preços, totais e indicadores financeiros.',
+          allowed: operationalContext.permissionGranted(
+            'view_financial_metrics',
           ),
         ),
       ],

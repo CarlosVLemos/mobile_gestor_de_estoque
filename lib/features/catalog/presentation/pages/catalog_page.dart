@@ -9,7 +9,6 @@ import '../../../../shared/widgets/animated_state_switcher.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
-import '../../../../shared/widgets/interactive_feedback.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/product_card.dart';
@@ -167,25 +166,21 @@ class CatalogPage extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
         ],
         for (final product in state.items) ...[
-          InteractiveFeedback(
-            child: ProductCard(
-              categoryIcon: _getCategoryIcon(product.categoryName),
-              product: ProductCardData(
-                name: product.name,
-                sku: product.sku,
-                brand: product.brand,
-                stockQuantity: product.stockQuantity,
-                stockTone: switch (product.stockStatus) {
-                  CatalogStockStatus.available =>
-                    ProductCardStockTone.available,
-                  CatalogStockStatus.low => ProductCardStockTone.low,
-                  CatalogStockStatus.out => ProductCardStockTone.out,
-                },
-                availableForSale: product.isAvailableForSale,
-                updatedAtLabel: product.updatedAtLabel,
-                price: product.price,
-                categoryName: product.categoryName,
-              ),
+          ProductCard(
+            categoryIcon: _getCategoryIcon(product.categoryName),
+            product: ProductCardData(
+              name: product.name,
+              sku: product.sku,
+              brand: product.brand,
+              stockQuantity: product.stockQuantity,
+              stockTone: switch (product.stockStatus) {
+                CatalogStockStatus.available =>
+                  ProductCardStockTone.available,
+                CatalogStockStatus.low => ProductCardStockTone.low,
+                CatalogStockStatus.out => ProductCardStockTone.out,
+              },
+              availableForSale: product.isAvailableForSale,
+              price: product.price,
             ),
           ),
           const SizedBox(height: AppSpacing.md),

@@ -36,14 +36,15 @@ class ShellDisplayNameController extends Notifier<String?> {
 }
 
 class ShellProfile {
-  const ShellProfile({
+  ShellProfile({
     required this.userName,
     required this.userEmail,
     required this.tenantName,
     required this.tenantSlug,
-    required this.features,
-    required this.permissions,
-  });
+    required Set<String> features,
+    required Map<String, bool> permissions,
+  }) : features = Set.unmodifiable(features),
+       permissions = Map.unmodifiable(permissions);
 
   final String userName;
   final String userEmail;

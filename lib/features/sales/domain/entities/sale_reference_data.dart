@@ -27,7 +27,11 @@ class SaleProductOption {
 }
 
 class SalesDraftSeed {
-  const SalesDraftSeed({required this.clients, required this.products});
+  SalesDraftSeed({
+    required List<SaleClientOption> clients,
+    required List<SaleProductOption> products,
+  }) : clients = List.unmodifiable(clients),
+       products = List.unmodifiable(products);
 
   final List<SaleClientOption> clients;
   final List<SaleProductOption> products;

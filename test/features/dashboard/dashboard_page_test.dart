@@ -46,4 +46,32 @@ void main() {
       expect(find.text('Movimentos recentes'), findsNothing);
     },
   );
+
+  testWidgets('dashboard suporta 320px com textScaler 2.0', (tester) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dashboardRepositoryProvider.overrideWithValue(
+            const MockDashboardRepository(),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: const MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: DashboardPage(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Indicadores'), findsOneWidget);
+  });
 }

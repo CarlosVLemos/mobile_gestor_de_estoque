@@ -3,10 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
 import 'package:gestor_de_estoque/app/theme/app_icons.dart';
 import 'package:gestor_de_estoque/shared/widgets/operational_top_bar.dart';
-import 'package:gestor_de_estoque/shared/widgets/dashboard_hero.dart';
 import 'package:gestor_de_estoque/shared/widgets/app_bottom_navigation.dart';
 import 'package:gestor_de_estoque/shared/widgets/kpi_card.dart';
+import 'package:gestor_de_estoque/shared/widgets/offline_state_banner.dart';
+import 'package:gestor_de_estoque/shared/widgets/permission_list_tile.dart';
 import 'package:gestor_de_estoque/shared/widgets/product_card.dart';
+import 'package:gestor_de_estoque/shared/widgets/section_header.dart';
 
 void main() {
   group('OperationalTopBar', () {
@@ -25,103 +27,126 @@ void main() {
 
       expect(find.text('Título do Top Bar'), findsOneWidget);
       expect(find.text('Subtítulo do Top Bar'), findsOneWidget);
+      expect(find.byIcon(AppIcons.search), findsNothing);
+      expect(find.byIcon(AppIcons.menu), findsNothing);
     });
 
-    testWidgets('faz reflow com textScaler alto (1.3 e 2.0) e ajusta altura', (
+    testWidgets('permanece legível em largura compacta e textScaler 2.0', (
       tester,
     ) async {
-      final key = GlobalKey();
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.light,
           home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1.0)),
-            child: Scaffold(
-              body: Column(
-                children: [
-                  OperationalTopBar(
-                    key: key,
-                    title: 'Título do Top Bar',
-                    actions: const [Text('Ação 1'), Text('Ação 2')],
-                  ),
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: const Scaffold(
+              appBar: OperationalTopBar(
+                title: 'Título operacional longo',
+                leading: IconButton(onPressed: null, icon: Icon(AppIcons.menu)),
+                actions: [
+                  IconButton(onPressed: null, icon: Icon(AppIcons.search)),
+                  IconButton(onPressed: null, icon: Icon(AppIcons.themeDark)),
                 ],
               ),
             ),
           ),
         ),
       );
-      final height1 = tester.getSize(find.byKey(key)).height;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
-            child: Scaffold(
-              body: Column(
-                children: [
-                  OperationalTopBar(
-                    key: key,
-                    title: 'Título do Top Bar',
-                    actions: const [Text('Ação 1'), Text('Ação 2')],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-      final height1_3 = tester.getSize(find.byKey(key)).height;
+      await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
-            child: Scaffold(
-              body: Column(
-                children: [
-                  OperationalTopBar(
-                    key: key,
-                    title: 'Título do Top Bar',
-                    actions: const [Text('Ação 1'), Text('Ação 2')],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-      final height2 = tester.getSize(find.byKey(key)).height;
-
-      expect(height2, greaterThan(height1));
-      expect(height1_3, greaterThanOrEqualTo(height1));
-      expect(find.text('Título do Top Bar'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Título operacional longo'), findsOneWidget);
+      expect(find.byIcon(AppIcons.search), findsOneWidget);
+      expect(find.byIcon(AppIcons.themeDark), findsOneWidget);
     });
   });
 
-  group('DashboardHero', () {
-    testWidgets('renderiza com gradiente, titulo e no maximo dois metadados', (
+  group('SectionHeader', () {
+    testWidgets('move ação para baixo em largura compacta e texto ampliado', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       await tester.pumpWidget(
         MaterialApp(
           theme: AppTheme.light,
-          home: const Scaffold(
-            body: DashboardHero(
-              title: 'Painel Principal',
-              message: 'Mensagem do Hero',
-              updatedAtLabel: '10:00',
-              financialAccess: true,
+          home: const MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: Padding(
+                padding: EdgeInsets.all(16),
+                child: SectionHeader(
+                  title: 'Carrinho de produtos',
+                  action: TextButton(
+                    onPressed: null,
+                    child: Text('Adicionar produto'),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
       );
 
-      expect(find.text('Painel Principal'), findsOneWidget);
-      expect(find.text('Mensagem do Hero'), findsOneWidget);
-      expect(find.text('10:00'), findsOneWidget);
-      expect(find.text('Financeiro liberado'), findsOneWidget);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final titleBottom = tester
+          .getBottomLeft(find.text('Carrinho de produtos'))
+          .dy;
+      final actionTop = tester.getTopLeft(find.text('Adicionar produto')).dy;
+      expect(actionTop, greaterThan(titleBottom));
+    });
+  });
+
+  group('Operational state rows', () {
+    testWidgets('reflowam em 320px com textScaler 2.0', (tester) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: const MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    PermissionListTile(
+                      label: 'Consultar catálogo completo',
+                      description:
+                          'Permissão aplicada conforme o contexto remoto.',
+                      allowed: false,
+                    ),
+                    OfflineStateBanner(
+                      message:
+                          'Os dados locais continuam visíveis enquanto a conexão não retorna.',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Restrito'), findsOneWidget);
+      expect(find.text('Offline'), findsOneWidget);
     });
   });
 
@@ -349,7 +374,6 @@ void main() {
                 stockQuantity: 10,
                 stockTone: ProductCardStockTone.available,
                 availableForSale: true,
-                updatedAtLabel: 'Agora',
                 price: 150.0,
               ),
             ),
@@ -374,7 +398,6 @@ void main() {
           stockQuantity: 15,
           stockTone: ProductCardStockTone.available,
           availableForSale: true,
-          updatedAtLabel: 'Agora',
           price: 299.90,
         );
 
@@ -439,7 +462,6 @@ void main() {
         stockQuantity: 15,
         stockTone: ProductCardStockTone.available,
         availableForSale: true,
-        updatedAtLabel: 'Agora',
         price: 1299.90,
       );
 
@@ -459,6 +481,59 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('R\$ 1.299,90'), findsOneWidget);
+    });
+
+    testWidgets('expõe indisponibilidade de venda separada do estoque', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: const Scaffold(
+            body: ProductCard(
+              categoryIcon: AppIcons.productProtection,
+              product: ProductCardData(
+                name: 'Produto bloqueado',
+                sku: 'SKU-BLOCK',
+                brand: 'Arara',
+                stockQuantity: 10,
+                stockTone: ProductCardStockTone.available,
+                availableForSale: false,
+                price: 10,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Estoque saudável'), findsOneWidget);
+      expect(find.text('Venda indisponível'), findsOneWidget);
+    });
+
+    testWidgets('não exibe estoque negativo recebido por engano', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light,
+          home: const Scaffold(
+            body: ProductCard(
+              categoryIcon: AppIcons.productProtection,
+              product: ProductCardData(
+                name: 'Produto inconsistente',
+                sku: 'SKU-NEG',
+                brand: 'Arara',
+                stockQuantity: -2,
+                stockTone: ProductCardStockTone.out,
+                availableForSale: false,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('0 unidades'), findsOneWidget);
+      expect(find.text('-2 unidades'), findsNothing);
     });
   });
 }

@@ -19,6 +19,12 @@ class PermissionListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTextLarge = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    final status = StatusBadge(
+      label: allowed ? 'Liberado' : 'Restrito',
+      tone: allowed ? AppStatusTone.success : AppStatusTone.restricted,
+    );
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: context.colors.surfaceContainerLow,
@@ -27,30 +33,43 @@ class PermissionListTile extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final shouldStack = isTextLarge || constraints.maxWidth < 320;
+            final content = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: context.textTheme.titleSmall),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  description,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.appColors.onSurfaceMuted,
+                  ),
+                ),
+              ],
+            );
+
+            if (shouldStack) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: context.textTheme.titleSmall),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    description,
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.appColors.onSurfaceMuted,
-                    ),
-                  ),
+                  content,
+                  const SizedBox(height: AppSpacing.md),
+                  status,
                 ],
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            StatusBadge(
-              label: allowed ? 'Liberado' : 'Restrito',
-              tone: allowed ? AppStatusTone.success : AppStatusTone.restricted,
-            ),
-          ],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: content),
+                const SizedBox(width: AppSpacing.md),
+                status,
+              ],
+            );
+          },
         ),
       ),
     );

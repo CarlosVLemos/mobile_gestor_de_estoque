@@ -11,6 +11,7 @@ final operationalContextControllerProvider =
 
 class OperationalContextController extends Notifier<OperationalContextState> {
   var _initialized = false;
+  var _requestSequence = 0;
 
   @override
   OperationalContextState build() {
@@ -22,18 +23,30 @@ class OperationalContextController extends Notifier<OperationalContextState> {
   }
 
   Future<void> load() async {
+    final requestId = ++_requestSequence;
     state = const OperationalContextState.loading();
-    final result = await ref.read(getOperationalContextUseCaseProvider).call();
+    try {
+      final result = await ref.read(getOperationalContextUseCaseProvider).call();
+      if (requestId != _requestSequence) {
+        return;
+      }
 
-    state = switch (result.status) {
-      OperationalContextLoadStatus.ready => OperationalContextState.ready(
-        result.context!,
-      ),
-      OperationalContextLoadStatus.restricted =>
-        OperationalContextState.restricted(result.message!),
-      OperationalContextLoadStatus.failure => OperationalContextState.failure(
-        result.message!,
-      ),
-    };
+      state = switch (result.status) {
+        OperationalContextLoadStatus.ready => OperationalContextState.ready(
+          result.context!,
+        ),
+        OperationalContextLoadStatus.restricted =>
+          OperationalContextState.restricted(result.message!),
+        OperationalContextLoadStatus.failure =>
+          OperationalContextState.failure(result.message!),
+      };
+    } on Object {
+      if (requestId != _requestSequence) {
+        return;
+      }
+      state = const OperationalContextState.failure(
+        'Não foi possível carregar o contexto neste momento.',
+      );
+    }
   }
 }
