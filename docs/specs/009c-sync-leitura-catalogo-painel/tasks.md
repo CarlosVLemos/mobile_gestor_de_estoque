@@ -14,9 +14,11 @@
 - [ ] **Fase 3: Vinculação de Provedores e Telas**
   - [ ] Alterar o `productRepositoryProvider` para apontar para `DriftProductRepository`.
   - [ ] Alterar o `dashboardRepositoryProvider` para apontar para `DriftDashboardRepository`.
-  - [ ] Ajustar controladores de tela (Presentation) para observar as novas streams, tratando os estados operacionais (`loading`, `ready`, `offline`).
+  - [ ] Ajustar controladores de tela (Presentation) para observar as novas streams usando `.autoDispose` nos provedores.
+  - [ ] Implementar a exibição condicional do banner de aviso offline/falha de sync sem apagar os dados locais em cache já renderizados.
 
 - [ ] **Fase 4: Testes de Integração e UI**
   - [ ] Criar testes unitários para os repositórios Drift mockando as chamadas HTTP.
   - [ ] Testar a interface do catálogo sob estado de restrição visual financeira (campo `price = null` no SQLite).
-  - [ ] Validar que dados continuam visíveis na tela quando a chamada de sync remota falha.
+  - [ ] Validar que dados continuam visíveis na tela quando a chamada de sync remota falha e o banner de offline é exibido coerentemente.
+  - [ ] Testar se o fechamento do widget desmonta a inscrição do stream do Drift (verificando `.autoDispose` do Riverpod).

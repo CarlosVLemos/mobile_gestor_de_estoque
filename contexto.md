@@ -26,7 +26,7 @@ Hoje o que esta mais materializado no codigo:
 - catalogo operacional ainda baseado em fixture, mas integrado a shell atual;
 - area `Mais` e contexto operacional navegaveis;
 - tela inicial de vendas ja criada com fluxo local em memoria para selecionar
-  cliente, montar carrinho e registrar intencoes offline locais;
+  cliente, montar carrinho e criar rascunhos nao persistidos da sessao;
 - testes de widget, arquitetura e goldens em `test/`.
 
 O que ainda nao existe de verdade no app:

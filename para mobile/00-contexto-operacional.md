@@ -19,7 +19,7 @@ buscar detalhes sem reler toda a pasta.
   definitiva nem sincronizacao.
 - A tela de vendas deixou de ser apenas placeholder: hoje ja permite selecionar
   cliente, montar carrinho, respeitar restricao financeira local e registrar
-  intencoes em memoria.
+  rascunhos nao persistidos em memoria.
 - Existem contratos remotos documentados para perfil, dashboard e produtos.
 - Autenticacao mobile por token e vendas offline reais continuam dependentes de
   contratos ainda nao implementados.

@@ -18,5 +18,6 @@
 
 - [ ] **Fase 4: Validação do Banco com Testes**
   - [ ] Criar testes unitários em `test/core/database/app_database_test.dart` usando uma conexão em memória (`DatabaseConnection.inMemory()`).
-  - [ ] Testar inserção relacional (ex: tentar criar produto com id de categoria inexistente se houver chaves estrangeiras ativas).
+  - [ ] Validar integridade referencial: testar se a chave estrangeira em `ProductsTable` que aponta para `CategoriesTable` funciona (ex: exclui categoria e seta nulo no ID correspondente do produto).
+  - [ ] Simular inserção de produtos com categorias em ordem errada e ordem correta para validar a necessidade do sequenciamento estrito.
   - [ ] Validar leitura de produtos com campo `price` contendo valor e contendo `null`.

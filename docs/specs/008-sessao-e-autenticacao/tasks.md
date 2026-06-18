@@ -13,6 +13,7 @@
 
 - [ ] **Fase 4: Controle de Estado e Rotas**
   - [ ] Criar `lib/features/auth/presentation/controllers/auth_controller.dart` gerenciando a máquina de estados de sessão (Iniciando, Não Autenticado, Autenticado, Deslogando).
+  - [ ] Conectar o canal de callback do `ApiClient` ao `AuthController` para que erros `401` disparem imediatamente a transição para o estado `unauthenticated` e limpem as credenciais.
   - [ ] Atualizar `lib/app/router/app_router.dart` para escutar as mudanças do `authControllerProvider` e efetuar redirecionamentos (`redirect`).
 
 - [ ] **Fase 5: Interface e Páginas**
@@ -21,4 +22,5 @@
 
 - [ ] **Fase 6: Testes**
   - [ ] Criar testes unitários para o `AuthController` testando a inicialização com e sem token guardado.
-  - [ ] Criar testes de integração/widget de rotas para assegurar o redirecionamento automático para a tela de login.
+  - [ ] Testar se a propagação de erro `401` do `ApiClient` altera o estado do `AuthController` de forma limpa.
+  - [ ] Criar testes de integração/widget de rotas para assegurar o redirecionamento automático para a tela de login ao receber `401` ou ao deslogar.

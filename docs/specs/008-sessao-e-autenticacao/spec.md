@@ -13,15 +13,20 @@ Implementar o ciclo de vida da sessão do usuário, incluindo login, logout, per
 
 ## Regras de Negócio e Diretrizes Técnicas
 1. **Armazenamento Seguro do Token (MOB-008):**
-   * O token Sanctum deve ser salvo em armazenamento criptografado seguro (ex: Keychain no iOS e Keystore no Android via `flutter_secure_storage`).
+   * O token Sanctum deve ser salvo em armazenamento criptografado seguro ( Keychain no iOS e Keystore no Android via `flutter_secure_storage`).
    * Nunca gravar o token de sessão ou credenciais diretas em logs ou no `SharedPreferences` comum.
 2. **Redirecionamento Declarativo de Rotas (MOB-007):**
-   * Configurar a navegação do `go_router` para avaliar o estado de sessão:
-     * Usuário NÃO autenticado -> Redirecionar para `/login`.
-     * Usuário autenticado tentando acessar `/login` -> Redirecionar para o painel principal.
-3. **Consumo de Contexto Inicial (`GET /api/mobile/me`):**
+   * Configurar a navegação do `go_router` para escutar as mudanças do estado de autenticação (Riverpod `authControllerProvider`).
+   * Regras de redirecionamento:
+     * Usuário NÃO autenticado tentando acessar rota restrita -> Redirecionar para `/login`.
+     * Usuário autenticado tentando acessar `/login` -> Redirecionar para o painel principal (`/`).
+3. **Tratamento de Sessão Expirada / Token Inválido (401):**
+   * Quando o `ApiClient` receber uma resposta `401 Unauthorized`, ele deve disparar um evento através de um callback ou canal reativo (ex: `authFailureProvider` ou notifier específico).
+   * O `AuthController` escutará esse evento para desautenticar o usuário imediatamente (limpando o token no storage seguro e redefinindo o estado para `unauthenticated`).
+   * A UI reagirá automaticamente através do redirecionamento do `go_router`.
+4. **Consumo de Contexto Inicial (`GET /api/mobile/me`):**
    * Ao efetuar login ou iniciar o app com um token válido pré-existente, realizar o carregamento do endpoint `/me` para preencher o `ShellProfile` com as features e permissões atualizadas do usuário.
-4. **Dependência Temporária (DEP-001):**
+5. **Dependência Temporária (DEP-001):**
    * Como o endpoint `POST /api/mobile/login` está planejado mas pode não estar implementado no momento da execução desta spec, os repositórios de autenticação remota devem prever uma flag/mock que simula a requisição retornando um token de acesso de teste e o payload correspondente de `/me`.
 
 ## Estrutura de Arquivos Proposta
@@ -47,4 +52,6 @@ lib/features/auth/
 * Abertura do app sem token ativo redireciona o usuário para a tela de login.
 * Submissão bem-sucedida de credenciais válidas grava o token de acesso no armazenamento seguro e navega para o painel principal.
 * Um clique em "Sair" apaga o token do armazenamento criptografado e redireciona de volta para `/login`.
+* Resposta HTTP `401` em qualquer requisição força o deslogue e redirecionamento imediato para a tela de login.
 * A suíte de testes de rotas (`go_router`) valida as transições de estado (login/logout/token expirado).
+

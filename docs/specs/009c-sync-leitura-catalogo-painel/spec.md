@@ -12,17 +12,19 @@ Implementar as coleções de sincronização para produtos (`ProductSyncCollecti
 
 ## Regras de Negócio e Diretrizes Técnicas
 1. **Sincronização de Produtos (`ProductSyncCollection`):**
-   * Consumir o endpoint `GET /api/mobile/products`.
-   * Tratar paginação do endpoint remoto. O bootstrap deve baixar todas as páginas até que `has_more_pages` seja falso.
-   * Realizar o "upsert" em massa das categorias e produtos na base de dados Drift local.
+   * Consumir o endpoint `GET /api/mobile/products` passando parâmetros `limit` (tamanho do lote, ex: 100), `page` (número da página) e `updated_since` (carimbo do checkpoint, se houver).
+   * Tratar paginação do endpoint remoto. O bootstrap deve baixar todas as páginas de forma sequencial até que `has_more_pages` seja falso.
+   * Realizar o "upsert" em massa das categorias e produtos na base de dados Drift local usando blocos de transação.
 2. **Sincronização do Painel (`DashboardSyncCollection`):**
    * Consumir o endpoint `GET /api/mobile/dashboard`.
-   * Salvar os KPIs e dados de alertas nas tabelas locais do banco Drift.
-3. **Observabilidade Reativa na UI (MOB-001):**
+   * Salvar os KPIs e dados de alertas nas tabelas locais do banco Drift, limpando registros antigos consolidados e sobrescrevendo com os novos.
+3. **Observabilidade Reativa na UI com Descarte Seguro (MOB-001):**
    * Modificar a camada de apresentação (`CatalogPage`, `DashboardPage`) para observar os dados através de fluxos contínuos (`Stream`) gerados pelo Drift.
-   * Quando o `SyncEngine` terminar de salvar novos dados em background, a UI deve se atualizar automaticamente sem exigir que o usuário mude de página.
-4. **Resiliência Offline (UI-005):**
-   * Se a sincronização falhar (ex: sem internet), o repositório deve retornar os últimos dados salvos no banco local e exibir um aviso de "modo offline", em vez de apagar a tela ou exibir um erro de tela inteira.
+   * Os Riverpod Providers que expõem essas Streams (ex: `catalogProductsStreamProvider`) devem utilizar o modificador `.autoDispose` para fechar os canais reativos e cancelar inscrições de banco de dados quando as telas correspondentes forem desmontadas.
+   * Quando o `SyncEngine` terminar de salvar novos dados em background, a UI deve se atualizar automaticamente sem exigir que o usuário mude de página ou acione refresh.
+4. **Resiliência Offline e Dados em Cache (UI-005):**
+   * Se a sincronização falhar (ex: sem internet, erro de servidor), o repositório Drift local deve continuar fornecendo os últimos dados gravados no SQLite com sucesso.
+   * O estado reativo da tela deve mudar para `ready` (exibindo os dados locais) mas acionar um banner ou indicador de "modo offline" ou "sincronização falhou", impedindo a exibição de uma tela em branco ou erro fatal de carregamento de tela inteira.
 
 ## Estrutura de Arquivos Proposta
 ```text
@@ -43,6 +45,8 @@ lib/features/dashboard/
 ## Critérios de Aceite
 * A inicialização do aplicativo dispara o download e população inicial das tabelas locais (bootstrap).
 * Alterações no banco de dados local refletem automaticamente nas telas sem necessidade de refresh manual.
-* Desconectar a internet e abrir o aplicativo exibe os dados salvos localmente na última sincronização válida.
+* Desconectar a internet e abrir o aplicativo exibe os dados salvos localmente na última sincronização válida, junto com o banner offline.
+* Provedores de Stream do Drift usam `.autoDispose` e cancelam subscrições de banco no descarte da tela.
 * A ausência de preços nos produtos (`price = null` devido a restrição visual) não quebra a renderização dos cards na lista do catálogo.
-* Testes de widget e de integração validam o comportamento offline e a renderização do catálogo reativo.
+* Testes de widget e de integração validam o comportamento offline, renderização do catálogo reativo e descarte de subscrições.
+
