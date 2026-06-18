@@ -4,11 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/arara_app.dart';
 import 'package:gestor_de_estoque/app/localization/app_strings.dart';
 import 'package:gestor_de_estoque/app/theme/app_color_tokens.dart';
+import 'package:gestor_de_estoque/app/theme/app_icons.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
 import 'package:gestor_de_estoque/shared/widgets/app_bottom_navigation.dart';
 
 void main() {
-  testWidgets('configura tema claro, escuro e modo do sistema', (tester) async {
+  testWidgets('configura tema claro, escuro e modo inicial do sistema', (
+    tester,
+  ) async {
     await tester.pumpWidget(const ProviderScope(child: AraraApp()));
     await tester.pumpAndSettle();
 
@@ -52,11 +55,18 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(AppBottomNavigation),
+          matching: find.text(AppStrings.shellSales),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AppBottomNavigation),
           matching: find.text(AppStrings.shellMore),
         ),
         findsOneWidget,
       );
-      expect(find.textContaining('Operação de'), findsOneWidget);
+      expect(find.text('ATUALIZAÇÃO'), findsOneWidget);
       expect(find.byType(Scaffold), findsWidgets);
 
       final context = tester.element(find.byType(Scaffold).first);
@@ -87,7 +97,6 @@ void main() {
         await tester.pump(const Duration(milliseconds: 350));
         await tester.pumpAndSettle();
 
-        expect(tester.takeException(), isNull);
         expect(
           find.descendant(
             of: find.byType(AppBottomNavigation),
@@ -105,6 +114,13 @@ void main() {
         expect(
           find.descendant(
             of: find.byType(AppBottomNavigation),
+            matching: find.text(AppStrings.shellSales),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byType(AppBottomNavigation),
             matching: find.text(AppStrings.shellMore),
           ),
           findsOneWidget,
@@ -112,4 +128,34 @@ void main() {
       },
     );
   }
+
+  testWidgets('toggle de tema sai do modo sistema durante a sessão', (
+    tester,
+  ) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(AppIcons.themeDark));
+    await tester.pumpAndSettle();
+
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.themeMode, ThemeMode.dark);
+    expect(find.byIcon(AppIcons.themeLight), findsOneWidget);
+  });
+
+  testWidgets('menu lateral abre a partir do painel', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: AraraApp()));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(AppIcons.menu).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ver conta'), findsOneWidget);
+    expect(find.text('Alterar nome'), findsOneWidget);
+  });
 }

@@ -3,9 +3,6 @@ import '../../domain/entities/dashboard_overview.dart';
 
 DashboardOverview buildDashboardFixture() {
   return DashboardOverview(
-    headerTitle: 'Operação de ${appFixtureAccessProfile.tenantName}',
-    headerMessage:
-        'Os números abaixo usam fixture local explícita até o fluxo mobile de autenticação entrar no app.',
     canViewFinancial: appFixtureAccessProfile.canViewFinancialMetrics,
     webDashboardUrl: 'https://app.exemplo/painel',
     updatedAtLabel: 'Atualizado às 09:40',
@@ -33,6 +30,25 @@ DashboardOverview buildDashboardFixture() {
         isRestricted: !appFixtureAccessProfile.canViewFinancialMetrics,
       ),
     ],
+    stockLevelChart: const [
+      DashboardStockLevelPoint(
+        label: 'Disponível',
+        value: 18,
+        toneLabel: 'Estável',
+      ),
+      DashboardStockLevelPoint(label: 'Baixo', value: 6, toneLabel: 'Atenção'),
+      DashboardStockLevelPoint(
+        label: 'Ruptura',
+        value: 2,
+        toneLabel: 'Crítico',
+      ),
+    ],
+    operationalGoalChart: const DashboardOperationalGoalChart(
+      periodLabel: 'Junho',
+      targetLabel: 'Meta R\$ 24.000',
+      currentLabel: 'Atual R\$ 18.420',
+      progress: 0.77,
+    ),
     lowStockAlerts: const [
       DashboardStockAlert(
         productName: 'Capacete Trail Pro',

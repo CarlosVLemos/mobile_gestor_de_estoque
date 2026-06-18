@@ -4,23 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
+import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
-import '../../../../shared/widgets/dashboard_hero.dart';
+import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/interactive_feedback.dart';
 import '../../../../shared/widgets/kpi_card.dart';
-import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
+import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
+import '../../domain/entities/dashboard_overview.dart';
 import '../controllers/dashboard_controller.dart';
 
-/// Número máximo de itens exibidos inline antes de oferecer "Ver todos".
 const int _kMaxInlineItems = 5;
 
 class DashboardPage extends ConsumerWidget {
@@ -30,24 +32,35 @@ class DashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardControllerProvider);
     final controller = ref.read(dashboardControllerProvider.notifier);
+    final themeMode = ref.watch(appThemeModeProvider);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.transparent,
-      appBar: const OperationalTopBar(title: 'Painel'),
+      appBar: OperationalTopBar(
+        title: 'Painel',
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(AppIcons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            );
+          },
+        ),
+        showSearchAction: true,
+        onSearchPressed: () => _showSearchMessage(context),
+        themeMode: themeMode,
+        onThemeToggle: () {
+          ref
+              .read(appThemeModeProvider.notifier)
+              .toggle(MediaQuery.platformBrightnessOf(context));
+        },
+      ),
       body: RefreshIndicator(
         onRefresh: controller.refresh,
         child: ListView(
           padding: AppSpacing.screenPadding,
           children: [
-            DashboardHero(
-              title: state.overview?.headerTitle ?? 'Painel operacional',
-              message:
-                  state.overview?.headerMessage ??
-                  'Preparando o resumo operacional do tenant.',
-              updatedAtLabel: state.overview?.updatedAtLabel ?? 'Carregando...',
-              financialAccess: state.overview?.canViewFinancial ?? false,
-            ),
-            const SizedBox(height: AppSpacing.sectionGap),
             if (state.status == ViewStatus.offline &&
                 state.message != null) ...[
               OfflineStateBanner(message: state.message!),
@@ -62,7 +75,6 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  /// Constrói o conteúdo condicional com Key semântica para animação.
   Widget _buildStateContent(
     BuildContext context,
     dynamic state,
@@ -116,6 +128,8 @@ class DashboardPage extends ConsumerWidget {
       return const SizedBox.shrink(key: ValueKey('dashboard-idle'));
     }
 
+    final DashboardOverview overview = state.overview!;
+
     return Column(
       key: const ValueKey('dashboard-ready'),
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,12 +150,7 @@ class DashboardPage extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sectionGap),
         ],
-
-        // KPIs em grade 2x2 com LayoutBuilder
-        const SectionHeader(
-          title: 'KPIs resumidos',
-          subtitle: 'Leitura compacta para operação em campo.',
-        ),
+        const SectionHeader(title: 'Indicadores'),
         const SizedBox(height: AppSpacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -151,7 +160,7 @@ class DashboardPage extends ConsumerWidget {
               spacing: AppSpacing.md,
               runSpacing: AppSpacing.md,
               children: [
-                for (final kpi in state.overview!.kpis)
+                for (final kpi in overview.kpis)
                   SizedBox(
                     width: cardWidth,
                     child: InteractiveFeedback(
@@ -169,22 +178,40 @@ class DashboardPage extends ConsumerWidget {
                       ),
                     ),
                   ),
+                SizedBox(
+                  width: cardWidth,
+                  child: InteractiveFeedback(
+                    child: KpiCard(
+                      label: 'Atualização',
+                      value: overview.updatedAtLabel,
+                      subtitle: overview.canViewFinancial
+                          ? 'Financeiro liberado'
+                          : 'Financeiro restrito',
+                      tone: KpiTone.neutral,
+                    ),
+                  ),
+                ),
               ],
             );
           },
         ),
         const SizedBox(height: AppSpacing.sectionGap),
-
-        // Alertas consolidados em card único com divisórias
+        const SectionHeader(title: 'Meta operacional'),
+        const SizedBox(height: AppSpacing.md),
+        _GoalChartCard(chart: overview.operationalGoalChart),
+        const SizedBox(height: AppSpacing.sectionGap),
+        const SectionHeader(title: 'Nível de estoque'),
+        const SizedBox(height: AppSpacing.md),
+        _StockLevelChartCard(points: overview.stockLevelChart),
+        const SizedBox(height: AppSpacing.sectionGap),
         SectionHeader(
-          title: 'Alertas de estoque',
-          subtitle: 'Ruptura e baixo saldo visíveis sem abrir o web dashboard.',
-          action: state.overview!.lowStockAlerts.length > _kMaxInlineItems
+          title: 'Alertas',
+          action: overview.lowStockAlerts.length > _kMaxInlineItems
               ? TextButton(onPressed: () {}, child: const Text('Ver todos'))
               : null,
         ),
         const SizedBox(height: AppSpacing.md),
-        if (state.overview!.lowStockAlerts.isEmpty)
+        if (overview.lowStockAlerts.isEmpty)
           DecoratedBox(
             decoration: AppDecorations.card(context),
             child: Padding(
@@ -206,11 +233,7 @@ class DashboardPage extends ConsumerWidget {
               children: [
                 for (
                   var i = 0;
-                  i <
-                      math.min(
-                        state.overview!.lowStockAlerts.length,
-                        _kMaxInlineItems,
-                      );
+                  i < math.min(overview.lowStockAlerts.length, _kMaxInlineItems);
                   i++
                 ) ...[
                   if (i > 0)
@@ -223,10 +246,8 @@ class DashboardPage extends ConsumerWidget {
                     child: Row(
                       children: [
                         StatusBadge(
-                          label: state.overview!.lowStockAlerts[i].toneLabel,
-                          tone:
-                              state.overview!.lowStockAlerts[i].toneLabel ==
-                                  'Ruptura'
+                          label: overview.lowStockAlerts[i].toneLabel,
+                          tone: overview.lowStockAlerts[i].toneLabel == 'Ruptura'
                               ? AppStatusTone.error
                               : AppStatusTone.warning,
                         ),
@@ -236,12 +257,12 @@ class DashboardPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                state.overview!.lowStockAlerts[i].productName,
+                                overview.lowStockAlerts[i].productName,
                                 style: Theme.of(context).textTheme.titleSmall,
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
-                                state.overview!.lowStockAlerts[i].stockLabel,
+                                overview.lowStockAlerts[i].stockLabel,
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -255,18 +276,14 @@ class DashboardPage extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: AppSpacing.sectionGap),
-
-        // Movimentos recentes consolidados em card único com divisórias
         SectionHeader(
-          title: 'Movimentos recentes',
-          subtitle:
-              'Últimos eventos resumidos no app. O dashboard web continua disponível para leitura completa.',
-          action: state.overview!.recentMovements.length > _kMaxInlineItems
+          title: 'Movimentos',
+          action: overview.recentMovements.length > _kMaxInlineItems
               ? TextButton(onPressed: () {}, child: const Text('Ver todos'))
               : null,
         ),
         const SizedBox(height: AppSpacing.md),
-        if (state.overview!.recentMovements.isEmpty)
+        if (overview.recentMovements.isEmpty)
           DecoratedBox(
             decoration: AppDecorations.card(context),
             child: Padding(
@@ -288,11 +305,7 @@ class DashboardPage extends ConsumerWidget {
               children: [
                 for (
                   var i = 0;
-                  i <
-                      math.min(
-                        state.overview!.recentMovements.length,
-                        _kMaxInlineItems,
-                      );
+                  i < math.min(overview.recentMovements.length, _kMaxInlineItems);
                   i++
                 ) ...[
                   if (i > 0)
@@ -302,13 +315,11 @@ class DashboardPage extends ConsumerWidget {
                       horizontal: AppSpacing.md,
                       vertical: AppSpacing.xs,
                     ),
-                    title: Text(state.overview!.recentMovements[i].productName),
+                    title: Text(overview.recentMovements[i].productName),
                     subtitle: Text(
-                      '${state.overview!.recentMovements[i].movementLabel} • ${state.overview!.recentMovements[i].occurredAtLabel}',
+                      '${overview.recentMovements[i].movementLabel} • ${overview.recentMovements[i].occurredAtLabel}',
                     ),
-                    trailing: Text(
-                      state.overview!.recentMovements[i].quantityLabel,
-                    ),
+                    trailing: Text(overview.recentMovements[i].quantityLabel),
                   ),
                 ],
               ],
@@ -316,5 +327,118 @@ class DashboardPage extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  void _showSearchMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Busca global ainda não entrou no app.')),
+    );
+  }
+}
+
+class _GoalChartCard extends StatelessWidget {
+  const _GoalChartCard({required this.chart});
+
+  final DashboardOperationalGoalChart chart;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: AppDecorations.card(context),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              chart.periodLabel,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              chart.currentLabel,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: chart.progress,
+                minHeight: 10,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              chart.targetLabel,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: context.appColors.onSurfaceMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StockLevelChartCard extends StatelessWidget {
+  const _StockLevelChartCard({required this.points});
+
+  final List<DashboardStockLevelPoint> points;
+
+  @override
+  Widget build(BuildContext context) {
+    final highestValue = points.fold<int>(
+      1,
+      (maxValue, point) => point.value > maxValue ? point.value : maxValue,
+    );
+
+    return DecoratedBox(
+      decoration: AppDecorations.card(context),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            for (final point in points)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${point.value}'),
+                      const SizedBox(height: AppSpacing.sm),
+                      Container(
+                        height: 120 * (point.value / highestValue),
+                        decoration: BoxDecoration(
+                          color: _barColor(context, point.toneLabel),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        point.label,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _barColor(BuildContext context, String toneLabel) {
+    return switch (toneLabel) {
+      'Crítico' => context.colors.errorContainer,
+      'Atenção' => context.colors.tertiaryContainer,
+      _ => context.colors.primaryContainer,
+    };
   }
 }

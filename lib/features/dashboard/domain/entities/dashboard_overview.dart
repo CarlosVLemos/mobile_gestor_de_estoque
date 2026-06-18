@@ -1,20 +1,20 @@
 class DashboardOverview {
   const DashboardOverview({
-    required this.headerTitle,
-    required this.headerMessage,
     required this.kpis,
     required this.lowStockAlerts,
     required this.recentMovements,
+    required this.stockLevelChart,
+    required this.operationalGoalChart,
     required this.canViewFinancial,
     required this.webDashboardUrl,
     required this.updatedAtLabel,
   });
 
-  final String headerTitle;
-  final String headerMessage;
   final List<DashboardKpi> kpis;
   final List<DashboardStockAlert> lowStockAlerts;
   final List<DashboardMovement> recentMovements;
+  final List<DashboardStockLevelPoint> stockLevelChart;
+  final DashboardOperationalGoalChart operationalGoalChart;
   final bool canViewFinancial;
   final String webDashboardUrl;
   final String updatedAtLabel;
@@ -62,4 +62,30 @@ class DashboardMovement {
   final String movementLabel;
   final String quantityLabel;
   final String occurredAtLabel;
+}
+
+class DashboardStockLevelPoint {
+  const DashboardStockLevelPoint({
+    required this.label,
+    required this.value,
+    required this.toneLabel,
+  });
+
+  final String label;
+  final int value;
+  final String toneLabel;
+}
+
+class DashboardOperationalGoalChart {
+  const DashboardOperationalGoalChart({
+    required this.periodLabel,
+    required this.targetLabel,
+    required this.currentLabel,
+    required this.progress,
+  });
+
+  final String periodLabel;
+  final String targetLabel;
+  final String currentLabel;
+  final double progress;
 }

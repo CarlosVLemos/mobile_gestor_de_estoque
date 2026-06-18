@@ -32,6 +32,9 @@ abstract final class AppIcons {
   static const IconData success = LucideIcons.checkCircle;
   static const IconData warning = LucideIcons.alertTriangle;
   static const IconData error = LucideIcons.xCircle;
+  static const IconData removeItem = LucideIcons.trash2;
+  static const IconData increaseQuantity = LucideIcons.plus;
+  static const IconData decreaseQuantity = LucideIcons.minus;
 
   // New aliases for product categories
   static const IconData productProtection = LucideIcons.shieldCheck;

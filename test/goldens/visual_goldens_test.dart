@@ -87,6 +87,10 @@ void main() {
                   icon: AppIcons.products,
                 ),
                 AppBottomNavigationDestination(
+                  label: 'Vendas',
+                  icon: AppIcons.sales,
+                ),
+                AppBottomNavigationDestination(
                   label: 'Mais',
                   icon: AppIcons.more,
                 ),
@@ -120,6 +124,10 @@ void main() {
                 AppBottomNavigationDestination(
                   label: 'Produtos',
                   icon: AppIcons.products,
+                ),
+                AppBottomNavigationDestination(
+                  label: 'Vendas',
+                  icon: AppIcons.sales,
                 ),
                 AppBottomNavigationDestination(
                   label: 'Mais',

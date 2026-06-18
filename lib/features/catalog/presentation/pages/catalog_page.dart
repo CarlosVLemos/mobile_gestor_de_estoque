@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
+import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/interactive_feedback.dart';
@@ -40,12 +42,29 @@ class CatalogPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(catalogControllerProvider);
     final controller = ref.read(catalogControllerProvider.notifier);
+    final themeMode = ref.watch(appThemeModeProvider);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.transparent,
-      appBar: const OperationalTopBar(
+      appBar: OperationalTopBar(
         title: 'Produtos',
-        subtitle: 'Consulta rápida e estoque operacional',
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(AppIcons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            );
+          },
+        ),
+        showSearchAction: true,
+        onSearchPressed: () => _showSearchMessage(context),
+        themeMode: themeMode,
+        onThemeToggle: () {
+          ref
+              .read(appThemeModeProvider.notifier)
+              .toggle(MediaQuery.platformBrightnessOf(context));
+        },
       ),
       body: RefreshIndicator(
         onRefresh: controller.refresh,
@@ -56,12 +75,8 @@ class CatalogPage extends ConsumerWidget {
               searchValue: state.query.search,
               categories: state.categories,
               selectedCategory: state.query.category ?? 'Todos',
-              onSearchChanged: (value) {
-                controller.updateSearch(value);
-              },
-              onCategorySelected: (value) {
-                controller.updateCategory(value);
-              },
+              onSearchChanged: controller.updateSearch,
+              onCategorySelected: controller.updateCategory,
             ),
             const SizedBox(height: AppSpacing.sectionGap),
             if (state.status == ViewStatus.offline &&
@@ -115,7 +130,7 @@ class CatalogPage extends ConsumerWidget {
             state.message ??
             'Tente novamente em instantes para recarregar os produtos.',
         action: TextButton(
-          onPressed: () => controller.load(),
+          onPressed: controller.load,
           child: const Text('Tentar novamente'),
         ),
       );
@@ -145,7 +160,7 @@ class CatalogPage extends ConsumerWidget {
             title: 'Última atualização não concluiu',
             message: state.message!,
             action: TextButton(
-              onPressed: () => controller.refresh(),
+              onPressed: controller.refresh,
               child: const Text('Atualizar agora'),
             ),
           ),
@@ -176,6 +191,12 @@ class CatalogPage extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
         ],
       ],
+    );
+  }
+
+  void _showSearchMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Busca global ainda não entrou no app.')),
     );
   }
 }

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/ui_states/view_status.dart';
+import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
-import '../../../../app/router/app_routes.dart';
 import '../controllers/operational_context_controller.dart';
 import '../widgets/module_status_tile.dart';
 
@@ -20,59 +22,57 @@ class MorePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(operationalContextControllerProvider);
+    final themeMode = ref.watch(appThemeModeProvider);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.transparent,
-      appBar: const OperationalTopBar(
+      appBar: OperationalTopBar(
         title: 'Mais',
-        subtitle: 'Opções e atalhos da operação',
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              icon: const Icon(AppIcons.menu),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            );
+          },
+        ),
+        showSearchAction: true,
+        onSearchPressed: () => _showSearchMessage(context),
+        themeMode: themeMode,
+        onThemeToggle: () {
+          ref
+              .read(appThemeModeProvider.notifier)
+              .toggle(MediaQuery.platformBrightnessOf(context));
+        },
       ),
       body: ListView(
         padding: AppSpacing.screenPadding,
         children: [
-          const SectionHeader(
-            title: 'Acesso rápido',
-            subtitle:
-                'Atalhos para contexto e módulos fora do núcleo principal.',
-          ),
+          const SectionHeader(title: 'Acesso rápido'),
           const SizedBox(height: AppSpacing.md),
-
-          // Atalhos consolidados em card único com divisórias
           DecoratedBox(
             decoration: AppDecorations.glassSurface(context),
             child: Column(
               children: [
                 ModuleStatusTile(
                   title: 'Contexto operacional',
-                  description:
-                      'Mostra tenant, usuário, features e permissões que moldam a experiência do app.',
+                  description: 'Conta, tenant, features e permissões.',
                   available: true,
                   icon: AppIcons.account,
-                  onTap: () {
-                    context.push(AppRoutes.context);
-                  },
-                ),
-                const Divider(height: 1, indent: 16, endIndent: 16),
-                ModuleStatusTile(
-                  title: 'Vendas',
-                  description:
-                      'O fluxo offline ainda depende da futura spec de autenticação e dos contratos de intenção de venda.',
-                  available: false,
-                  icon: AppIcons.sales,
+                  onTap: () => context.push(AppRoutes.context),
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
                 ModuleStatusTile(
                   title: 'Estoque',
-                  description:
-                      'A leitura operacional de estoque aparece no painel e no catálogo, mas o módulo dedicado ainda não entrou no escopo.',
+                  description: 'Leitura dedicada ainda fora do escopo.',
                   available: false,
                   icon: AppIcons.inventory,
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
                 ModuleStatusTile(
                   title: 'Relatórios',
-                  description:
-                      'Relatórios mobile dependem de endpoints futuros. O app mantém só a trilha de contexto e permissão por enquanto.',
+                  description: 'Aguardando endpoints móveis.',
                   available: false,
                   icon: AppIcons.dashboard,
                 ),
@@ -122,6 +122,12 @@ class MorePage extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+
+  void _showSearchMessage(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Busca global ainda não entrou no app.')),
     );
   }
 }

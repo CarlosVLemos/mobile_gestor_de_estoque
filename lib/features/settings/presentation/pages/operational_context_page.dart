@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/shell/shell_profile.dart';
+import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_theme_context.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
-import '../../../../shared/widgets/feature_pill.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
-import '../../../../shared/widgets/permission_list_tile.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/tenant_context_card.dart';
@@ -20,12 +21,12 @@ class OperationalContextPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(operationalContextControllerProvider);
+    final shellProfile = ref.watch(shellProfileProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: OperationalTopBar(
-        title: 'Contexto e Acesso',
-        subtitle: 'Leitura operacional do seu perfil',
+        title: 'Conta',
         leading: IconButton(
           icon: const Icon(AppIcons.arrowBack),
           onPressed: () => context.pop(),
@@ -56,12 +57,9 @@ class OperationalContextPage extends ConsumerWidget {
               ),
             ),
             _ when state.context != null => _OperationalContextContent(
-              userName: state.context!.userName,
+              userName: shellProfile.userName,
               userEmail: state.context!.userEmail,
               tenantName: state.context!.tenantName,
-              tenantSlug: state.context!.tenantSlug,
-              features: state.context!.features,
-              permissions: state.context!.permissions,
             ),
             _ => const SizedBox.shrink(),
           },
@@ -76,17 +74,11 @@ class _OperationalContextContent extends StatelessWidget {
     required this.userName,
     required this.userEmail,
     required this.tenantName,
-    required this.tenantSlug,
-    required this.features,
-    required this.permissions,
   });
 
   final String userName;
   final String userEmail;
   final String tenantName;
-  final String tenantSlug;
-  final Set<String> features;
-  final Map<String, bool> permissions;
 
   @override
   Widget build(BuildContext context) {
@@ -95,55 +87,45 @@ class _OperationalContextContent extends StatelessWidget {
       children: [
         TenantContextCard(
           tenantName: tenantName,
-          tenantSlug: tenantSlug,
           userName: userName,
           userEmail: userEmail,
         ),
         const SizedBox(height: AppSpacing.sectionGap),
         const SectionHeader(
-          title: 'Features ativas',
-          subtitle: 'A shell e os módulos secundários usam este contexto.',
+          title: 'Vínculo da conta',
+          subtitle: 'Esta conta está associada à empresa abaixo.',
         ),
         const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final feature in ['catalog', 'sales', 'reports'])
-              FeaturePill(label: feature, enabled: features.contains(feature)),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sectionGap),
-        const SectionHeader(
-          title: 'Permissões relevantes',
-          subtitle:
-              'Permissão visual orienta a UX, mas a autorização final continua no backend.',
-        ),
-        const SizedBox(height: AppSpacing.md),
-        PermissionListTile(
-          label: 'Consultar catálogo',
-          description: 'Habilita leitura do módulo de produtos.',
-          allowed: permissions['products_view'] ?? false,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        PermissionListTile(
-          label: 'Criar vendas',
-          description: 'Prepara o futuro fluxo operacional de vendas.',
-          allowed: permissions['sales_create'] ?? false,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        PermissionListTile(
-          label: 'Ver métricas financeiras',
-          description:
-              'Controla a exibição de preço e indicadores financeiros no app.',
-          allowed: permissions['view_financial_metrics'] ?? false,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        PermissionListTile(
-          label: 'Ver relatórios',
-          description:
-              'Mantido para contexto operacional, ainda sem módulo mobile funcional.',
-          allowed: permissions['reports_view'] ?? false,
+        DecoratedBox(
+          decoration: AppDecorations.card(context),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Empresa vinculada',
+                  style: context.textTheme.labelMedium?.copyWith(
+                    color: context.appColors.onSurfaceMuted,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  tenantName,
+                  style: context.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  '$userName usa esta conta para acessar a operação dessa empresa.',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: context.appColors.onSurfaceMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/catalog/presentation/pages/catalog_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../../features/sales/presentation/pages/sales_page.dart';
 import '../../features/settings/presentation/pages/more_page.dart';
 import '../../features/settings/presentation/pages/operational_context_page.dart';
 import '../../shared/widgets/app_bottom_navigation.dart';
@@ -49,6 +50,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: AppRoutes.sales,
+                builder: (context, state) => const SalesPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: AppRoutes.more,
                 builder: (context, state) => const MorePage(),
               ),
@@ -87,6 +96,10 @@ class _OperationalShellPage extends StatelessWidget {
         AppBottomNavigationDestination(
           label: AppStrings.shellProducts,
           icon: AppIcons.products,
+        ),
+        AppBottomNavigationDestination(
+          label: AppStrings.shellSales,
+          icon: AppIcons.sales,
         ),
         AppBottomNavigationDestination(
           label: AppStrings.shellMore,

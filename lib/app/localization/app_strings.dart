@@ -9,5 +9,6 @@ abstract final class AppStrings {
 
   static const shellDashboard = 'Painel';
   static const shellProducts = 'Produtos';
+  static const shellSales = 'Vendas';
   static const shellMore = 'Mais';
 }

@@ -11,12 +11,20 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.subtitle,
     this.leading,
     this.actions = const [],
+    this.showSearchAction = false,
+    this.onSearchPressed,
+    this.themeMode,
+    this.onThemeToggle,
   });
 
   final String title;
   final String? subtitle;
   final Widget? leading;
   final List<Widget> actions;
+  final bool showSearchAction;
+  final VoidCallback? onSearchPressed;
+  final ThemeMode? themeMode;
+  final VoidCallback? onThemeToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +62,20 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
         leading ??
         IconButton(icon: const Icon(AppIcons.menu), onPressed: () {});
 
-    final actionsList = actions.isNotEmpty
-        ? actions
+    final builtInActions = <Widget>[
+      if (showSearchAction)
+        IconButton(
+          icon: const Icon(AppIcons.search),
+          onPressed: onSearchPressed ?? () {},
+        ),
+      if (themeMode != null && onThemeToggle != null)
+        IconButton(
+          icon: Icon(_themeToggleIcon(context)),
+          onPressed: onThemeToggle,
+        ),
+    ];
+    final actionsList = actions.isNotEmpty || builtInActions.isNotEmpty
+        ? [...builtInActions, ...actions]
         : [IconButton(icon: const Icon(AppIcons.search), onPressed: () {})];
 
     Widget content;
@@ -121,4 +141,16 @@ class OperationalTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 24);
+
+  IconData _themeToggleIcon(BuildContext context) {
+    final effectiveBrightness = switch (themeMode) {
+      ThemeMode.dark => Brightness.dark,
+      ThemeMode.light => Brightness.light,
+      ThemeMode.system => MediaQuery.platformBrightnessOf(context),
+      null => MediaQuery.platformBrightnessOf(context),
+    };
+    return effectiveBrightness == Brightness.dark
+        ? AppIcons.themeLight
+        : AppIcons.themeDark;
+  }
 }

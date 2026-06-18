@@ -103,7 +103,7 @@ class AppBottomNavigation extends StatelessWidget {
                                         ? FontWeight.w700
                                         : FontWeight.w500,
                                   ),
-                                  maxLines: 2,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],

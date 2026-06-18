@@ -4,19 +4,16 @@ import '../../app/theme/app_decorations.dart';
 import '../../app/theme/app_icons.dart';
 import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_theme_context.dart';
-import 'status_badge.dart';
 
 class TenantContextCard extends StatelessWidget {
   const TenantContextCard({
     super.key,
     required this.tenantName,
-    required this.tenantSlug,
     required this.userName,
     required this.userEmail,
   });
 
   final String tenantName;
-  final String tenantSlug;
   final String userName;
   final String userEmail;
 
@@ -44,16 +41,11 @@ class TenantContextCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Spacer(),
-                const StatusBadge(
-                  label: 'Tenant ativo',
-                  tone: AppStatusTone.success,
-                ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'CONTEXTO OPERACIONAL',
+              'EMPRESA EM USO',
               style: context.textTheme.labelMedium?.copyWith(
                 color: context.appColors.onSurfaceHero,
               ),
@@ -67,9 +59,9 @@ class TenantContextCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              tenantSlug,
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: context.appColors.onSurfaceHero.withValues(alpha: 0.78),
+              'Perfil aplicado a esta operação.',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: context.appColors.onSurfaceHero.withValues(alpha: 0.72),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -104,6 +96,14 @@ class TenantContextCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            'Usuário conectado',
+                            style: context.textTheme.labelSmall?.copyWith(
+                              color: context.appColors.onSurfaceHero
+                                  .withValues(alpha: 0.68),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
                           Text(
                             userName,
                             style: context.textTheme.titleMedium?.copyWith(

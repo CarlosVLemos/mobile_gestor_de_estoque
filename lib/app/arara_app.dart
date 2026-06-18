@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'localization/app_strings.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
+import 'theme/app_theme_mode_controller.dart';
 
 class AraraApp extends ConsumerWidget {
   const AraraApp({super.key});
@@ -11,12 +12,13 @@ class AraraApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final themeMode = ref.watch(appThemeModeProvider);
     return MaterialApp.router(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: router,
     );
   }
