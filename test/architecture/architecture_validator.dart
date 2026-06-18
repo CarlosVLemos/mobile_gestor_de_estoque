@@ -40,7 +40,7 @@ List<ArchitectureViolation> validateArchitecture(Map<String, String> sources) {
       }
 
       if (layer == 'presentation') {
-        if (_isPackage(import, 'dio') || _isPackage(import, 'drift')) {
+        if (_isTransportOrPersistence(import)) {
           report('presentation não pode importar transporte ou persistência');
         }
         if (target.contains('/data/')) {
@@ -55,8 +55,11 @@ List<ArchitectureViolation> validateArchitecture(Map<String, String> sources) {
         if (_isFlutter(import)) {
           report('application não pode importar Flutter ou widgets');
         }
-        if (_isPackage(import, 'dio') || _isPackage(import, 'drift')) {
+        if (_isTransportOrPersistence(import)) {
           report('application não pode importar transporte ou persistência');
+        }
+        if (import == 'dart:convert') {
+          report('application não pode conhecer JSON');
         }
         if (target.contains('/data/')) {
           report('application não pode importar DTO ou implementação de data');
@@ -65,8 +68,8 @@ List<ArchitectureViolation> validateArchitecture(Map<String, String> sources) {
 
       if (layer == 'domain') {
         if (_isFlutter(import) ||
-            _isPackage(import, 'dio') ||
-            _isPackage(import, 'drift') ||
+            _isTransportOrPersistence(import) ||
+            import == 'dart:io' ||
             import == 'dart:convert' ||
             target.contains('/data/')) {
           report('domain deve permanecer independente de detalhes técnicos');
@@ -177,7 +180,23 @@ bool _isPackage(String import, String package) {
   return import == 'package:$package' || import.startsWith('package:$package/');
 }
 
-bool _isFlutter(String import) => import.startsWith('package:flutter/');
+bool _isFlutter(String import) {
+  return import.startsWith('package:flutter/') ||
+      _isPackage(import, 'flutter_riverpod') ||
+      _isPackage(import, 'hooks_riverpod') ||
+      _isPackage(import, 'go_router');
+}
+
+bool _isTransportOrPersistence(String import) {
+  return const {
+    'dio',
+    'drift',
+    'http',
+    'sqlite3',
+    'shared_preferences',
+    'flutter_secure_storage',
+  }.any((package) => _isPackage(import, package));
+}
 
 bool _isDaoOrRemoteSource(String target) {
   final lower = target.toLowerCase();

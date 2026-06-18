@@ -23,17 +23,33 @@ void main() {
         'lib/features/catalog/application/use_cases/load.dart':
             "import 'package:flutter/widgets.dart';",
       },
+      'application com Riverpod': {
+        'lib/features/catalog/application/use_cases/load.dart':
+            "import 'package:flutter_riverpod/flutter_riverpod.dart';",
+      },
       'application com DTO': {
         'lib/features/catalog/application/services/service.dart':
             "import '../../data/dto/product_dto.dart';",
+      },
+      'application com JSON': {
+        'lib/features/catalog/application/services/service.dart':
+            "import 'dart:convert';",
       },
       'domain com JSON': {
         'lib/features/catalog/domain/entities/product.dart':
             "import 'dart:convert';",
       },
+      'domain com IO': {
+        'lib/features/catalog/domain/entities/product.dart':
+            "import 'dart:io';",
+      },
       'domain com persistência': {
         'lib/features/catalog/domain/repositories/repository.dart':
             "import '../../data/local/product_dao.dart';",
+      },
+      'presentation com armazenamento seguro': {
+        'lib/features/auth/presentation/controllers/auth_controller.dart':
+            "import 'package:flutter_secure_storage/flutter_secure_storage.dart';",
       },
       'data com widget': {
         'lib/features/catalog/data/mappers/mapper.dart':
