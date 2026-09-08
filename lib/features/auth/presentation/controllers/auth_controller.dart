@@ -14,6 +14,7 @@ final authControllerProvider = NotifierProvider<AuthController, AuthState>(
 );
 
 class AuthController extends Notifier<AuthState> {
+  Future<void>? _sessionTerminationInFlight;
   @override
   AuthState build() {
     final signal = ref.watch(sessionInvalidationSignalProvider);
@@ -83,8 +84,7 @@ class AuthController extends Notifier<AuthState> {
     final result = await ref.read(logoutUseCaseProvider).call();
     switch (result) {
       case Success<void, AuthFailure>():
-        await purgeService.purge();
-        state = const AuthState(status: AuthStatus.unauthenticated);
+        await _transitionToUnauthenticated();
         return const LogoutAttempt.completed();
       case Failure<void, AuthFailure>(:final error):
         state = AuthState(
@@ -98,9 +98,7 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _onInvalidSession() async {
     await ref.read(invalidateSessionUseCaseProvider).call();
-    await ref.read(dataPurgeServiceProvider).purge();
-    if (!ref.mounted) return;
-    state = const AuthState(status: AuthStatus.unauthenticated);
+    await _transitionToUnauthenticated();
   }
 
   Future<void> _applySessionResult(
@@ -131,7 +129,7 @@ class AuthController extends Notifier<AuthState> {
         }
       case Failure<UserSession, AuthFailure>(:final error)
           when error.kind == AuthFailureKind.unauthorized:
-        state = const AuthState(status: AuthStatus.unauthenticated);
+        await _transitionToUnauthenticated();
       case Failure<UserSession, AuthFailure>(:final error):
         state = AuthState(
           status: error.kind == AuthFailureKind.unavailable
@@ -146,4 +144,24 @@ class AuthController extends Notifier<AuthState> {
       session?.mustChangePassword == true
       ? AuthStatus.passwordChangeRequired
       : AuthStatus.authenticated;
+
+  Future<void> _transitionToUnauthenticated() {
+    final inFlight = _sessionTerminationInFlight;
+    if (inFlight != null) return inFlight;
+
+    late final Future<void> operation;
+    operation = _completeSessionTermination().whenComplete(() {
+      if (identical(_sessionTerminationInFlight, operation)) {
+        _sessionTerminationInFlight = null;
+      }
+    });
+    _sessionTerminationInFlight = operation;
+    return operation;
+  }
+
+  Future<void> _completeSessionTermination() async {
+    await ref.read(dataPurgeServiceProvider).purge();
+    if (!ref.mounted) return;
+    state = const AuthState(status: AuthStatus.unauthenticated);
+  }
 }

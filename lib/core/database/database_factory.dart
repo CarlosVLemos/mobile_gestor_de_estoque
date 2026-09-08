@@ -41,6 +41,7 @@ class DatabaseFactory {
   LocalContext? _activeContext;
   Future<AppDatabase>? _openingDatabase;
   LocalContext? _openingContext;
+  Future<void>? _closingDatabase;
 
   AppDatabase? get activeDatabase => _activeDatabase;
   LocalContext? get activeContext => _activeContext;
@@ -51,6 +52,9 @@ class DatabaseFactory {
   }
 
   Future<AppDatabase> open(LocalContext context) async {
+    final closing = _closingDatabase;
+    if (closing != null) await closing;
+
     final current = _activeDatabase;
     if (current != null) {
       if (_activeContext == context) return current;
@@ -100,14 +104,30 @@ class DatabaseFactory {
     return database;
   }
 
-  Future<void> closeActive() async {
+  Future<void> closeActive() {
+    final inFlight = _closingDatabase;
+    if (inFlight != null) return inFlight;
+
+    late final Future<void> operation;
+    operation = _closeActiveOnce().whenComplete(() {
+      if (identical(_closingDatabase, operation)) {
+        _closingDatabase = null;
+      }
+    });
+    _closingDatabase = operation;
+    return operation;
+  }
+
+  Future<void> _closeActiveOnce() async {
     final opening = _openingDatabase;
     if (opening != null) await opening;
     final database = _activeDatabase;
     if (database == null) return;
 
     await database.close();
-    _activeDatabase = null;
-    _activeContext = null;
+    if (identical(_activeDatabase, database)) {
+      _activeDatabase = null;
+      _activeContext = null;
+    }
   }
 }

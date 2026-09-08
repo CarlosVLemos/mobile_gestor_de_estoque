@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/local_context_lifecycle.dart';
 import 'package:gestor_de_estoque/core/database/data_purge_service.dart';
 import 'package:gestor_de_estoque/core/database/database_factory.dart';
+import 'package:gestor_de_estoque/core/database/local_context.dart';
 import 'package:gestor_de_estoque/core/sync/sync_lifecycle.dart';
 import 'package:gestor_de_estoque/core/result/result.dart';
 import 'package:gestor_de_estoque/core/network/session_invalidation_signal.dart';
@@ -76,6 +78,39 @@ void main() {
     expect(repo.clearLocalSessionCalled, isTrue);
     expect(databaseFactory.activeDatabase, isNull);
   });
+
+  test('múltiplos sinais 401 convergem para um único teardown local', () async {
+    final repo = _Repo(session: _session());
+    final databaseFactory = _databaseFactory();
+    final sync = _BlockingSyncLifecycle();
+    final container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repo),
+        databaseFactoryProvider.overrideWithValue(databaseFactory),
+        dataPurgeServiceProvider.overrideWithValue(
+          _purgeService(databaseFactory, sync),
+        ),
+      ],
+    );
+    addTearDown(databaseFactory.closeActive);
+    addTearDown(container.dispose);
+    final controller = container.read(authControllerProvider.notifier);
+    await controller.restore();
+
+    final signal = container.read(sessionInvalidationSignalProvider);
+    signal.notifyInvalidSession();
+    signal.notifyInvalidSession();
+    await Future<void>.delayed(Duration.zero);
+    expect(sync.calls, 1);
+
+    sync.release();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(
+      container.read(authControllerProvider).status,
+      AuthStatus.unauthenticated,
+    );
+    expect(databaseFactory.activeDatabase, isNull);
+  });
 }
 
 DatabaseFactory _databaseFactory() => DatabaseFactory(
@@ -84,13 +119,29 @@ DatabaseFactory _databaseFactory() => DatabaseFactory(
   queryExecutorBuilder: (_) async => NativeDatabase.memory(),
 );
 
-DataPurgeService _purgeService(DatabaseFactory databaseFactory) =>
+DataPurgeService _purgeService(
+  DatabaseFactory databaseFactory, [
+  SyncLifecycle syncLifecycle = const NoopSyncLifecycle(),
+]) =>
     DataPurgeService(
       databaseFactory,
-      const NoopSyncLifecycle(),
+      syncLifecycle,
       ContextCacheCleaner(temporaryDirectory: () async => Directory.systemTemp),
       () {},
     );
+
+class _BlockingSyncLifecycle implements SyncLifecycle {
+  final _release = Completer<void>();
+  int calls = 0;
+
+  @override
+  Future<void> stop(LocalContext context) {
+    calls += 1;
+    return _release.future;
+  }
+
+  void release() => _release.complete();
+}
 
 UserSession _session() => const UserSession(
   userId: 'u',

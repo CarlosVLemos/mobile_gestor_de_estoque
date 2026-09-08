@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -97,6 +98,50 @@ void main() {
       await factory.closeActive();
     },
   );
+
+  test(
+    'purges concorrentes compartilham uma única sequência de teardown',
+    () async {
+      final root = await Directory.systemTemp.createTemp('context-purge-flight');
+      addTearDown(() => root.delete(recursive: true));
+      final factory = _factory(root);
+      const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
+      await factory.open(context);
+      final steps = <PurgeStep>[];
+      var invalidations = 0;
+      final sync = _BlockingSyncLifecycle();
+      final service = DataPurgeService(
+        factory,
+        sync,
+        ContextCacheCleaner(temporaryDirectory: () async => root),
+        () => invalidations += 1,
+        steps.add,
+      );
+
+      final first = service.purge();
+      final second = service.purge();
+      final third = service.purge();
+      await Future<void>.delayed(Duration.zero);
+      expect(sync.calls, 1);
+
+      sync.release();
+      await Future.wait([first, second, third]);
+
+      expect(steps.where((step) => step == PurgeStep.syncStopped), hasLength(1));
+      expect(
+        steps.where((step) => step == PurgeStep.databaseClosed),
+        hasLength(1),
+      );
+      expect(steps.where((step) => step == PurgeStep.cacheCleared), hasLength(1));
+      expect(
+        steps.where((step) => step == PurgeStep.stateInvalidated),
+        hasLength(1),
+      );
+      expect(invalidations, 1);
+      expect(factory.activeDatabase, isNull);
+      expect(factory.activeContext, isNull);
+    },
+  );
 }
 
 DatabaseFactory _factory(Directory root) => DatabaseFactory(
@@ -111,4 +156,17 @@ class _RecordingSyncLifecycle implements SyncLifecycle {
 
   @override
   Future<void> stop(LocalContext context) async => steps.add('sync-stopped');
+}
+
+class _BlockingSyncLifecycle implements SyncLifecycle {
+  final _release = Completer<void>();
+  int calls = 0;
+
+  @override
+  Future<void> stop(LocalContext context) {
+    calls += 1;
+    return _release.future;
+  }
+
+  void release() => _release.complete();
 }

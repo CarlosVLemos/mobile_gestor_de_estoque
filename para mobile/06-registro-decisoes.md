@@ -34,6 +34,7 @@ afetados.
 | MOB-014 | Interface mantém identidade azul operacional | Mobile é extensão visual do produto web |
 | MOB-015 | Permissões orientam UI, não substituem autorização | Ações continuam sujeitas à validação remota |
 | MOB-016 | Contrato planejado não equivale a implementado | Mocks e flags deixam a diferença explícita |
+| MOB-017 | Banco operacional local é fisicamente separado por usuário + tenant | Cada contexto autenticado possui arquivo SQLite próprio; logout fecha a conexão sem apagar o arquivo nem a outbox |
 
 ## Decisões de interface aceitas
 
@@ -60,7 +61,6 @@ afetados.
 
 ## Questões abertas
 
-- O banco será único por instalação ou separado por usuário/empresa?
 - Qual será a política de expiração e reautenticação?
 - Quais coleções entram no primeiro bootstrap?
 - Qual limite inicial de cache de imagens?

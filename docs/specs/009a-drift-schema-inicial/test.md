@@ -1,48 +1,23 @@
-# Spec 009A - Referência de Validação Futura
+# Plano de validação futuro — Spec 009A
 
-## Objetivo
+## Cenário crítico de upgrade
 
-Registrar como a futura implementação da Spec 009A (Drift Schema Inicial) deverá ser validada.
+1. Criar um banco físico no schema v1 da 008B.
+2. Inserir uma linha pendente em `sync_outbox`.
+3. Fechar o banco.
+4. Abrir o mesmo arquivo com a versão nova da 009A.
+5. Comprovar que a migração terminou, as novas tabelas existem e a linha antiga
+   da outbox continua intacta.
 
-## O que verificar depois
+## Cenários adicionais
 
-A futura implementação deverá comprovar que:
-- O banco Drift compila e gera arquivos `.g.dart` sem warnings;
-- As tabelas de categorias, produtos, kpis e checkpoints foram criadas fisicamente com tipos corretos;
-- Relações de chave estrangeira são cumpridas no SQLite (PRAGMA foreign_keys = ON);
-- O banco insere e recupera produtos com preço contendo valor numérico normal;
-- O banco insere e recupera produtos com preço nulo (`price = null`).
+- Banco novo cria todas as tabelas na versão nova.
+- `price = null` persiste e é lido como estado válido.
+- Chaves estrangeiras e a ordem categorias → produtos são testadas quando os
+  tipos remotos forem congelados.
+- Contextos user + tenant diferentes continuam usando arquivos independentes.
 
-## Cenários de Teste a Cobrir
+## Proibições de validação
 
-### 1. CRUD Básico em Memória
-* **Verificar:**
-  - Instanciar a conexão em memória.
-  - Inserir uma categoria.
-  - Inserir um produto vinculado à categoria.
-  - Consultar o produto e a categoria correspondente e verificar a igualdade dos dados.
-  - Deletar o produto e garantir que a categoria continua intacta.
-
-### 2. Preço Nulo (Restrição Financeira)
-* **Verificar:**
-  - Inserir um produto com campo `price` definido como `null` no Drift.
-  - Recuperar o registro.
-  - Validar que o objeto recuperado contém o valor `null` no preço de forma segura e não gera falhas de conversão de ponto flutuante.
-
-### 3. Validação de Chave Estrangeira (Ordem de Sync)
-* **Verificar:**
-  - Tentar inserir um produto que faz referência a um `category_id` inexistente no banco.
-  - Validar que o Drift lança uma exceção de restrição de chave estrangeira (`SqliteException` indicando falha de foreign key).
-  - Inserir a categoria primeiro e em seguida o mesmo produto, confirmando que a operação é concluída com sucesso.
-  - Deletar a categoria inserida e validar se o campo `category_id` do produto é alterado para `null` (ON DELETE SET NULL).
-
-## Checklist de Validação
-
-- [ ] Dependências de `drift` e `sqlite3` no `pubspec.yaml`.
-- [ ] Geração de código do build_runner completada sem erros.
-- [ ] Tabela de categorias criada e mapeada.
-- [ ] Tabela de produtos criada com chave estrangeira para categoria e `price` anulável.
-- [ ] Tabela de checkpoints de sync suportando nome da coleção, carimbo e cursor.
-- [ ] Testes unitários rodando sobre `DatabaseConnection.inMemory()`.
-- [ ] Testes de chaves estrangeiras ativos e passando.
-- [ ] Testes de nulos de preços passando.
+Nenhum teste de migração pode usar apagar banco, reset de schema ou recriação
+do arquivo como mecanismo de sucesso.

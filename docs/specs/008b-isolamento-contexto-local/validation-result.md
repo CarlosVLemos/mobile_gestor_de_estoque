@@ -14,6 +14,8 @@ Data: 8 de setembro de 2026
 | Boot autenticado | `flutter test test/app/arara_app_test.dart` | PASS | Login/restauração só chega à shell após o contexto local abrir. |
 | Bateria final | `flutter test test/core/database/local_context_lifecycle_test.dart test/features/auth/auth_controller_test.dart test/app/arara_app_test.dart test/architecture/layer_boundaries_test.dart test/architecture/project_structure_test.dart` | PASS — 28 testes | Boundaries e diretórios novos aceitos; sem falhas. |
 | Integridade do diff | `git diff --check` | PASS | Sem erros de whitespace. |
+| Hardening de concorrência | `flutter test test/core/database/local_context_lifecycle_test.dart test/features/auth/auth_controller_test.dart` | PASS — 6 testes | Purges concorrentes e múltiplos sinais 401 convergem para um teardown único. |
+| Análise estática final | `flutter analyze` | PASS | Nenhuma issue encontrada. |
 
 ## Riscos residuais
 

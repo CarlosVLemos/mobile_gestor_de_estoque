@@ -30,8 +30,11 @@ ABERTO e autorizado pela solicitação de implementação da Spec 008B. O
 - O motor real de sync e o protocolo de envio de vendas continuam fora de
   escopo das Specs 009/010. A 008B fornece o boundary `SyncLifecycle` e a
   persistência contextual que essas specs deverão usar.
+- O lifecycle agora possui single-flight para purge, fechamento de banco e
+  transição de sessão inválida. Os testes de concorrência adicionados nesta
+  revisão ainda estão `NOT_RUN` por gate explícito do usuário.
 
 ## Veredito
 
-`passed` — implementação e validações focadas concluídas; ver
-`validation-result.md`.
+`passed` — a bateria original e os testes de hardening de concorrência passaram;
+ver `validation-result.md`.

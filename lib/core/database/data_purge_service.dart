@@ -45,11 +45,26 @@ class DataPurgeService {
   final ContextCacheCleaner _cacheCleaner;
   final ContextStateInvalidator _invalidateContextState;
   final PurgeObserver? _observer;
+  Future<void>? _purgeInFlight;
 
   Future<int> pendingOutboxCount() async =>
       _databaseFactory.activeDatabase?.pendingOutboxCount() ?? 0;
 
-  Future<void> purge() async {
+  Future<void> purge() {
+    final inFlight = _purgeInFlight;
+    if (inFlight != null) return inFlight;
+
+    late final Future<void> operation;
+    operation = _purgeOnce().whenComplete(() {
+      if (identical(_purgeInFlight, operation)) {
+        _purgeInFlight = null;
+      }
+    });
+    _purgeInFlight = operation;
+    return operation;
+  }
+
+  Future<void> _purgeOnce() async {
     final context = _databaseFactory.activeContext;
     if (context == null) return;
 
