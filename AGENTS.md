@@ -59,25 +59,31 @@ Detalhes: `.agents/subagents.md` e `.agents/agents/`.
 
 Jarvis escolhe o modo antes de uma tarefa relevante.
 
-## Orçamento de terminal
+## Orçamento de terminal e gate do usuário
 
-Durante implementação, priorize leitura estática e MCPs. Não execute repetidamente `flutter test`, `flutter analyze`, `dart format`, builds, `flutter run`, Docker, emulator, watchers ou polling de terminal.
+Durante implementação, priorize leitura estática e MCPs. Não execute repetidamente comandos de terminal, não inicie processos persistentes e não faça polling.
 
-Por padrão:
+**Nenhum agente pode executar testes, análise estática, formatação, build ou comando equivalente de validação sem autorização explícita do usuário no contexto atual.** Isso inclui `flutter test`, `dart test`, `flutter analyze`, `dart analyze`, `dart format`, `flutter build`, testes de integração e wrappers equivalentes, inclusive quando disparados por MCP/task runner.
 
-- Jarvis, Maquiavel e Van Gogh não fazem validação pesada de ambiente;
-- Mefisto executa a validação no gate, usando o menor conjunto relevante;
-- suíte completa ocorre no fechamento/merge, não após cada alteração;
-- não repita comando sem mudança de código ou nova hipótese que justifique a repetição;
-- processos persistentes ou interativos só devem ser iniciados por solicitação explícita do usuário.
+Sem autorização:
 
-Detalhes: `.agents/rules/terminal-budget.md`.
+- o agente pode criar/corrigir testes;
+- Mefisto escolhe o menor conjunto necessário;
+- o agente apresenta os comandos exatos ao usuário e pede que ele rode;
+- o resultado informado pelo usuário é usado como evidência;
+- não se presume permissão antiga, implícita ou herdada de outra tarefa.
+
+Uma autorização específica não deve ser ampliada silenciosamente de teste focado para suíte completa/build/integração.
+
+Processos como `flutter run`, emulator, Docker, watcher ou servidor também só podem ser iniciados por solicitação explícita.
+
+Detalhes: `.agents/rules/terminal-budget.md` e `.agents/rules/user-run-validation.md`.
 
 ## Ferramentas
 
 Preferência:
 
-1. Dart/Flutter MCP para diagnostics, símbolos, testes e runtime Flutter;
+1. Dart/Flutter MCP para diagnostics, símbolos e inspeção Flutter permitida;
 2. Developer Knowledge MCP para documentação oficial Flutter/Dart/Google;
 3. Context7 para bibliotecas de terceiros;
 4. GitHub MCP/Connector para leitura cross-repo, branches, diffs e contratos.
@@ -92,4 +98,4 @@ O backend canônico é `CarlosVLemos/gestor_de_estoque`. Quando o mobile depende
 
 ## Qualidade
 
-Toda entrega precisa de validação proporcional ao risco. `test/AGENTS.md` define a política de testes e `docs/specs/AGENTS.md` governa specs novas.
+Toda entrega precisa de validação proporcional ao risco, mas a execução dos comandos depende do gate explícito do usuário. `test/AGENTS.md` define a política de testes e `docs/specs/AGENTS.md` governa specs novas.
