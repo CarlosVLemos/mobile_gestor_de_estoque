@@ -11,13 +11,26 @@ Mefisto é o owner do gate final, mas Van Gogh adiciona cobertura focada junto d
 - sync precisa de bootstrap, incremental, tombstone, falha parcial e retry aplicáveis;
 - outbox precisa de idempotência, timeout/reconciliação e estados pending/confirmed/failed.
 
-## Execução
+## Execução — gate explícito do usuário
 
-- não rodar suíte inteira a cada mudança;
+Nenhum agente pode executar testes ou qualquer validação de terminal sem autorização explícita do usuário no contexto atual.
+
+Sem autorização:
+
+1. Mefisto identifica o menor conjunto de comandos necessário;
+2. não executa os comandos;
+3. apresenta os comandos exatos ao usuário;
+4. pede que o usuário rode e forneça o resumo/saída relevante;
+5. registra o resultado informado como evidência.
+
+A permissão para executar um teste focado não implica permissão para suíte completa, `flutter analyze`, `dart format`, build ou integração.
+
+Quando autorizado:
+
 - teste afetado primeiro;
-- `flutter analyze` no gate;
-- suíte completa antes de merge/fechamento, salvo instrução contrária explícita;
-- não repetir sem mudança relevante.
+- `flutter analyze` apenas se incluído na autorização;
+- suíte completa apenas no fechamento/merge e apenas se explicitamente autorizada;
+- não repetir sem mudança relevante ou nova hipótese.
 
 ## Evidência
 
