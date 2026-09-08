@@ -1,4 +1,19 @@
-# Spec 006 - Tarefas de Documentacao
+# Spec 006 - Tarefas e fechamento
+
+## Estado atual
+
+Implementacao concluida no commit `3799379`. A lista abaixo preserva a abertura
+documental como historico; os itens desta secao registram o fechamento real.
+
+- [x] Implementar drawer lateral e fluxo local de alteracao de nome.
+- [x] Implementar toggle de tema no topo e estado de sessao em memoria.
+- [x] Adicionar Vendas como destino primario da shell.
+- [x] Implementar carrinho e rascunho de venda em memoria com Riverpod.
+- [x] Remover hero/copy generica do painel e incluir card de atualizacao.
+- [x] Incluir os dois graficos permitidos com fixtures deterministicas.
+- [x] Cobrir fluxos e responsividade com testes de widget, controller e golden.
+
+## Historico da abertura
 
 ## Objetivo desta etapa
 
@@ -40,7 +55,7 @@ widgets, testes, assets ou dependencias.
 - [ ] Confirmar se `Ver conta` deve apontar para a tela atual de contexto operacional.
 - [ ] Confirmar se o drawer terá apenas conta e tenant ou também atalhos secundários.
 
-## Checklist de pronta para leitura
+## Checklist da abertura documental
 
 - [x] O status da spec esta marcado como planejado.
 - [x] O gate de implementacao esta fechado.

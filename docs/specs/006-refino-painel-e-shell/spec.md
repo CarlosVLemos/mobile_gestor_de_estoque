@@ -2,7 +2,27 @@
 
 ## Status
 
-Planejada em 18 de junho de 2026. Nao implementada.
+Implementada em 18 de junho de 2026 pelo commit `3799379`.
+
+Esta spec foi aberta inicialmente como documento de intencao. As secoes que
+registram o gate fechado descrevem aquela abertura historica; a implementacao
+posterior esta registrada na secao seguinte e prevalece como estado atual.
+
+## Atualizacao de execucao
+
+Foram materializados no aplicativo:
+
+- drawer lateral com conta, tenant, `Ver conta` e alteracao de nome local;
+- toggle de tema claro/escuro durante a sessao;
+- navegacao primaria com Painel, Produtos, Vendas e Mais;
+- fluxo de venda em memoria com cliente, carrinho, permissao financeira e
+  `client_request_id` local;
+- painel sem o hero textual anterior, com card de atualizacao e os graficos
+  `operational_goal_chart` e `stock_level_chart` alimentados por fixture;
+- testes de controller, widget, responsividade e golden relacionados.
+
+Permanecem fora do escopo e nao implementados: persistencia fisica, outbox,
+sincronizacao, autenticacao mobile e qualquer endpoint de venda.
 
 Esta spec exige aprovacao explicita antes de qualquer alteracao em `lib/`,
 rotas, widgets, fixtures, componentes compartilhados ou testes do aplicativo.
@@ -338,29 +358,18 @@ Exemplos proibidos:
 | Edicao local de nome parecer persistencia real | Alto | Explicitar escopo local e nao remoto |
 | Drawer falhar ao abrir devido a Scaffolds aninhados | Alto | Criar um widget AppDrawer comum e declará-lo no slot drawer de cada Scaffold de subpágina ativo, em vez da shell externa |
 
-## Criterios de aceite da spec documental
+## Criterios de aceite e resultado
 
-- [ ] O status da spec deixa claro que ela esta planejada e nao implementada.
-- [ ] O documento registra que esta etapa e apenas de criacao documental.
-- [ ] O objetivo descreve intencao futura sem descrever implementacao de codigo.
-- [ ] As mudancas pretendidas em alto nivel cobrem tema, drawer, vendas,
-      dashboard, ultima atualizacao e graficos permitidos.
-- [ ] A regra anti-copy-generica esta registrada de forma explicita.
-- [ ] O documento nao trata endpoint planejado como implementado.
-- [ ] O documento nao transforma a spec em autorizacao de execucao.
-- [ ] Fora de escopo e riscos estao claros o suficiente para leitura critica.
+- [x] O status registra a implementacao e a origem documental historica.
+- [x] Tema, drawer, vendas, dashboard, atualizacao e graficos permitidos foram
+      materializados no escopo local previsto.
+- [x] A regra anti-copy-generica continua registrada de forma explicita.
+- [x] Nenhum endpoint planejado e tratado como implementado.
+- [x] Persistencia, sincronizacao, autenticacao e envio remoto continuam
+      explicitamente fora de escopo.
+- [x] Riscos e limites da entrega estao documentados para leitura critica.
 
 ## Gate de implementacao
 
-Esta spec pode ser revisada e aprovada como documento sem autorizar sua
-execucao.
-
-A implementacao somente pode comecar depois de uma solicitacao explicita do
-usuario para executar a Spec 006. Ate esse momento:
-
-- nao alterar `lib/`;
-- nao alterar rotas da aplicacao;
-- nao alterar `pubspec.yaml` ou `pubspec.lock`;
-- nao adicionar assets;
-- nao atualizar testes do aplicativo;
-- nao marcar tarefas de implementacao como concluidas.
+Aberto por solicitacao explicita e concluido no commit `3799379`. Nenhum
+contrato remoto planejado foi tratado como implementado durante a entrega.

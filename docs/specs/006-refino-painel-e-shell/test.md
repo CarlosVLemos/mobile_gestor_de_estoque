@@ -1,15 +1,31 @@
-# Spec 006 - Referencia de Validacao Futura
+# Spec 006 - Validacao da implementacao
+
+## Resultado registrado
+
+A implementacao foi entregue no commit `3799379`. A validacao mais recente
+executada sobre o codigo da spec registrou:
+
+- `flutter analyze`: sem issues;
+- `flutter test`: 137 testes passando;
+- cobertura de drawer, toggle de tema, vendas em memoria, dashboard, goldens,
+  largura compacta e `textScaler` alto.
+
+Os testes comprovam o comportamento local e visual. Eles nao comprovam
+persistencia, sincronizacao, autenticacao ou envio remoto, que permanecem fora
+do escopo desta spec.
+
+## Referencia de validacao e historico
 
 ## Objetivo
 
-Registrar como a futura implementacao da Spec 006 devera ser validada.
+Registrar os cenarios usados para validar a implementacao da Spec 006.
 
-Este arquivo nao autoriza execucao agora. Ele existe apenas como referencia
-para a etapa posterior de implementacao, caso a spec seja aprovada.
+Esta lista foi usada como referencia da entrega e e mantida para futuras
+regressoes.
 
 ## O que verificar depois
 
-A futura implementacao devera comprovar que:
+A implementacao comprova que:
 
 - o topo ganhou alternancia real de tema;
 - o menu lateral passou a funcionar;
@@ -20,7 +36,7 @@ A futura implementacao devera comprovar que:
 - os graficos adicionados ficaram restritos aos blocos permitidos;
 - a responsividade mobile foi preservada sem overflow.
 
-## Cenarios que a futura implementacao devera cobrir
+## Cenarios cobertos pela implementacao
 
 ### 1. Toggle de tema
 
@@ -92,22 +108,20 @@ Verificar:
 - ausencia de `RenderFlex overflow`;
 - legibilidade da top bar, drawer, cards e bottom navigation.
 
-## Checklist de validacao visual posterior
+## Checklist de validacao visual
 
-- [ ] Topo funcional e legivel.
-- [ ] Drawer funcional e legivel.
-- [ ] Navegacao inferior com `Vendas` legivel.
-- [ ] Painel sem hero generico.
-- [ ] Painel sem copy ornamental.
-- [ ] Card de ultima atualizacao presente.
-- [ ] Graficos restritos ao escopo permitido.
-- [ ] Sem overflow em mobile compacta.
-- [ ] Sem overflow com texto aumentado.
+- [x] Topo funcional e legivel.
+- [x] Drawer funcional e legivel.
+- [x] Navegacao inferior com `Vendas` legivel.
+- [x] Painel sem hero generico.
+- [x] Painel sem copy ornamental.
+- [x] Card de ultima atualizacao presente.
+- [x] Graficos restritos ao escopo permitido.
+- [x] Sem overflow em mobile compacta.
+- [x] Sem overflow com texto aumentado.
 - [ ] Direcao editorial aprovada pelo usuario.
 
 ## Observacao final
 
-Nada deste arquivo sera executado nesta etapa.
-
-Esta referencia existe apenas para orientar a validacao futura, caso a Spec 006
-seja aprovada e liberada para implementacao.
+Os cenarios remotos e de persistencia continuam pendentes de specs e contratos
+proprios.
