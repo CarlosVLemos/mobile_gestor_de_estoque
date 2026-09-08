@@ -1,4 +1,4 @@
-# Spec 008 — Revisão de abertura
+# Spec 008 — Revisão de fechamento
 
 ## Status
 
@@ -50,8 +50,7 @@ evidências `SDD/spec/spec 46` (contrato congelado e validação aprovada).
 - A implementação deve confirmar a forma mínima de propagar `code` por cima
   de `NetworkFailureKind`, sem acoplar core a `features/auth`.
 
-## Gate
+## Fechamento
 
-**LIBERADO PARA IMPLEMENTAÇÃO.** O contrato remoto existe e foi auditado; o
-trabalho seguinte deve seguir `tasks.md`, manter o escopo e executar a matriz
-de `test.md`. Esta liberação não declara nenhum arquivo Dart como concluído.
+**IMPLEMENTADA E VALIDADA.** A suíte Flutter e a análise estática foram
+executadas sem falhas. Os próximos passos pertencem às Specs 008B e 009A.

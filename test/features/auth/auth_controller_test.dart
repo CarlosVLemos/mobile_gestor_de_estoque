@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/core/result/result.dart';
+import 'package:gestor_de_estoque/core/network/session_invalidation_signal.dart';
 import 'package:gestor_de_estoque/features/auth/auth_providers.dart';
 import 'package:gestor_de_estoque/features/auth/domain/entities/auth_failure.dart';
 import 'package:gestor_de_estoque/features/auth/domain/entities/user_session.dart';
@@ -35,20 +36,21 @@ void main() {
     expect(state.failure?.kind, AuthFailureKind.invalidCurrentPassword);
   });
 
-  test('401 limpa sessão por use case', () async {
+  test('invalidação global de 401 limpa sessão pelo use case', () async {
     final repo = _Repo(session: _session());
     final container = ProviderContainer(
       overrides: [authRepositoryProvider.overrideWithValue(repo)],
     );
     addTearDown(container.dispose);
-    container.read(authControllerProvider);
+    final controller = container.read(authControllerProvider.notifier);
+    await controller.restore();
+    container.read(sessionInvalidationSignalProvider).notifyInvalidSession();
     await Future<void>.delayed(Duration.zero);
-    await container.read(authControllerProvider.notifier).logout();
     expect(
       container.read(authControllerProvider).status,
       AuthStatus.unauthenticated,
     );
-    expect(repo.logoutCalled, isTrue);
+    expect(repo.clearLocalSessionCalled, isTrue);
   });
 }
 
@@ -69,7 +71,7 @@ class _Repo implements AuthRepository {
   _Repo({required this.session, this.passwordResult});
   final UserSession session;
   final Result<void, AuthFailure>? passwordResult;
-  bool logoutCalled = false;
+  bool clearLocalSessionCalled = false;
   @override
   Future<Result<UserSession, AuthFailure>> login({
     required String accessCode,
@@ -87,10 +89,11 @@ class _Repo implements AuthRepository {
   }) async => passwordResult ?? const Success(null);
   @override
   Future<Result<void, AuthFailure>> logout() async {
-    logoutCalled = true;
     return const Success(null);
   }
 
   @override
-  Future<void> clearLocalSession() async {}
+  Future<void> clearLocalSession() async {
+    clearLocalSessionCalled = true;
+  }
 }
