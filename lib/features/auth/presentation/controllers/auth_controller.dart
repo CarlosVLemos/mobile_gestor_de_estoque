@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/local_context_lifecycle.dart';
+import '../../../../core/database/local_context.dart';
 import '../../../../core/network/session_invalidation_signal.dart';
 import '../../../../core/result/result.dart';
 import '../../auth_providers.dart';
@@ -24,7 +26,7 @@ class AuthController extends Notifier<AuthState> {
   Future<void> restore() async {
     state = const AuthState(status: AuthStatus.resolvingSession);
     final result = await ref.read(restoreSessionUseCaseProvider).call();
-    _applySessionResult(result);
+    await _applySessionResult(result);
   }
 
   Future<void> login({
@@ -40,7 +42,7 @@ class AuthController extends Notifier<AuthState> {
           password: password,
           deviceName: deviceName.trim(),
         );
-    _applySessionResult(result);
+    await _applySessionResult(result);
   }
 
   Future<void> changePassword({
@@ -69,35 +71,64 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
-  Future<void> logout() async {
+  Future<LogoutAttempt> logout({bool confirmPendingOutbox = false}) async {
     final session = state.session;
+    final purgeService = ref.read(dataPurgeServiceProvider);
+    final pendingOutboxCount = await purgeService.pendingOutboxCount();
+    if (pendingOutboxCount > 0 && !confirmPendingOutbox) {
+      return LogoutAttempt.pendingOutbox(pendingOutboxCount);
+    }
+
+    state = AuthState(status: AuthStatus.resolvingSession, session: session);
     final result = await ref.read(logoutUseCaseProvider).call();
     switch (result) {
       case Success<void, AuthFailure>():
+        await purgeService.purge();
         state = const AuthState(status: AuthStatus.unauthenticated);
+        return const LogoutAttempt.completed();
       case Failure<void, AuthFailure>(:final error):
         state = AuthState(
           status: _operationalStatus(session),
           session: session,
           failure: error,
         );
+        return LogoutAttempt.failed(error);
     }
   }
 
   Future<void> _onInvalidSession() async {
     await ref.read(invalidateSessionUseCaseProvider).call();
+    await ref.read(dataPurgeServiceProvider).purge();
+    if (!ref.mounted) return;
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
-  void _applySessionResult(Result<UserSession, AuthFailure> result) {
+  Future<void> _applySessionResult(
+    Result<UserSession, AuthFailure> result,
+  ) async {
     switch (result) {
       case Success<UserSession, AuthFailure>(:final value):
-        state = AuthState(
-          status: value.mustChangePassword
-              ? AuthStatus.passwordChangeRequired
-              : AuthStatus.authenticated,
-          session: value,
-        );
+        try {
+          await ref
+              .read(databaseFactoryProvider)
+              .open(
+                LocalContext(userId: value.userId, tenantId: value.tenantId),
+              );
+          state = AuthState(
+            status: value.mustChangePassword
+                ? AuthStatus.passwordChangeRequired
+                : AuthStatus.authenticated,
+            session: value,
+          );
+        } catch (_) {
+          state = const AuthState(
+            status: AuthStatus.failure,
+            failure: AuthFailure(
+              AuthFailureKind.unknown,
+              'NÃ£o foi possÃ­vel abrir os dados locais deste contexto.',
+            ),
+          );
+        }
       case Failure<UserSession, AuthFailure>(:final error)
           when error.kind == AuthFailureKind.unauthorized:
         state = const AuthState(status: AuthStatus.unauthenticated);

@@ -74,9 +74,37 @@ class AppDrawer extends ConsumerWidget {
             _DrawerActionTile(
               icon: AppIcons.logout,
               title: 'Sair',
-              onTap: () {
+              onTap: () async {
                 Navigator.of(context).pop();
-                ref.read(sessionActionsProvider).logout();
+                final result = await ref.read(sessionActionsProvider).logout();
+                if (!context.mounted || !result.requiresConfirmation) {
+                  return;
+                }
+
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Existem operaÃ§Ãµes pendentes'),
+                    content: Text(
+                      '${result.pendingOutboxCount} operaÃ§Ã£o${result.pendingOutboxCount == 1 ? '' : 'Ãµes'} ainda nÃ£o foi sincronizada. Sair nÃ£o apagarÃ¡ essa fila: ela permanecerÃ¡ neste dispositivo e voltarÃ¡ quando este mesmo usuÃ¡rio e empresa entrarem novamente.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                        child: const Text('Cancelar'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                        child: const Text('Sair mesmo assim'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  await ref
+                      .read(sessionActionsProvider)
+                      .logout(confirmPendingOutbox: true);
+                }
               },
             ),
             const SizedBox(height: AppSpacing.sm),

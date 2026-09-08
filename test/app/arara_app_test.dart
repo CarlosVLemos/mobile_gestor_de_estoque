@@ -1,7 +1,12 @@
+import 'dart:io';
+
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/arara_app.dart';
+import 'package:gestor_de_estoque/app/local_context_lifecycle.dart';
+import 'package:gestor_de_estoque/core/database/database_factory.dart';
 import 'package:gestor_de_estoque/core/result/result.dart';
 import 'package:gestor_de_estoque/features/auth/auth_providers.dart';
 import 'package:gestor_de_estoque/features/auth/domain/entities/auth_failure.dart';
@@ -36,8 +41,17 @@ void main() {
 }
 
 Widget _app(AuthRepository repository) => ProviderScope(
-  overrides: [authRepositoryProvider.overrideWithValue(repository)],
+  overrides: [
+    authRepositoryProvider.overrideWithValue(repository),
+    databaseFactoryProvider.overrideWithValue(_databaseFactory()),
+  ],
   child: const AraraApp(),
+);
+
+DatabaseFactory _databaseFactory() => DatabaseFactory(
+  documentsDirectory: () async => Directory.systemTemp,
+  temporaryDirectory: () async => Directory.systemTemp,
+  queryExecutorBuilder: (_) async => NativeDatabase.memory(),
 );
 
 UserSession _session({bool mustChangePassword = false}) => UserSession(

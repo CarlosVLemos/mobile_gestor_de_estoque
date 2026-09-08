@@ -1,5 +1,12 @@
+import 'dart:io';
+
+import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gestor_de_estoque/app/local_context_lifecycle.dart';
+import 'package:gestor_de_estoque/core/database/data_purge_service.dart';
+import 'package:gestor_de_estoque/core/database/database_factory.dart';
+import 'package:gestor_de_estoque/core/sync/sync_lifecycle.dart';
 import 'package:gestor_de_estoque/core/result/result.dart';
 import 'package:gestor_de_estoque/core/network/session_invalidation_signal.dart';
 import 'package:gestor_de_estoque/features/auth/auth_providers.dart';
@@ -20,9 +27,17 @@ void main() {
         ),
       ),
     );
+    final databaseFactory = _databaseFactory();
     final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repo),
+        databaseFactoryProvider.overrideWithValue(databaseFactory),
+        dataPurgeServiceProvider.overrideWithValue(
+          _purgeService(databaseFactory),
+        ),
+      ],
     );
+    addTearDown(databaseFactory.closeActive);
     addTearDown(container.dispose);
     final controller = container.read(authControllerProvider.notifier);
     await controller.restore();
@@ -38,21 +53,44 @@ void main() {
 
   test('invalidação global de 401 limpa sessão pelo use case', () async {
     final repo = _Repo(session: _session());
+    final databaseFactory = _databaseFactory();
     final container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repo),
+        databaseFactoryProvider.overrideWithValue(databaseFactory),
+        dataPurgeServiceProvider.overrideWithValue(
+          _purgeService(databaseFactory),
+        ),
+      ],
     );
+    addTearDown(databaseFactory.closeActive);
     addTearDown(container.dispose);
     final controller = container.read(authControllerProvider.notifier);
     await controller.restore();
     container.read(sessionInvalidationSignalProvider).notifyInvalidSession();
-    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(
       container.read(authControllerProvider).status,
       AuthStatus.unauthenticated,
     );
     expect(repo.clearLocalSessionCalled, isTrue);
+    expect(databaseFactory.activeDatabase, isNull);
   });
 }
+
+DatabaseFactory _databaseFactory() => DatabaseFactory(
+  documentsDirectory: () async => Directory.systemTemp,
+  temporaryDirectory: () async => Directory.systemTemp,
+  queryExecutorBuilder: (_) async => NativeDatabase.memory(),
+);
+
+DataPurgeService _purgeService(DatabaseFactory databaseFactory) =>
+    DataPurgeService(
+      databaseFactory,
+      const NoopSyncLifecycle(),
+      ContextCacheCleaner(temporaryDirectory: () async => Directory.systemTemp),
+      () {},
+    );
 
 UserSession _session() => const UserSession(
   userId: 'u',
