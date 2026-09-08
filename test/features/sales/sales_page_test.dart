@@ -7,46 +7,47 @@ import 'package:gestor_de_estoque/features/sales/presentation/controllers/pendin
 import 'package:gestor_de_estoque/features/sales/presentation/pages/sales_page.dart';
 
 void main() {
-  testWidgets(
-    'vendas cria rascunho de sessão e mantém financeiro restrito',
-    (tester) async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+  testWidgets('vendas cria rascunho de sessão e mantém financeiro restrito', (
+    tester,
+  ) async {
+    final container = ProviderContainer(
+      overrides: [shellProfileProvider.overrideWithValue(_restrictedProfile)],
+    );
+    addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(theme: AppTheme.light, home: const SalesPage()),
-        ),
-      );
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(theme: AppTheme.light, home: const SalesPage()),
+      ),
+    );
 
-      await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
 
-      expect(find.text('Financeiro restrito'), findsWidgets);
+    expect(find.text('Financeiro restrito'), findsWidgets);
 
-      await tester.tap(find.text('Selecionar cliente'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Loja Horizonte'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Selecionar cliente'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Loja Horizonte'));
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Adicionar produto'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Capacete Trail Pro').last);
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Adicionar produto'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Capacete Trail Pro').last);
+    await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('Criar rascunho'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Criar rascunho'));
-      await tester.pumpAndSettle();
-      expect(container.read(pendingSalesProvider), hasLength(1));
-      expect(find.textContaining('mantido somente nesta sessão'), findsOneWidget);
+    await tester.ensureVisible(find.text('Criar rascunho'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Criar rascunho'));
+    await tester.pumpAndSettle();
+    expect(container.read(pendingSalesProvider), hasLength(1));
+    expect(find.textContaining('mantido somente nesta sessão'), findsOneWidget);
 
-      await tester.drag(find.byType(ListView), const Offset(0.0, 500.0));
-      await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0.0, 500.0));
+    await tester.pumpAndSettle();
 
-      expect(find.textContaining('Fechar o app descarta'), findsOneWidget);
-    },
-  );
+    expect(find.textContaining('Fechar o app descarta'), findsOneWidget);
+  });
 
   testWidgets('permanece sem overflow em largura compacta e texto ampliado', (
     tester,
@@ -58,6 +59,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [shellProfileProvider.overrideWithValue(_restrictedProfile)],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const MediaQuery(
@@ -157,3 +159,12 @@ void main() {
     expect(find.text('Total R\$ 49,90'), findsOneWidget);
   });
 }
+
+final _restrictedProfile = ShellProfile(
+  userName: 'Maria',
+  userEmail: 'maria@example.test',
+  tenantName: 'Arara',
+  tenantSlug: 'arara',
+  features: const {'sales'},
+  permissions: const {'sales_create': true, 'view_financial_metrics': false},
+);

@@ -37,3 +37,15 @@ class ChangePasswordUseCase {
     confirmation: confirmation,
   );
 }
+
+class LogoutUseCase {
+  const LogoutUseCase(this._repository);
+  final AuthRepository _repository;
+  Future<Result<void, AuthFailure>> call() => _repository.logout();
+}
+
+class InvalidateSessionUseCase {
+  const InvalidateSessionUseCase(this._repository);
+  final AuthRepository _repository;
+  Future<void> call() => _repository.clearLocalSession();
+}

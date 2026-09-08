@@ -4,20 +4,11 @@ sealed class Result<S, F> {
   bool get isSuccess => this is Success<S, F>;
   bool get isFailure => this is Failure<S, F>;
 
-  S? get successOrNull => fold(
-        (value) => value,
-        (_) => null,
-      );
+  S? get successOrNull => fold((value) => value, (_) => null);
 
-  F? get failureOrNull => fold(
-        (_) => null,
-        (error) => error,
-      );
+  F? get failureOrNull => fold((_) => null, (error) => error);
 
-  T fold<T>(
-    T Function(S value) onSuccess,
-    T Function(F error) onFailure,
-  ) {
+  T fold<T>(T Function(S value) onSuccess, T Function(F error) onFailure) {
     return switch (this) {
       Success<S, F>(:final value) => onSuccess(value),
       Failure<S, F>(:final error) => onFailure(error),

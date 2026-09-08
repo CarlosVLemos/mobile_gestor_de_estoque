@@ -1,9 +1,9 @@
 # Tasks: Spec 008 — Sessão e Autenticação
 
-Status: planejamento pronto para implementação; nenhuma tarefa desta lista foi
-executada nesta revisão documental.
+Status: implementada e validada no cliente Flutter; pendências posteriores
+continuam pertencendo às Specs 008B e 009A.
 
-- [ ] **1. Contratos e DTOs**
+- [x] **1. Contratos e DTOs**
   - [ ] Modelar request de login, resposta de login, envelope `data/meta` de
     `/me` e resposta de troca de senha conforme REQ-046.
   - [ ] Preservar `code` semântico para `invalid_credentials`,
@@ -12,19 +12,19 @@ executada nesta revisão documental.
   - [ ] Registrar o pequeno handoff para ampliar a fronteira de erro da Spec
     007 caso o modelo atual não transporte esse `code`.
 
-- [ ] **2. Domínio e armazenamento seguro**
+- [x] **2. Domínio e armazenamento seguro**
   - [ ] Definir entidade de sessão e contrato de repositório sem Dio, JSON ou
     storage concreto.
   - [ ] Adicionar `flutter_secure_storage` e implementar armazenamento somente
     do token Sanctum; não usar SharedPreferences nem criar refresh token.
 
-- [ ] **3. Fonte remota e repositório**
+- [x] **3. Fonte remota e repositório**
   - [ ] Implementar login, logout, `/me` e troca de senha via `ApiClient`.
   - [ ] Injetar `Authorization: Bearer <token>` somente na camada de dados.
   - [ ] Converter exceções da Spec 007 e códigos de erro em resultados de
     domínio/aplicação acionáveis.
 
-- [ ] **4. Casos de uso e sessão**
+- [x] **4. Casos de uso e sessão**
   - [ ] Implementar login, restauração de token, resolução de perfil, logout e
     alteração de senha.
   - [ ] Modelar estados: iniciando, não autenticado, resolvendo perfil,
@@ -32,7 +32,7 @@ executada nesta revisão documental.
   - [ ] Tratar `401` como invalidade de sessão; timeout, conectividade e
     cancelamento não podem limpar token.
 
-- [ ] **5. Bootstrap, router e 401 global**
+- [x] **5. Bootstrap, router e 401 global**
   - [ ] Trocar o bootstrap fixture pela resolução de sessão.
   - [ ] Configurar redirecionamento declarativo: sem sessão -> `/login`;
     sessão normal -> shell; troca obrigatória -> `/change-password`; usuário
@@ -40,13 +40,13 @@ executada nesta revisão documental.
   - [ ] Criar sinalização neutra de sessão inválida entre core de rede e a
     composição da aplicação, sem `core/network` importar `features/auth`.
 
-- [ ] **6. Interface**
+- [x] **6. Interface**
   - [ ] Criar login com `access_code`, senha e `device_name`.
   - [ ] Criar fluxo bloqueante de troca de senha, mantendo logout disponível.
   - [ ] Ligar logout da shell ao caso de uso e exibir estados sem expor token,
     senha, detalhes do Dio ou códigos internos sem tratamento.
 
-- [ ] **7. Testes e validação**
+- [x] **7. Testes e validação**
   - [ ] Cobrir contratos, storage, repositório, casos de uso, controller,
     bootstrap, router e redaction.
   - [ ] Executar `dart format`, `flutter analyze`, testes afetados e suíte

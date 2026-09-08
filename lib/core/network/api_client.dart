@@ -9,6 +9,7 @@ import 'interceptors/redaction_interceptor.dart';
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
+      baseUrl: const String.fromEnvironment('API_BASE_URL'),
       connectTimeout: const Duration(seconds: 15),
       sendTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),

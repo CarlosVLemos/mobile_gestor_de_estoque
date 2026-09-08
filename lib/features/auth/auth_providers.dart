@@ -29,3 +29,9 @@ final restoreSessionUseCaseProvider = Provider<RestoreSessionUseCase>(
 final changePasswordUseCaseProvider = Provider<ChangePasswordUseCase>(
   (ref) => ChangePasswordUseCase(ref.watch(authRepositoryProvider)),
 );
+final logoutUseCaseProvider = Provider<LogoutUseCase>(
+  (ref) => LogoutUseCase(ref.watch(authRepositoryProvider)),
+);
+final invalidateSessionUseCaseProvider = Provider<InvalidateSessionUseCase>(
+  (ref) => InvalidateSessionUseCase(ref.watch(authRepositoryProvider)),
+);

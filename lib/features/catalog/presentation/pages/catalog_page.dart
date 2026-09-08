@@ -174,8 +174,7 @@ class CatalogPage extends ConsumerWidget {
               brand: product.brand,
               stockQuantity: product.stockQuantity,
               stockTone: switch (product.stockStatus) {
-                CatalogStockStatus.available =>
-                  ProductCardStockTone.available,
+                CatalogStockStatus.available => ProductCardStockTone.available,
                 CatalogStockStatus.low => ProductCardStockTone.low,
                 CatalogStockStatus.out => ProductCardStockTone.out,
               },

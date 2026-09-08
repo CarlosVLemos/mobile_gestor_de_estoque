@@ -440,9 +440,7 @@ class _StockLevelChartCard extends StatelessWidget {
                       Text('${math.max(point.value, 0)}'),
                       const SizedBox(height: AppSpacing.sm),
                       Container(
-                        height:
-                            120 *
-                            (math.max(point.value, 0) / highestValue),
+                        height: 120 * (math.max(point.value, 0) / highestValue),
                         decoration: BoxDecoration(
                           color: _barColor(context, point.toneLabel),
                           borderRadius: BorderRadius.circular(18),

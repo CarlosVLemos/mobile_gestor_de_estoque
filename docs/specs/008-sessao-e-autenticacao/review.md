@@ -2,8 +2,8 @@
 
 ## Status
 
-Documentação auditada e pronta para implementação. A Spec 008 continua **não
-implementada** no Flutter.
+Spec 008 implementada no Flutter, incluindo armazenamento seguro, sessão,
+proteção de rotas, troca obrigatória de senha e sinalização global de 401.
 
 O bloqueio histórico foi removido: REQ-046 materializou autenticação mobile
 Sanctum no backend Laravel. Esta revisão conferiu a branch `dev`, commit

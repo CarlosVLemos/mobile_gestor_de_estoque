@@ -24,7 +24,7 @@ class AuthController extends Notifier<AuthState> {
   Future<void> restore() async {
     state = const AuthState(status: AuthStatus.resolvingSession);
     final result = await ref.read(restoreSessionUseCaseProvider).call();
-    _applySessionResult(result, isRestore: true);
+    _applySessionResult(result);
   }
 
   Future<void> login({
@@ -48,10 +48,8 @@ class AuthController extends Notifier<AuthState> {
     required String password,
     required String confirmation,
   }) async {
-    state = AuthState(
-      status: AuthStatus.resolvingSession,
-      session: state.session,
-    );
+    final session = state.session;
+    state = AuthState(status: AuthStatus.resolvingSession, session: session);
     final result = await ref
         .read(changePasswordUseCaseProvider)
         .call(
@@ -64,40 +62,34 @@ class AuthController extends Notifier<AuthState> {
         await restore();
       case Failure<void, AuthFailure>(:final error):
         state = AuthState(
-          status: error.kind == AuthFailureKind.unavailable
-              ? AuthStatus.unavailable
-              : AuthStatus.failure,
-          session: state.session,
+          status: _operationalStatus(session),
+          session: session,
           failure: error,
         );
     }
   }
 
   Future<void> logout() async {
-    final result = await ref.read(authRepositoryProvider).logout();
+    final session = state.session;
+    final result = await ref.read(logoutUseCaseProvider).call();
     switch (result) {
       case Success<void, AuthFailure>():
         state = const AuthState(status: AuthStatus.unauthenticated);
       case Failure<void, AuthFailure>(:final error):
         state = AuthState(
-          status: error.kind == AuthFailureKind.unavailable
-              ? AuthStatus.unavailable
-              : AuthStatus.failure,
-          session: state.session,
+          status: _operationalStatus(session),
+          session: session,
           failure: error,
         );
     }
   }
 
   Future<void> _onInvalidSession() async {
-    await ref.read(authRepositoryProvider).clearLocalSession();
+    await ref.read(invalidateSessionUseCaseProvider).call();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
-  void _applySessionResult(
-    Result<UserSession, AuthFailure> result, {
-    bool isRestore = false,
-  }) {
+  void _applySessionResult(Result<UserSession, AuthFailure> result) {
     switch (result) {
       case Success<UserSession, AuthFailure>(:final value):
         state = AuthState(
@@ -118,4 +110,9 @@ class AuthController extends Notifier<AuthState> {
         );
     }
   }
+
+  AuthStatus _operationalStatus(UserSession? session) =>
+      session?.mustChangePassword == true
+      ? AuthStatus.passwordChangeRequired
+      : AuthStatus.authenticated;
 }

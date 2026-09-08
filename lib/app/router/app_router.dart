@@ -21,13 +21,13 @@ import 'app_routes.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final auth = ref.watch(authControllerProvider);
   final refresh = ref.watch(_authRouterRefreshProvider);
   final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.startup,
     refreshListenable: refresh,
     redirect: (context, routeState) {
-      final auth = ref.read(authControllerProvider);
       final location = routeState.matchedLocation;
       final isPublic =
           location == AppRoutes.startup || location == AppRoutes.login;
@@ -37,7 +37,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isPublic ? null : AppRoutes.startup;
       }
       if (auth.status == AuthStatus.unauthenticated) {
-        return isPublic ? null : AppRoutes.login;
+        return location == AppRoutes.login ? null : AppRoutes.login;
       }
       if (auth.status == AuthStatus.passwordChangeRequired) {
         return isPasswordRoute ? null : AppRoutes.changePassword;

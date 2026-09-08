@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
+import 'package:gestor_de_estoque/app/shell/shell_profile.dart';
 import 'package:gestor_de_estoque/features/settings/presentation/pages/operational_context_page.dart';
 import 'package:gestor_de_estoque/shared/widgets/tenant_context_card.dart';
 
@@ -11,6 +12,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [shellProfileProvider.overrideWithValue(_profile)],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const Scaffold(body: OperationalContextPage()),
@@ -46,6 +48,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [shellProfileProvider.overrideWithValue(_profile)],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const MediaQuery(
@@ -62,3 +65,12 @@ void main() {
     expect(find.text('EMPRESA EM USO'), findsOneWidget);
   });
 }
+
+final _profile = ShellProfile(
+  userName: 'Maria Oliveira',
+  userEmail: 'maria@arara-gastos.test',
+  tenantName: 'Arara Centro Logistico',
+  tenantSlug: 'arara-centro',
+  features: const {'catalog', 'sales'},
+  permissions: const {'products_view': true, 'view_financial_metrics': false},
+);

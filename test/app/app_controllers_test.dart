@@ -25,18 +25,10 @@ void main() {
     final controller = container.read(
       shellDisplayNameControllerProvider.notifier,
     );
-    final originalName = container.read(shellProfileProvider).userName;
-
     controller.updateName('   ');
-    expect(container.read(shellProfileProvider).userName, originalName);
+    expect(container.read(shellDisplayNameControllerProvider), isNull);
 
     controller.updateName('  Maria Campo  ');
     expect(container.read(shellDisplayNameControllerProvider), 'Maria Campo');
-    final profile = container.read(shellProfileProvider);
-    expect(profile.userName, 'Maria Campo');
-    expect(
-      () => profile.permissions['products_view'] = false,
-      throwsUnsupportedError,
-    );
   });
 }

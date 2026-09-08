@@ -26,7 +26,9 @@ class OperationalContextController extends Notifier<OperationalContextState> {
     final requestId = ++_requestSequence;
     state = const OperationalContextState.loading();
     try {
-      final result = await ref.read(getOperationalContextUseCaseProvider).call();
+      final result = await ref
+          .read(getOperationalContextUseCaseProvider)
+          .call();
       if (requestId != _requestSequence) {
         return;
       }
@@ -37,8 +39,9 @@ class OperationalContextController extends Notifier<OperationalContextState> {
         ),
         OperationalContextLoadStatus.restricted =>
           OperationalContextState.restricted(result.message!),
-        OperationalContextLoadStatus.failure =>
-          OperationalContextState.failure(result.message!),
+        OperationalContextLoadStatus.failure => OperationalContextState.failure(
+          result.message!,
+        ),
       };
     } on Object {
       if (requestId != _requestSequence) {

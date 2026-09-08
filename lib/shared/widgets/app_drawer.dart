@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/router/app_routes.dart';
+import '../../app/session_actions.dart';
 import '../../app/shell/shell_profile.dart';
 import '../../app/theme/app_decorations.dart';
 import '../../app/theme/app_icons.dart';
@@ -67,6 +68,15 @@ class AppDrawer extends ConsumerWidget {
                     GoRouter.of(navigatorContext).push(AppRoutes.context);
                   }
                 });
+              },
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _DrawerActionTile(
+              icon: AppIcons.logout,
+              title: 'Sair',
+              onTap: () {
+                Navigator.of(context).pop();
+                ref.read(sessionActionsProvider).logout();
               },
             ),
             const SizedBox(height: AppSpacing.sm),
