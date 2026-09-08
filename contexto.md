@@ -32,7 +32,7 @@ Hoje o que esta mais materializado no codigo:
 O que ainda nao existe de verdade no app:
 
 - autenticacao mobile por token;
-- cliente Dio materializado;
+- servidor ou banco de dados conectado ao aplicativo;
 - banco Drift materializado;
 - armazenamento seguro para sessao;
 - sincronizacao incremental real;
@@ -46,10 +46,54 @@ Resumo pratico:
 - a shell atual ja expoe `Painel`, `Produtos`, `Vendas` e `Mais`;
 - `dashboard`, `catalog` e `sales` ainda dependem de fixtures ou estado local
   em memoria;
-- as specs `007`, `008`, `008b`, `009a`, `009b`, `009c` e `010` foram abertas
-  como documentacao, nao como implementacao de infraestrutura;
-- autenticacao, Dio, Drift, sync e outbox continuam apenas como arquitetura
-  aceita, nao como codigo pronto.
+- o nucleo de rede, redacao de logs e mapeamento de erros da spec `007` existe,
+  mas nao ha endpoint configurado para ele consumir;
+- autenticacao, Drift, sync e outbox continuam dependencias de infraestrutura,
+  nao funcionalidades prontas para uso.
+
+## Como Testar o App sem Servidor, Banco ou Autenticacao
+
+O aplicativo ainda nao esta em producao e nao se conecta a servidor ou banco.
+As telas atuais devem ser testadas localmente, com fixtures e estado em memoria;
+um resultado visual ou uma venda criada nessa execucao nao representa um dado
+autenticado, persistido ou enviado ao servidor.
+
+Para exercitar as telas disponiveis:
+
+1. execute `flutter run` em emulador ou dispositivo;
+2. aguarde a `StartupPage`: o `StartupController` conclui o bootstrap local;
+3. navegue pela shell para `Painel`, `Produtos`, `Vendas` e `Mais`;
+4. use o perfil de acesso fixture em
+   `lib/core/config/fixture_access_profile.dart` como referencia dos dados e
+   permissoes simulados;
+5. para regressao automatizada, use `flutter test`; os testes de widget e
+   goldens em `test/` validam essas fontes locais.
+
+O caminho temporario que permite esse teste e deliberadamente visivel no
+codigo: `lib/app/startup/startup_controller.dart` encerra o bootstrap sem
+resolver uma sessao, e `lib/app/router/app_router.dart` ainda deixa a shell
+operacional acessivel. Isso e um bootstrap de desenvolvimento, nao uma regra
+de autorizacao e nao deve ser levado para uma compilacao de producao.
+
+Quando a autenticacao for implementada, o bypass para testar telas deve ser
+controlado e restrito a desenvolvimento/teste:
+
+- criar a sessao e o caso de uso em `lib/features/auth/`, sem fazer paginas
+  de negocio fingirem que o usuario esta autenticado;
+- fazer o `StartupController` resolver a sessao local e o
+  `app_router.dart` redirecionar para login quando ela nao existir;
+- manter um perfil fixture explicito, injetado somente por flavor ou
+  `--dart-define` de desenvolvimento/teste, nunca por botao na interface;
+- desabilitar esse perfil por padrao em release/producao e nao gravar token,
+  credencial ou permissao ficticia em armazenamento seguro;
+- testar separadamente que o modo de desenvolvimento acessa a shell e que uma
+  compilacao de release sem sessao nao a acessa.
+
+O ponto de extensao do perfil temporario e
+`lib/core/config/fixture_access_profile.dart`. Quando houver autenticacao real,
+ele deve permanecer uma dependencia de ambiente de desenvolvimento ou ser
+movido para suporte de testes; ele nao deve se tornar fonte de permissoes de
+producao.
 
 ## Situacao Git Atual
 
@@ -156,9 +200,12 @@ Infraestrutura e contratos de apoio.
 Hoje essa area ainda e enxuta e concentra utilitarios e configuracoes que nao
 pertencem a uma feature especifica.
 
-Exemplo observado:
+Exemplos observados:
 
 - `config/fixture_access_profile.dart`
+- `network/api_client.dart`
+- `network/interceptors/redaction_interceptor.dart`
+- `errors/` e `result/`
 
 Va para `lib/core` quando quiser entender:
 
@@ -259,10 +306,11 @@ menos estas frentes:
 Leitura pratica:
 
 - `001` a `005`: historico da base arquitetural e visual ja materializada;
-- `006`: documenta refino de shell e painel, mas o working tree ja contem
-  implementacao parcial relacionada;
-- `007` a `010`: backlog/specs documentais para a proxima fase de
-  infraestrutura.
+- `006`: refino de shell e painel entregue;
+- `007`: nucleo de rede, redacao de logs e contratos de erro entregue, ainda
+  sem servidor configurado;
+- `008` a `010`: proximas etapas de sessao, persistencia, sincronizacao e
+  outbox, dependentes de infraestrutura e contrato remoto.
 
 ## `test/`
 
