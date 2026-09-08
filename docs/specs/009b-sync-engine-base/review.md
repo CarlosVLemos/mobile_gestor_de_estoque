@@ -1,42 +1,28 @@
-# Spec 009B - Revisão de Abertura
+# Spec 009B — Revisão de abertura atualizada
 
 ## Status
 
-Planejada em 18 de junho de 2026. Não implementada.
+`BLOCKED`
 
-## Escopo pretendido
+## O que foi corrigido
 
-- Implementação do `SyncLock` como semáforo lógico em memória e persistência para controle concorrente;
-- Liberação obrigatória do `SyncLock` em bloco `finally` para evitar travamentos permanentes em falhas;
-- Definição da abstração `SyncCollection` com ciclo de vida estruturado de 4 passos (obter cursor, baixar remetente, salvar local, atualizar cursor);
-- Implementação do orquestrador central `SyncEngine` que gerencia a fila de coleções registradas;
-- Exposição reativa do estado de sync global (`syncStateProvider` do Riverpod);
-- Criação do `SyncLifecycleObserver` para monitorar o estado `resumed` do app;
-- Mecanismo de cooldown/throttling de 5 minutos para sincronizações automáticas pós-foco;
-- Testes unitários para locks de concorrência, recuperação de erros e lógica de throttling.
+A spec antiga foi alinhada à 008B: `SyncLifecycle` já existe e será implementado pelo engine real. A exigência de mutex + lock persistido foi mantida porque é decisão da arquitetura mobile, especialmente para concorrência entre foreground/background.
 
-## Gate de implementação
+## Dependência
 
-FECHADO.
+009A precisa estar implementada antes da escrita da 009B.
 
-Esta especificação define o motor central de reconciliação de dados. Nenhuma codificação de comportamento está liberada no app.
+## Blockers reais
 
-## Fontes consultadas
+1. política de timeout/falha de `SyncLifecycle.stop()` no logout/expiração;
+2. TTL/renovação/takeover do lock persistido.
 
-- `para mobile/00-contexto-operacional.md`;
-- `para mobile/05-arquitetura-mobile.md` (motor de sincronização, checkpoints, gatilhos, concorrência);
-- `para mobile/06-registro-decisoes.md` (decisões MOB-001, MOB-011).
+Nenhum valor foi inventado para fechar esses pontos.
 
-## Decisões já assumidas pelo pedido do usuário
+## Gate
 
-- Sincronização concorrente de coleções é proibida;
-- Erros de rede abrem a trava logicamente;
-- O relógio local não define cursores remotamente.
-
-## Pontos curtos a refinar antes de aprovar a spec
-
-- O cooldown de 5 minutos deve ser calculado em milissegundos e persistido em variável em memória. Não há necessidade de gravação em storage seguro, bastando o ciclo de vida da instância ativa do app.
+FECHADO. `contract.md` permanece DRAFT/BLOCKED até decisão explícita.
 
 ## Veredito
 
-Especificação refinada técnica e operacionalmente, cobrindo o controle estrito de concorrência e cooldown. O desenvolvimento continua bloqueado pelo gate.
+`BLOCKED` — escopo e arquitetura estão claros, mas os dois parâmetros de segurança acima precisam de decisão antes de implementação.

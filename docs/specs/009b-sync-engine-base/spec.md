@@ -1,43 +1,75 @@
-# Spec 009B: Sync Engine Base (Motor de Sincronização)
+# Spec 009B: Sync Engine Base
 
-## Problema
-Sincronizar múltiplos conjuntos de dados locais com APIs remotas introduz problemas de concorrência (duas sincronizações ocorrendo ao mesmo tempo), controle de estado de progresso global e redundância de código. Para resolver isso, precisamos de um motor de sincronização genérico (`SyncEngine`) que abstraia o controle de concorrência, checkpoints de tempo e fluxos de carga (bootstrap vs delta sync).
+## Status
+
+`blocked` para implementação até duas decisões explícitas serem fechadas no `contract.md`: política de falha de `SyncLifecycle.stop()` e duração/renovação do TTL do lock persistido.
+
+## Dependência
+
+Requer 009A implementada, pois usa `sync_collections` e o `AppDatabase` contextual.
 
 ## Objetivo
-Implementar o motor de sincronização base (`SyncEngine`), fornecendo mecanismos de trava de segurança (`SyncLock`), persistência de checkpoints, tratamento idempotente de payloads e gatilhos automatizados acionados pelo ciclo de vida do aplicativo (app lifecycle).
 
-## Fora de Escopo
-* Mapeamento de escrita local (Outbox).
-* Implementação dos parses específicos das chamadas de API (como produtos ou dashboards).
+Implementar um único motor de sincronização por contexto ativo, responsável por concorrência, lifecycle, checkpoints e execução ordenada de coleções. O motor não conhece widgets nem detalhes do Laravel.
 
-## Regras de Negócio e Diretrizes Técnicas
-1. **Controle de Concorrência (Sync Lock):**
-   * O `SyncEngine` deve obter uma trava lógica (Mutex em memória e lock persistido) antes de iniciar. Se uma sincronização já estiver ativa, novas tentativas devem ser descartadas silenciosamente para evitar concorrência e economizar dados do usuário.
-   * A trava deve ser liberada com segurança dentro de blocos `finally` das rotinas de sincronização, garantindo que erros na requisição HTTP (como timeouts ou indisponibilidade) não deixem o aplicativo permanentemente bloqueado ("travado em sync").
-2. **Limitador de Gatilhos (Sync Throttling):**
-   * O observador do Flutter (`WidgetsBindingObserver`) que dispara sincronizações quando o app muda para `AppLifecycleState.resumed` deve possuir uma política de limitação de taxa (throttling).
-   * A sincronização automática por retomada de foco só ocorrerá se o intervalo desde a última sincronização bem-sucedida ou com falha for superior a **5 minutos** (cooldown). Ações manuais de puxar para atualizar (pull-to-refresh) ignoram esta restrição de tempo.
-3. **Bootstrap vs Delta Sync:**
-   * **Bootstrap (Carga Inicial):** Ocorre se o checkpoint de sincronização da coleção estiver vazio. Baixa a base inteira de forma paginada.
-   * **Delta Sync (Carga Incremental):** Se houver checkpoint, envia o parâmetro `updated_since` com a data/hora ou cursor do último sync. Atualiza localmente apenas o delta retornado.
-4. **Persistência de Checkpoint por Etapa:**
-   * O cursor/checkpoint da coleção só será atualizado e persistido no banco Drift local *após* a persistência bem-sucedida da página correspondente no SQLite. Se houver falha de rede ou de banco no meio do lote, o sync é interrompido e o checkpoint permanece no último ponto seguro conhecido.
-5. **Mapeamento Idempotente:**
-   * Toda inserção local durante a sincronização deve utilizar estratégias de "upsert" (inserir ou atualizar em caso de conflito de chave primária).
+## Integração com 008B
 
-## Estrutura de Arquivos Proposta
-```text
-lib/core/sync/
-  sync_engine.dart            # Orquestrador de coleções
-  sync_lock.dart              # Mutex simples para evitar execuções simultâneas
-  sync_collection.dart        # Interface abstrata para coleções de sincronização
-  sync_lifecycle_observer.dart # Escuta o ciclo de vida e dispara o sync com cooldown
-```
+Já existe `SyncLifecycle.stop(LocalContext context)`. A 009B deve fornecer a implementação real desse boundary; não cria lifecycle paralelo.
 
-## Critérios de Aceite
-* O `SyncEngine` gerencia o estado global de sincronização e o expõe de forma reativa (Riverpod `syncStateProvider`).
-* Tentativas de rodar a sincronização enquanto outra está ativa são ignoradas (comprovado em logs e testes).
-* O gatilho de ciclo de vida (`resumed`) respeita o cooldown de 5 minutos, evitando requisições duplicadas imediatas.
-* Falhas de rede ou interrupções abruptas abortam a sincronização, liberam o lock de concorrência e preservam o último checkpoint seguro.
-* A suíte de testes unitários valida o comportamento do `SyncLock` (incluindo liberação no `finally`), a execução em ordem das coleções registradas, e o limitador de gatilhos (throttling).
+Antes de `DatabaseFactory.closeActive()`:
 
+- novas rodadas daquele contexto devem ser bloqueadas;
+- execução ativa deve receber cancelamento/stop;
+- o fechamento deve aguardar o término seguro definido pelo contrato;
+- nenhuma Future atrasada pode continuar usando Drift após o close.
+
+## Concorrência
+
+A arquitetura canônica exige:
+
+1. mutex em memória para o mesmo isolate;
+2. lock persistido para proteger execuções em isolates/processos distintos (ex.: foreground e worker);
+3. owner identificável;
+4. TTL para recuperar lock abandonado;
+5. liberação em `finally`.
+
+A tabela `sync_locks` pertence à 009B e deve ser adicionada por migração posterior à 009A, nunca por reset do banco.
+
+## Execução
+
+O engine executa coleções registradas em ordem. Cada coleção controla seu protocolo remoto, mas o engine fornece:
+
+- exclusão mútua;
+- estado global reativo;
+- cancelamento/lifecycle;
+- leitura/escrita segura de `sync_collections`;
+- gatilhos manuais e automáticos;
+- cooldown para gatilhos de `resumed` conforme decisão vigente.
+
+## Checkpoint
+
+O engine não promove cursor/checkpoint antes de a coleção confirmar persistência local da página. Falha parcial mantém o último estado seguro.
+
+## Gatilhos
+
+- startup autenticado;
+- pull-to-refresh;
+- `resumed` com throttling;
+- retorno de conectividade quando houver health check real;
+- background apenas como auxílio.
+
+## Fora de escopo
+
+- mapping de produtos/dashboard (009C);
+- outbox de vendas (010);
+- background como garantia de entrega.
+
+## Critérios de aceite
+
+- nunca há duas execuções que alterem checkpoints ao mesmo tempo;
+- lock abandonado é recuperável sem apagar dados;
+- `stop(context)` impede uso do banco após fechamento;
+- lock é liberado em sucesso, falha e cancelamento;
+- checkpoint não avança em falha parcial;
+- cooldown não impede refresh manual;
+- testes cobrem concorrência, stale lock, finally, stop e cancelamento.

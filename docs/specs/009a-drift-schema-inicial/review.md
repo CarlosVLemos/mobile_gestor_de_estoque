@@ -1,28 +1,27 @@
-# Spec 009A — Revisão de Abertura Atualizada
+# Spec 009A — Revisão de abertura
 
 ## Status
 
-Planejada. Não implementada.
+`READY`
 
-## Premissas confirmadas pela 008B
+## Auditoria
 
-- Drift e SQLite já são dependências do projeto.
-- `AppDatabase` já existe, com schemaVersion `1` e tabela `sync_outbox`.
-- `DatabaseFactory` abre bancos físicos isolados por usuário + tenant.
-- `build_runner` e `drift_dev` já estão configurados; geração não é tarefa de
-  setup inicial.
+O backend `dev` @ `4ef4b3ee6374848ff903ce1f467daeff0975b005` confirmou o payload de produtos, tombstones e o snapshot de dashboard. O baseline local confirmado é o v1 deixado pela 008B.
 
-## Escopo futuro
+A versão antiga da spec foi corrigida para não instalar Drift novamente, não criar outro `AppDatabase` e não tratar a outbox como inexistente.
 
-Evoluir o schema v1 por migração segura para tabelas de leitura local. A 009A
-não pode destruir ou remodelar a outbox mínima deixada pela 008B.
+## Decisões
 
-## Gate de implementação
+- catálogo relacional em `categories` + `products`;
+- remoção remota representada por `products.deleted_at`;
+- dashboard persistido como snapshot composto, evitando normalização prematura de dezenas de estruturas;
+- checkpoints separados em `sync_collections`;
+- migração destrutiva proibida.
 
-FECHADO. O contrato da futura evolução está em rascunho e os tipos remotos
-necessários ainda exigem confirmação antes de congelamento.
+## Gate
+
+Contrato `FROZEN`. Implementação pode ser autorizada como próxima etapa.
 
 ## Veredito
 
-Documentação atualizada para partir do estado real da 008B; nenhuma parte da
-009A foi implementada.
+`READY` — primeira sub-spec implementável da família 009.

@@ -1,23 +1,39 @@
-# Plano de validação futuro — Spec 009A
+# Plano de validação — Spec 009A
 
-## Cenário crítico de upgrade
+## Cenário crítico: migração real
 
-1. Criar um banco físico no schema v1 da 008B.
-2. Inserir uma linha pendente em `sync_outbox`.
-3. Fechar o banco.
-4. Abrir o mesmo arquivo com a versão nova da 009A.
-5. Comprovar que a migração terminou, as novas tabelas existem e a linha antiga
-   da outbox continua intacta.
+1. Criar banco físico no schema v1 da 008B.
+2. Inserir `sync_outbox(id: 'sale-pending', status: 'pending')`.
+3. Fechar completamente o banco.
+4. Abrir o mesmo arquivo com o schema novo.
+5. Comprovar:
+   - migração concluída;
+   - novas tabelas existentes;
+   - `sync_outbox` existente;
+   - linha `sale-pending` intacta.
 
-## Cenários adicionais
+O teste falha se a implementação apagar/recriar o arquivo.
 
-- Banco novo cria todas as tabelas na versão nova.
-- `price = null` persiste e é lido como estado válido.
-- Chaves estrangeiras e a ordem categorias → produtos são testadas quando os
-  tipos remotos forem congelados.
-- Contextos user + tenant diferentes continuam usando arquivos independentes.
+## Banco novo
 
-## Proibições de validação
+Validar criação direta na versão nova e CRUD mínimo das quatro tabelas novas.
 
-Nenhum teste de migração pode usar apagar banco, reset de schema ou recriação
-do arquivo como mecanismo de sucesso.
+## Produtos
+
+- `price = null` round-trip;
+- categoria nullable;
+- FK `ON DELETE SET NULL`;
+- tombstone preenche `deleted_at` e consulta operacional exclui a linha;
+- reaparecimento do mesmo `id` pode limpar `deleted_at` por upsert futuro.
+
+## Dashboard
+
+Persistir snapshot com `revision`, metadados e `payload_json`; alteração da linha deve emitir atualização para observador Drift.
+
+## Sync metadata
+
+Validar independência entre coleções e round-trip de `cursor`, `checkpoint`, `target_checkpoint` e `revision`.
+
+## Isolamento
+
+Reutilizar `DatabaseFactory` para comprovar que dois pares user+tenant continuam em arquivos distintos após a migração.

@@ -1,52 +1,106 @@
-# Spec 009C: Sincronização de Leitura de Catálogo e Painel
+# Spec 009C: Sync de leitura de Catálogo e Dashboard
 
-## Problema
-As repositories de catálogo e de painel hoje retornam dados simulados (fixtures). Com a infraestrutura do Drift (Spec 009A) e do SyncEngine (Spec 009B) concluídas, precisamos implementar as implementações reais de sincronização para baixar o catálogo de produtos e os indicadores e atualizar as páginas visuais para observar o banco local reativamente.
+## Status
+
+`blocked` por dependência: requer 009A e 009B implementadas. O contrato remoto foi auditado e congelado.
+
+## Backend auditado
+
+`CarlosVLemos/gestor_de_estoque`, branch `dev`, commit `4ef4b3ee6374848ff903ce1f467daeff0975b005`.
 
 ## Objetivo
-Implementar as coleções de sincronização para produtos (`ProductSyncCollection`) e resumo de painel (`DashboardSyncCollection`), substituindo as repositories de mock por repositórios baseados no banco SQLite reativo (Drift).
 
-## Fora de Escopo
-* Escrita local offline (criação de vendas, sincronização de outbox).
-* Sincronização de dados não previstos na API (como logs de auditoria).
+Implementar as coleções reais de leitura e substituir fixtures por repositórios locais Drift. A rede nunca alimenta diretamente a UI.
 
-## Regras de Negócio e Diretrizes Técnicas
-1. **Sincronização de Produtos (`ProductSyncCollection`):**
-   * Consumir o endpoint `GET /api/mobile/products` passando parâmetros `limit` (tamanho do lote, ex: 100), `page` (número da página) e `updated_since` (carimbo do checkpoint, se houver).
-   * Tratar paginação do endpoint remoto. O bootstrap deve baixar todas as páginas de forma sequencial até que `has_more_pages` seja falso.
-   * Realizar o "upsert" em massa das categorias e produtos na base de dados Drift local usando blocos de transação.
-2. **Sincronização do Painel (`DashboardSyncCollection`):**
-   * Consumir o endpoint `GET /api/mobile/dashboard`.
-   * Salvar os KPIs e dados de alertas nas tabelas locais do banco Drift, limpando registros antigos consolidados e sobrescrevendo com os novos.
-3. **Observabilidade Reativa na UI com Descarte Seguro (MOB-001):**
-   * Modificar a camada de apresentação (`CatalogPage`, `DashboardPage`) para observar os dados através de fluxos contínuos (`Stream`) gerados pelo Drift.
-   * Os Riverpod Providers que expõem essas Streams (ex: `catalogProductsStreamProvider`) devem utilizar o modificador `.autoDispose` para fechar os canais reativos e cancelar inscrições de banco de dados quando as telas correspondentes forem desmontadas.
-   * Quando o `SyncEngine` terminar de salvar novos dados em background, a UI deve se atualizar automaticamente sem exigir que o usuário mude de página ou acione refresh.
-4. **Resiliência Offline e Dados em Cache (UI-005):**
-   * Se a sincronização falhar (ex: sem internet, erro de servidor), o repositório Drift local deve continuar fornecendo os últimos dados gravados no SQLite com sucesso.
-   * O estado reativo da tela deve mudar para `ready` (exibindo os dados locais) mas acionar um banner ou indicador de "modo offline" ou "sincronização falhou", impedindo a exibição de uma tela em branco ou erro fatal de carregamento de tela inteira.
-
-## Estrutura de Arquivos Proposta
 ```text
-lib/features/catalog/
-  data/
-    sync/
-      product_sync_collection.dart  # Integração com API /products
-    repositories/
-      drift_product_repository.dart # Query real no banco local Drift
-lib/features/dashboard/
-  data/
-    sync/
-      dashboard_sync_collection.dart # Integração com API /dashboard
-    repositories/
-      drift_dashboard_repository.dart # Query real no banco local Drift
+API -> SyncCollection -> Drift -> Repository/Stream -> Controller -> Page
 ```
 
-## Critérios de Aceite
-* A inicialização do aplicativo dispara o download e população inicial das tabelas locais (bootstrap).
-* Alterações no banco de dados local refletem automaticamente nas telas sem necessidade de refresh manual.
-* Desconectar a internet e abrir o aplicativo exibe os dados salvos localmente na última sincronização válida, junto com o banner offline.
-* Provedores de Stream do Drift usam `.autoDispose` e cancelam subscrições de banco no descarte da tela.
-* A ausência de preços nos produtos (`price = null` devido a restrição visual) não quebra a renderização dos cards na lista do catálogo.
-* Testes de widget e de integração validam o comportamento offline, renderização do catálogo reativo e descarte de subscrições.
+## Produtos — contrato real
 
+Endpoint: `GET /api/mobile/products`.
+
+Proteções: Sanctum, conta/tenant válidos, troca obrigatória de senha resolvida, feature `catalog` ativa e permissão `products.view`.
+
+Parâmetros relevantes para sync:
+
+- `per_page`: 1..50, default backend 15;
+- `cursor`: cursor opaco de continuação;
+- `checkpoint`: data <= agora;
+- `updated_since`: compatibilidade de delta inicial.
+
+`page` é aceito pelo FormRequest, mas a Action de sync não o usa como mecanismo de paginação. A 009C não deve basear sync em `page`.
+
+Resposta:
+
+```text
+data[]
+tombstones[] { id, deleted_at }
+meta:
+  next_cursor
+  has_more
+  target_checkpoint
+```
+
+### Janela estável
+
+A primeira request fixa `target_checkpoint`. Todas as páginas do mesmo cursor permanecem nessa janela. O backend ordena por `(sync_at, id)` e inclui o tenant dentro do cursor; cursor adulterado ou de outro tenant retorna 422.
+
+Mudanças ocorridas depois de `target_checkpoint` ficam para a próxima rodada.
+
+### Aplicação local
+
+Cada página deve ser aplicada em uma transação:
+
+1. aplicar tombstones;
+2. upsert de categorias presentes;
+3. upsert de produtos ativos, limpando eventual `deleted_at` do mesmo id;
+4. commit;
+5. somente após commit promover cursor/checkpoint seguro.
+
+Ao terminar `has_more = false`, o `target_checkpoint` concluído torna-se o checkpoint da próxima rodada e o cursor transitório é limpo.
+
+## Dashboard — contrato real
+
+Endpoint: `GET /api/mobile/dashboard`.
+
+Parâmetros validados: `group_by=day|week|month`, `goal_month=YYYY-MM`, `page>=1` e `category_id` UUID nullable. Na implementação auditada, `DashboardService` reconstrói os filtros e não aplica `category_id`; o cliente não pode depender de filtragem por categoria até o backend materializar essa semântica.
+
+Resposta:
+
+- `data`: snapshot allowlisted pelo `DashboardResource`;
+- `web_dashboard_url`;
+- `meta.revision`;
+- `meta.generated_at`;
+- `meta.period`;
+- `meta.reference_date`.
+
+`revision` é estável para o mesmo snapshot e muda quando período ou dados de negócio mudam, conforme testes backend.
+
+Dashboard NÃO usa o protocolo cursor/checkpoint dos produtos. Cada sync obtém um snapshot e, após resposta válida, substitui atomicamente o snapshot local daquele `scope_key`.
+
+Campos financeiros podem ser `null`; `can_view_financial` orienta rendering local, sem substituir autorização remota.
+
+## UI local-first
+
+- catálogo e dashboard observam Drift;
+- refresh mantém dados antigos visíveis;
+- falha remota atualiza estado de sync/offline, não zera tabelas;
+- Streams/providers devem ser descartados com segurança no logout e na troca de contexto;
+- imagens continuam fora do SQLite.
+
+## Fora de escopo
+
+- outbox de vendas (010);
+- mudança no backend;
+- refresh token;
+- categoria como coleção remota independente, pois não há endpoint mobile auditado para isso.
+
+## Critérios de aceite
+
+- bootstrap e delta de produtos respeitam cursor/tombstones/target checkpoint;
+- retomada de página é idempotente;
+- dashboard substitui snapshot somente após resposta/persistência válidas;
+- offline mantém último conteúdo local;
+- `price = null` e campos financeiros nulos não quebram UI;
+- troca de contexto não mistura streams ou bancos.
