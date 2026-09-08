@@ -2,7 +2,11 @@
 
 ## Status
 
-Planejada em 15 de junho de 2026. Nao implementada.
+Implementada em 15 de junho de 2026 e refinada posteriormente pela Spec 006.
+
+Esta spec permanece como referencia historica da identidade visual. O hero do
+dashboard e parte da copy foram deliberadamente substituidos pelo refinamento
+operacional posterior; nao devem ser restaurados a partir deste documento.
 
 Esta spec exige aprovacao explicita antes de qualquer alteracao em `lib/`,
 `pubspec.yaml`, assets, dependencias ou testes do aplicativo.

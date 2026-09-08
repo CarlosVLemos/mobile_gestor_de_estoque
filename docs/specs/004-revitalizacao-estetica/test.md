@@ -1,5 +1,9 @@
 # Spec 004 - Plano de Testes
 
+> Registro histórico. A validação automatizada atual do app passou em 8 de
+> setembro de 2026; os cenários abaixo não representam uma pendência aberta da
+> Spec 004, que foi parcialmente substituída pelas Specs 005 e 006.
+
 ## Objetivo
 
 Validar que o acabamento estético e as micro-animações reativas foram implementados com sucesso, sem introduzir regressões de layout, quebras em testes existentes ou degradação na performance visual (ex: travamentos com BackdropFilter). Os testes automatizados não decem ser rodados, é necessario pedir ao usuario para rodar os testes para então ele retornar se houve erros ou não

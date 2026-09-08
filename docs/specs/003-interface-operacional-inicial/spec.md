@@ -2,7 +2,8 @@
 
 ## Status
 
-Planejada em 12 de junho de 2026.
+Implementada em 12 de junho de 2026 e encerrada com validacao automatizada em
+8 de setembro de 2026.
 
 ## Classificacao
 

@@ -107,6 +107,6 @@ Implementacao concluida com validacao parcial do toolchain Flutter.
 
 Spec 003 implementada em codigo com shell operacional, dashboard, catalogo,
 contexto operacional, tela `Mais`, fixtures explicitas e componentes
-compartilhados documentados. A analise estatica passou. A suite Flutter
-identificou falhas intermediarias e elas foram corrigidas, mas a rerodada final
-ficou pendente por permissao negada ao lockfile do SDK.
+compartilhados documentados. Em 8 de setembro de 2026, `flutter analyze`
+terminou sem issues e `flutter test` terminou com 137 testes passando. A
+limitacao historica de rerodar a suite pelo lockfile do SDK esta encerrada.

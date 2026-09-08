@@ -2,7 +2,12 @@
 
 ## Status
 
-Planejada em 12 de junho de 2026. Pendente de aprovação do usuário.
+Entrega histórica implementada em 12 de junho de 2026 e posteriormente
+substituída em parte pelos refinamentos das Specs 005 e 006.
+
+Esta spec não deve orientar nova implementação isolada: componentes como
+`InteractiveFeedback` e o hero anterior foram removidos ou redefinidos pelas
+iterações posteriores da shell e do painel.
 
 ## Classificacao
 
@@ -130,4 +135,3 @@ As diretrizes de layout e organização espacial abaixo seguem o design demonstr
 - [ ] O dashboard exibe KPIs em grade de 2 colunas e agrupa alertas e movimentos em cartões consolidados com divisórias.
 - [ ] O catálogo de produtos utiliza barra de busca compacta e os cards possuem uma estrutura colunar mais limpa e organizada.
 - [ ] Atalhos da página "Mais" são agrupados em uma lista única consolidada dentro de um cartão de vidro.
-

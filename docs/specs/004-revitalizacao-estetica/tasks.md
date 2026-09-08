@@ -1,5 +1,9 @@
 # Spec 004 - Tarefas
 
+> Registro histórico do plano anterior à entrega. A Spec 004 foi encerrada e
+> parcialmente substituída pelas Specs 005 e 006; os checkboxes abaixo não são
+> trabalho pendente.
+
 ## Preparação
 
 - [ ] Confirmar que o workspace não possui alterações não salvas antes de iniciar.
@@ -56,4 +60,3 @@
 
 - [ ] Registrar as alterações, arquivos modificados e resultados de testes em `review.md`.
 - [ ] Documentar o novo componente `InteractiveFeedback` em `components.md` se aplicável.
-

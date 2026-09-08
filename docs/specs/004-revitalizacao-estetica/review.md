@@ -2,7 +2,9 @@
 
 ## Status
 
-Implementada em 12 de junho de 2026. Pendente de validação visual pelo usuário.
+Implementada em 12 de junho de 2026 e substituída parcialmente pelas Specs 005
+e 006. Encerrada como registro histórico; não é uma fonte para reintroduzir
+componentes removidos nas iterações posteriores.
 
 ## Escopo previsto
 
@@ -86,4 +88,7 @@ Nenhum desvio significativo da spec aprovada. Todos os ajustes obrigatórios do 
 
 ## Veredito
 
-Implementação completa. Aguardando validação visual e execução de `flutter test` pelo usuário para aceite final.
+Entrega histórica encerrada e parcialmente substituída. A validação automatizada
+mais recente do app, em 8 de setembro de 2026, concluiu `flutter analyze` sem
+issues e `flutter test` com 137 testes passando. Validação manual em dispositivo
+físico continua uma recomendação de release, não um bloqueio desta spec histórica.

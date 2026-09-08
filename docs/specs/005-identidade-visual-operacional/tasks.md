@@ -1,5 +1,9 @@
 # Spec 005 - Tarefas
 
+> Registro histórico do plano de entrega. A Spec 005 foi concluída e refinada
+> pela Spec 006; itens não marcados abaixo não devem ser tratados como backlog
+> ativo.
+
 ## Gate
 
 - [x] Confirmar aprovacao explicita para implementar a Spec 005.

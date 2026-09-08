@@ -1,5 +1,9 @@
 # Spec 005 - Plano de Testes
 
+> Registro histórico. A regressão automatizada atual passou em 8 de setembro de
+> 2026. A Spec 005 está encerrada e seus cenários permanecem apenas como
+> referência para regressões visuais.
+
 ## Objetivo
 
 Validar que a nova identidade visual:

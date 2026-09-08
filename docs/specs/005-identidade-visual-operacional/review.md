@@ -2,7 +2,9 @@
 
 ## Status
 
-Implementada e validada por testes em 15 de junho de 2026. Validação visual e manual pelo usuário pendente.
+Implementada em 15 de junho de 2026, refinada pela Spec 006 e encerrada como
+referência histórica. O refino posterior substituiu deliberadamente o hero do
+dashboard e a copy associada.
 
 ## Escopo previsto
 
@@ -127,5 +129,7 @@ Escala de texto: 1.0, 1.3, 2.0 (Reflow validation)
 
 ## Veredito
 
-Implementação concluída tecnicamente, aguardando validação manual e aprovação
-visual do usuário.
+Implementação histórica concluída. Em 8 de setembro de 2026, a regressão
+automatizada do app passou com `flutter analyze` sem issues e `flutter test`
+com 137 testes passando. A validação manual em dispositivo permanece recomendada
+para releases, mas não mantém esta spec aberta.
