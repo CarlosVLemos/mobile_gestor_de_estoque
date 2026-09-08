@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../errors/api_exception.dart';
+import 'session_invalidation_signal.dart';
 import 'interceptors/redaction_interceptor.dart';
 
 final dioProvider = Provider<Dio>((ref) {
@@ -21,13 +22,14 @@ final dioProvider = Provider<Dio>((ref) {
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   final dio = ref.watch(dioProvider);
-  return ApiClient(dio);
+  return ApiClient(dio, ref.watch(sessionInvalidationSignalProvider));
 });
 
 class ApiClient {
   final Dio _dio;
+  final SessionInvalidationSignal? _sessionInvalidationSignal;
 
-  ApiClient(this._dio);
+  ApiClient(this._dio, [this._sessionInvalidationSignal]);
 
   Future<Response<T>> get<T>(
     String path, {
@@ -71,6 +73,20 @@ class ApiClient {
     }
   }
 
+  Future<Response<T>> put<T>(
+    String path, {
+    dynamic data,
+    Options? options,
+  }) async {
+    try {
+      return await _dio.put<T>(path, data: data, options: options);
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    } catch (_) {
+      throw const UnknownException();
+    }
+  }
+
   ApiException _handleDioException(DioException e) {
     if (e.type == DioExceptionType.cancel) {
       return const RequestCancelledException();
@@ -94,9 +110,16 @@ class ApiClient {
 
       switch (statusCode) {
         case 401:
+          _sessionInvalidationSignal?.notifyInvalidSession();
           return const UnauthorizedException();
         case 403:
-          return const ForbiddenException();
+          return ForbiddenException(
+            _messageFrom(
+              response.data,
+              'Acesso proibido a esta funcionalidade.',
+            ),
+            _codeFrom(response.data),
+          );
         case 422:
           final responseData = response.data;
           Map<String, dynamic> validationErrors = {};
@@ -110,7 +133,11 @@ class ApiClient {
               msg = responseData['message'] as String;
             }
           }
-          return InvalidParamsException(message: msg, errors: validationErrors);
+          return InvalidParamsException(
+            message: msg,
+            errors: validationErrors,
+            code: _codeFrom(responseData),
+          );
         case 429:
           return const RateLimitException();
         default:
@@ -122,4 +149,14 @@ class ApiClient {
 
     return const UnknownException();
   }
+
+  String? _codeFrom(dynamic data) =>
+      data is Map<String, dynamic> && data['code'] is String
+      ? data['code'] as String
+      : null;
+
+  String _messageFrom(dynamic data, String fallback) =>
+      data is Map<String, dynamic> && data['message'] is String
+      ? data['message'] as String
+      : fallback;
 }

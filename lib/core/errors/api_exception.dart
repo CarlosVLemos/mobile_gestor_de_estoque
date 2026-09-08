@@ -27,17 +27,21 @@ class UnauthorizedException extends ApiException {
 }
 
 class ForbiddenException extends ApiException {
+  final String? code;
   const ForbiddenException([
     super.message = 'Acesso proibido a esta funcionalidade.',
+    this.code,
   ]);
 }
 
 class InvalidParamsException extends ApiException {
   final Map<String, dynamic> errors;
+  final String? code;
 
   const InvalidParamsException({
     String message = 'Dados inválidos.',
     required this.errors,
+    this.code,
   }) : super(message);
 
   @override

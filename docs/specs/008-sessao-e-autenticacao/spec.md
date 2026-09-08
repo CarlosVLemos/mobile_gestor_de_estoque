@@ -82,7 +82,7 @@ Exige Sanctum, conta e tenant válidos. Retorna o envelope real:
 ```json
 {
   "data": {
-    "user": { "id": "uuid", "name": "João", "email": "joao@empresa.test" },
+    "user": { "id": "uuid", "name": "João", "email": "joao@empresa.test", "must_change_password": false },
     "tenant": { "id": "uuid", "name": "CBN Motos", "slug": "cbnmotos" },
     "features": ["catalog", "sales"],
     "permissions": {

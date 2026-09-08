@@ -14,6 +14,7 @@ abstract final class AppIcons {
   static const IconData tenant = LucideIcons.building2;
   static const IconData openInNew = LucideIcons.externalLink;
   static const IconData lock = LucideIcons.lock;
+  static const IconData logout = LucideIcons.logOut;
   static const IconData wifiOff = LucideIcons.wifiOff;
   static const IconData storefront = LucideIcons.store;
   static const IconData schedule = LucideIcons.clock;

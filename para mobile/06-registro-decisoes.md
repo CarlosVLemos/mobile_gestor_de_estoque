@@ -51,7 +51,7 @@ afetados.
 
 | ID | Tema | Dependência | Regra até decidir |
 | --- | --- | --- | --- |
-| DEP-001 | Login mobile | Contrato remoto de autenticação | Preparar abstrações sem inventar endpoint |
+| DEP-001 | Login mobile | REQ-046 v2 materializado no backend | Consumir login, `/me`, logout e troca de senha sem inventar refresh token |
 | DEP-002 | Renovação de sessão | Política de token | Não implementar refresh presumido |
 | DEP-003 | Venda offline | Contrato de intenção e confirmação | Modelar somente quando entrar no escopo |
 | DEP-004 | Cursor de sync | Contrato remoto estável | Repositório esconde o formato do cursor |

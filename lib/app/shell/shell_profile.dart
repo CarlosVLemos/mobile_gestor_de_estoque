@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/config/fixture_access_profile.dart';
+import '../../features/auth/presentation/controllers/auth_controller.dart';
 
 final shellDisplayNameControllerProvider =
     NotifierProvider<ShellDisplayNameController, String?>(
@@ -9,16 +9,17 @@ final shellDisplayNameControllerProvider =
 
 final shellProfileProvider = Provider<ShellProfile>((ref) {
   final localDisplayName = ref.watch(shellDisplayNameControllerProvider);
+  final session = ref.watch(authControllerProvider).session;
 
   return ShellProfile(
     userName: localDisplayName?.trim().isNotEmpty == true
         ? localDisplayName!.trim()
-        : appFixtureAccessProfile.userName,
-    userEmail: appFixtureAccessProfile.userEmail,
-    tenantName: appFixtureAccessProfile.tenantName,
-    tenantSlug: appFixtureAccessProfile.tenantSlug,
-    features: appFixtureAccessProfile.features,
-    permissions: appFixtureAccessProfile.permissions,
+        : session?.userName ?? '',
+    userEmail: session?.email ?? '',
+    tenantName: session?.tenantName ?? '',
+    tenantSlug: session?.tenantSlug ?? '',
+    features: session?.features ?? const {},
+    permissions: session?.permissions ?? const {},
   );
 });
 

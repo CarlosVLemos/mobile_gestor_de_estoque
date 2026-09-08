@@ -165,9 +165,9 @@ Dados locais podem continuar visiveis durante refresh ou falha remota.
 3. Revisar e limpar artefatos de falha em `test/goldens/failures/`.
 4. Reutilizar o core de erros, resultado e cliente HTTP apenas em integracoes
    cujo contrato remoto esteja confirmado.
-5. Criar banco Drift e estrategia segura de migracao.
-6. Implementar sessao usando o contrato Sanctum auditado na Spec 008, antes de
+5. Implementar sessao usando o contrato Sanctum auditado na Spec 008, antes de
    substituir o bootstrap fixture por uma sessao real.
+6. Criar banco Drift e estrategia segura de migracao.
 7. Substituir fixtures de dashboard e catalogo por fontes locais/remotas sem
    romper os estados operacionais existentes.
 8. Introduzir sincronizacao incremental quando houver contrato confirmado.

@@ -150,8 +150,7 @@ class AppDrawer extends ConsumerWidget {
                     child: const Text('Cancelar'),
                   );
                   final saveButton = FilledButton(
-                    onPressed: () =>
-                        Navigator.of(context).pop(controller.text),
+                    onPressed: () => Navigator.of(context).pop(controller.text),
                     child: const Text('Salvar'),
                   );
 
