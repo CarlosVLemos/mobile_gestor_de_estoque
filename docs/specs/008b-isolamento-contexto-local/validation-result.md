@@ -21,6 +21,8 @@ Data: 8 de setembro de 2026
 
 - O aviso de múltiplos bancos Drift apareceu apenas em fixtures SQLite em memória de testes widget sucessivos; a bateria passou e os testes de isolamento físico usam arquivos temporários independentes.
 - Não foi executada suíte completa, build, emulador ou integração pesada, pois estavam fora da autorização e não eram necessários para o escopo focado.
+- Falhas do teardown real (sync, close ou cache) ainda exigem política explícita
+  antes da introdução do Sync Engine na 009B.
 
 ## Veredito
 

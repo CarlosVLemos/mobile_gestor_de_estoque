@@ -30,9 +30,13 @@ ABERTO e autorizado pela solicitação de implementação da Spec 008B. O
 - O motor real de sync e o protocolo de envio de vendas continuam fora de
   escopo das Specs 009/010. A 008B fornece o boundary `SyncLifecycle` e a
   persistência contextual que essas specs deverão usar.
-- O lifecycle agora possui single-flight para purge, fechamento de banco e
-  transição de sessão inválida. Os testes de concorrência adicionados nesta
-  revisão ainda estão `NOT_RUN` por gate explícito do usuário.
+- O lifecycle possui single-flight para purge, fechamento de banco e transição
+  de sessão inválida; os testes de concorrência passaram.
+- Se `SyncLifecycle.stop`, `database.close` ou a limpeza de cache lançar uma
+  exceção, a transição ainda pode permanecer em estado de resolução. Esse
+  tratamento de falha deve ser endurecido antes de um Sync Engine real (009B).
+- `failed_permanent` continua fora da contagem de aviso porque sua semântica e
+  intervenção de usuário pertencem à Spec 010; a 008B não a antecipa.
 
 ## Veredito
 

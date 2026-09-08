@@ -84,9 +84,9 @@ class AppDrawer extends ConsumerWidget {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (dialogContext) => AlertDialog(
-                    title: const Text('Existem operaÃ§Ãµes pendentes'),
+                    title: const Text('Existem operações pendentes'),
                     content: Text(
-                      '${result.pendingOutboxCount} operaÃ§Ã£o${result.pendingOutboxCount == 1 ? '' : 'Ãµes'} ainda nÃ£o foi sincronizada. Sair nÃ£o apagarÃ¡ essa fila: ela permanecerÃ¡ neste dispositivo e voltarÃ¡ quando este mesmo usuÃ¡rio e empresa entrarem novamente.',
+                      '${result.pendingOutboxCount} operação${result.pendingOutboxCount == 1 ? '' : 'ões'} ainda não foi sincronizada. Sair não apagará essa fila: ela permanecerá neste dispositivo e voltará quando este mesmo usuário e empresa entrarem novamente.',
                     ),
                     actions: [
                       TextButton(

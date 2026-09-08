@@ -10,7 +10,7 @@ import 'package:gestor_de_estoque/core/sync/sync_lifecycle.dart';
 
 void main() {
   test(
-    'cada usuÃ¡rio e tenant usa um arquivo fÃ­sico isolado e reutilizÃ¡vel',
+    'cada usuário e tenant usa um arquivo físico isolado e reutilizável',
     () async {
       final root = await Directory.systemTemp.createTemp('context-db-test');
       addTearDown(() => root.delete(recursive: true));

@@ -67,7 +67,7 @@ class DatabaseFactory {
     if (opening != null) {
       if (_openingContext == context) return opening;
       throw StateError(
-        'O banco do contexto anterior ainda estÃ¡ sendo aberto.',
+        'O banco do contexto anterior ainda está sendo aberto.',
       );
     }
 

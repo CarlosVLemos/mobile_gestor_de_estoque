@@ -123,7 +123,7 @@ class AuthController extends Notifier<AuthState> {
             status: AuthStatus.failure,
             failure: AuthFailure(
               AuthFailureKind.unknown,
-              'NÃ£o foi possÃ­vel abrir os dados locais deste contexto.',
+              'Não foi possível abrir os dados locais deste contexto.',
             ),
           );
         }
