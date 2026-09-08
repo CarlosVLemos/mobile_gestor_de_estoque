@@ -1,43 +1,57 @@
-# Spec 008 - Revisão de Abertura
+# Spec 008 — Revisão de abertura
 
 ## Status
 
-Planejada em 18 de junho de 2026. Não implementada.
+Documentação auditada e pronta para implementação. A Spec 008 continua **não
+implementada** no Flutter.
 
-## Escopo pretendido
+O bloqueio histórico foi removido: REQ-046 materializou autenticação mobile
+Sanctum no backend Laravel. Esta revisão conferiu a branch `dev`, commit
+`cbc073d`, contra `routes/api.php`, requests, controllers, actions e as
+evidências `SDD/spec/spec 46` (contrato congelado e validação aprovada).
 
-- Adição da dependência `flutter_secure_storage` para guardar tokens de sessão de forma criptografada;
-- Modelagem da entidade `UserSession` para carregar o token e o perfil do usuário logado;
-- Interface do repositório de autenticação e implementação concreta (`SecureAuthRepository`);
-- Provedor reativo de sessão de usuário via Riverpod (`authControllerProvider`);
-- Lógica de redirecionamento dinâmico no `go_router` com base no estado da sessão (usuário logado/deslogado);
-- Tela simples de login com validação local de credenciais;
-- Integração da expiração de sessão (erro 401) com a desautenticação automática no controller;
-- Testes automatizados cobrindo o ciclo de rotas e o comportamento do controller de sessão.
+## Contrato confirmado
 
-## Gate de implementação
+- `POST /api/mobile/auth/login` é público, limitado por `mobile-login` e usa
+  `access_code`, `password` e `device_name`.
+- Login retorna token Bearer, usuário, tenant e `must_change_password`.
+- `422 invalid_credentials`, `403 account_inactive`, `403 tenant_inactive`,
+  `403 password_change_required` e `422 invalid_current_password` são
+  semanticamente distintos e devem permanecer assim no mobile.
+- `POST /api/mobile/auth/logout` revoga o token atual e é permitido mesmo na
+  troca obrigatória de senha.
+- `GET /api/mobile/me` retorna `data` (usuário, tenant, features e
+  permissões) e `meta.revision`.
+- `PUT /api/mobile/me/password` permanece acessível durante a troca
+  obrigatória; sucesso limpa a flag no backend e mantém o token atual.
+- Dashboard, produtos e `sale-intents` existem e são bloqueados pelo backend
+  enquanto `must_change_password` estiver ativo. Eles não são escopo desta
+  spec.
 
-FECHADO.
+## Diferenças para a Spec anterior
 
-A abertura desta spec serve apenas para crítica de arquitetura e design das telas e fluxos. Nenhuma escrita em arquivos do app está autorizada.
+- Removeu a rota de login antiga, o mock e a hipótese de login planejado.
+- Substituiu o perfil sem envelope pelo contrato `data/meta.revision` real.
+- Adicionou máquina de rota para `must_change_password`.
+- Separou `401` de timeout/conectividade/cancelamento, que não invalidam token.
+- Substituiu o callback acoplado `ApiClient -> AuthController` por sinalização
+  neutra, preservando a direção core <- feature/composição.
+- Registrou que a Spec 007 precisa transportar códigos remotos semânticos para
+  que a feature não perca as distinções previstas pelo backend.
 
-## Fontes consultadas
+## Dependências e handoffs
 
-- `para mobile/00-contexto-operacional.md`;
-- `para mobile/05-arquitetura-mobile.md` (autenticação e segurança local);
-- `para mobile/06-registro-decisoes.md` (decisões MOB-004, MOB-007, MOB-008, DEP-001, DEP-002);
-- `docs/specs/007-core-rede-erros-resultado/` (integração de tratamento de erro 401).
+- A dependência externa de login (DEP-001) foi satisfeita pelo REQ-046; não há
+  autorização para inventar refresh token, ainda dependente de política.
+- 008B recebe isolamento de contexto, banco e cache por usuário/tenant,
+  inclusive a limpeza ordenada de recursos no logout.
+- 009A recebe schema e persistência local de perfil/dados; esta spec não cria
+  Drift nem promete experiência offline autenticada completa.
+- A implementação deve confirmar a forma mínima de propagar `code` por cima
+  de `NetworkFailureKind`, sem acoplar core a `features/auth`.
 
-## Decisões já assumidas pelo pedido do usuário
+## Gate
 
-- O armazenamento dos segredos é criptografado;
-- A tela de login é a única porta de entrada pública do aplicativo;
-- O botão de "Sair" apaga todos os vestígios locais da sessão no armazenamento seguro.
-
-## Pontos curtos a refinar antes de aprovar a spec
-
-- Confirmar o fluxo de carregamento inicial: se o carregamento do `/me` falhar por problemas de rede física na abertura do app (com um token válido), o app deve entrar no modo de visualização offline dos dados locais persistidos, em vez de assumir sessão inválida e forçar logout. Isso é fundamental para o suporte a redes instáveis (MOB-001).
-
-## Veredito
-
-Especificação revisada e detalhada técnica e funcionalmente. O desenvolvimento permanece aguardando a liberação do gate correspondente.
+**LIBERADO PARA IMPLEMENTAÇÃO.** O contrato remoto existe e foi auditado; o
+trabalho seguinte deve seguir `tasks.md`, manter o escopo e executar a matriz
+de `test.md`. Esta liberação não declara nenhum arquivo Dart como concluído.

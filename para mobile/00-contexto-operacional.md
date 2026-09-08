@@ -21,15 +21,17 @@ buscar detalhes sem reler toda a pasta.
   cliente, montar carrinho, respeitar restricao financeira local e registrar
   rascunhos nao persistidos em memoria.
 - Existem contratos remotos documentados para perfil, dashboard e produtos.
-- Autenticacao mobile por token e vendas offline reais continuam dependentes de
-  contratos ainda nao implementados.
+- A autenticacao mobile Sanctum ja possui contrato e implementacao no backend
+  `dev` (login, logout, perfil e troca de senha), mas ainda nao foi integrada
+  ao Flutter; vendas offline reais continuam dependentes da implementacao
+  local-first correspondente.
 - O core de rede com Dio, redaction de segredos, excecoes tipadas, conversao
   para falhas de dominio e `Result` ja esta materializado no app.
 - Drift, armazenamento seguro, sincronizacao incremental e outbox seguem como
   arquitetura aceita, mas ainda nao estao materializados no app.
-- A spec `007` esta concluida. As specs `008`, `008b`, `009a`, `009b`, `009c`
-  e `010` continuam abertas como documentacao de proxima fase e nao
-  representam codigo pronto.
+- A spec `007` esta concluida. A `008` foi auditada contra o contrato Sanctum
+  existente e esta pronta para implementacao; `008b`, `009a`, `009b`, `009c`
+  e `010` continuam abertas e nao representam codigo Flutter pronto.
 - Documentacao descreve intencao e decisoes; somente codigo, testes e
   evidencias de execucao comprovam o que ja existe.
 
@@ -164,8 +166,8 @@ Dados locais podem continuar visiveis durante refresh ou falha remota.
 4. Reutilizar o core de erros, resultado e cliente HTTP apenas em integracoes
    cujo contrato remoto esteja confirmado.
 5. Criar banco Drift e estrategia segura de migracao.
-6. Implementar sessao e contexto do usuario quando o contrato de autenticacao
-   estiver disponivel.
+6. Implementar sessao usando o contrato Sanctum auditado na Spec 008, antes de
+   substituir o bootstrap fixture por uma sessao real.
 7. Substituir fixtures de dashboard e catalogo por fontes locais/remotas sem
    romper os estados operacionais existentes.
 8. Introduzir sincronizacao incremental quando houver contrato confirmado.

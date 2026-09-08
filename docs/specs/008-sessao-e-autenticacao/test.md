@@ -1,55 +1,43 @@
-# Spec 008 - Referência de Validação Futura
+# Spec 008 — Validação futura
 
-## Objetivo
+## Matriz de cenários
 
-Registrar como a futura implementação da Spec 008 (Sessão e Autenticação) deverá ser validada.
+| Cenário | Evidência esperada |
+| --- | --- |
+| App sem token | startup termina em `/login`; shell não fica acessível. |
+| Login válido | envia `access_code`, `password`, `device_name`; grava somente o token seguro; resolve `/me`. |
+| Credenciais inválidas | `422` + `invalid_credentials` produz estado próprio, sem revelar senha. |
+| Conta ou tenant inativo | `403` + `account_inactive` ou `tenant_inactive` permanece distinguível. |
+| Rate limit | `429` exibe estado de nova tentativa sem perder credencial armazenada. |
+| `/me` | interpreta envelope `data/meta`, `revision`, features e permissões. |
+| Token restaurado | startup usa token seguro e envia `Authorization: Bearer`; nunca expõe token na UI/log. |
+| `401` | sinalização global limpa token e redireciona para `/login`. |
+| Offline/timeout/cancelamento | não executa logout; exibe indisponibilidade recuperável. |
+| Logout | chama rota remota quando possível, remove token local e navega a `/login`. |
+| Troca obrigatória | login com `must_change_password` bloqueia shell, permite `/me`, logout e `/change-password`. |
+| Alterar senha | envia campos corretos; `invalid_current_password` é acionável; sucesso libera shell após reavaliar sessão. |
+| Rotas | usuário autenticado não acessa `/login`; sem sessão não acessa shell; router não tem bypass de produção. |
+| Fronteiras | `presentation`/`application` não importam Dio ou secure storage; core não importa feature/auth. |
+| Sem mock produtivo | nenhum mock/flag de autenticação substitui a API real em build de produção. |
 
-## O que verificar depois
+## Testes exigidos
 
-A futura implementação deverá comprovar que:
-- O token da sessão é persistido e lido do armazenamento seguro (`flutter_secure_storage`);
-- O aplicativo inicia em `/login` se o token não existir;
-- O login com credenciais grava o token, busca o perfil `/me` e redireciona para a tela inicial (`/`);
-- O logout remove o token do armazenamento seguro e redireciona para `/login`;
-- Um erro `401 Unauthorized` retornado por qualquer chamada de API limpa o token e força o redirecionamento imediato para a tela de login.
+- Unidade: DTOs, mapeamento de códigos, storage, repositório, casos de uso e
+  transições do controller.
+- Integração com adapter HTTP: payloads das quatro rotas, Bearer token,
+  `401`, `403`, `422`, `429`, timeout e cancelamento.
+- Widget/router: login, logout, bootstrap, proteção de rotas e troca
+  obrigatória em largura mobile compacta e `textScaler` alto.
+- Segurança: logs não contêm token, senha, `access_code` sensível ou corpo de
+  troca de senha; storage não é SharedPreferences.
 
-## Cenários de Teste a Cobrir
+## Checklist de fechamento
 
-### 1. Inicialização do App sem Token (Primeiro Acesso)
-* **Verificar:**
-  - Limpar qualquer dado do app.
-  - Abrir o aplicativo.
-  - Confirmar que o GoRouter redireciona para `/login`.
-
-### 2. Login com Sucesso
-* **Verificar:**
-  - Digitar credenciais válidas.
-  - Submeter o login.
-  - Validar que o token Sanctum é armazenado de forma criptografada.
-  - Validar que a requisição para `/api/mobile/me` é realizada com o token no header `Authorization`.
-  - Confirmar que o usuário é redirecionado para o dashboard (`/`).
-
-### 3. Logout Manual
-* **Verificar:**
-  - Estando autenticado, abrir o `AppDrawer`.
-  - Clicar no botão "Sair".
-  - Validar que o token de sessão foi excluído do armazenamento criptografado.
-  - Confirmar o redirecionamento imediato do GoRouter para `/login`.
-
-### 4. Expiração de Sessão por Rede (Erro 401)
-* **Verificar:**
-  - Estar navegando no aplicativo (autenticado).
-  - Simular uma resposta `401 Unauthorized` de uma requisição HTTP qualquer (ex: ao atualizar o catálogo).
-  - Validar que o app apaga o token do storage seguro automaticamente em background.
-  - Confirmar que a tela é redirecionada de forma transparente para `/login`.
-
-## Checklist de Validação
-
-- [ ] Dependência do `flutter_secure_storage` configurada no `pubspec.yaml`.
-- [ ] Entidade `UserSession` modelada com suporte a tokens e permissões.
-- [ ] Classe `SecureAuthRepository` implementando `AuthRepository`.
-- [ ] `AuthController` expondo estados reativos de carregamento e autenticação.
-- [ ] GoRouter configurado com `redirect` reativo observando o `authControllerProvider`.
-- [ ] Botão de logout chama o controller de forma síncrona.
-- [ ] Callback para 401 conecta o interceptor de erros da API ao reset do estado de sessão.
-- [ ] Testes unitários do controller e de integração de rotas com 100% de sucesso.
+- [ ] Contratos REQ-046 e envelope REQ-047 cobertos por testes.
+- [ ] Token Sanctum somente em `flutter_secure_storage`.
+- [ ] Códigos semânticos preservados até a camada que decide a UX.
+- [ ] `must_change_password` não permite shell operacional localmente.
+- [ ] `401` encerra sessão; indisponibilidade de rede não encerra.
+- [ ] Logout e troca de senha não expõem segredos.
+- [ ] Nenhuma importação proibida ou mock produtivo de autenticação.
+- [ ] `dart format`, `flutter analyze`, testes afetados e suíte completa passam.

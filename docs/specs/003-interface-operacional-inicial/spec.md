@@ -123,19 +123,16 @@ Esta spec pode consumir somente contratos marcados como existentes em
 - `GET /api/mobile/dashboard`;
 - `GET /api/mobile/products`.
 
-### Contratos nao existentes
+### Contratos fora do escopo da Spec 003
 
-Nao entram nesta spec como fluxo implementado:
-
-- `POST /api/mobile/login`;
-- `POST /api/mobile/logout`;
-- qualquer endpoint de relatorio mobile;
-- qualquer endpoint de venda offline;
-- confirmacao de intencao de venda.
+Esta spec não implementa autenticação, relatórios ou vendas remotas. Login,
+logout e `sale-intents` foram materializados posteriormente no backend; sua
+integração pertence às Specs 008 e 010, não a esta entrega histórica de
+interface.
 
 ### Regra obrigatoria
 
-Como o login mobile por token ainda nao existe, a implementacao nao deve:
+Como autenticação não fazia parte desta spec, a implementação não deve:
 
 - inventar tela de login funcional;
 - fingir autenticacao real com token persistido;

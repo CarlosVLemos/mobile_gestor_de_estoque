@@ -8,20 +8,38 @@ Prefixo comum:
 
 - `/api/mobile`
 
-Middleware comum:
+Autenticacao e middleware:
 
-- `auth`
-- `tenant.initialize`
-- `tenant.access`
-- `tenant.active`
-- `throttle:60,1`
+- `POST /auth/login` e publico e usa `throttle:mobile-login`;
+- as rotas autenticadas usam `auth:sanctum`, `user.account.valid` e
+  `throttle:60,1`;
+- rotas que dependem de tenant tambem usam `tenant.initialize`,
+  `tenant.access` e `tenant.active`;
+- o fluxo Sanctum ja existe no backend `dev`, mas ainda nao esta integrado ao
+  Flutter. Contrato implementado nao significa feature mobile pronta.
 
-Observacao importante:
+## 1. Autenticacao implementada
 
-- hoje as rotas existentes estao protegidas por autenticacao do Laravel, mas o fluxo de token Sanctum para mobile ainda nao foi implementado;
-- o contrato abaixo descreve os endpoints reais disponiveis hoje.
+### `POST /api/mobile/auth/login`
 
-## 1. Perfil autenticado
+Payload obrigatorio: `access_code`, `password`, `device_name`. Retorna token
+Sanctum Bearer, `must_change_password`, usuario e tenant. `422` pode trazer
+`invalid_credentials`; `403` pode trazer `account_inactive` ou
+`tenant_inactive`; o limiter pode responder `429`.
+
+### `POST /api/mobile/auth/logout`
+
+Autenticada por Sanctum. Revoga o token atual e retorna uma mensagem de
+sucesso; continua permitida quando a troca obrigatoria de senha esta ativa.
+
+### `PUT /api/mobile/me/password`
+
+Autenticada por Sanctum e tenant. Recebe `current_password`, `password` e
+`password_confirmation`. Senha atual invalida retorna `422` com
+`invalid_current_password`. A rota continua permitida durante
+`must_change_password`.
+
+## 2. Perfil autenticado
 
 ### `GET /api/mobile/me`
 
@@ -33,37 +51,35 @@ Resposta:
 
 ```json
 {
-  "user": {
-    "id": "uuid",
-    "name": "Maria",
-    "email": "maria@empresa.test"
+  "data": {
+    "user": { "id": "uuid", "name": "Maria", "email": "maria@empresa.test" },
+    "tenant": { "id": "uuid", "name": "Empresa Teste", "slug": "empresa-teste" },
+    "features": ["catalog", "sales"],
+    "permissions": {
+      "products_view": true,
+      "sales_create": true,
+      "reports_view": false,
+      "view_financial_metrics": false
+    }
   },
-  "tenant": {
-    "id": "uuid",
-    "name": "Empresa Teste",
-    "slug": "empresa-teste"
-  },
-  "features": [
-    "catalog",
-    "sales"
-  ],
-  "permissions": {
-    "products_view": true,
-    "sales_create": true,
-    "reports_view": false,
-    "view_financial_metrics": false
+  "meta": {
+    "revision": "profile_<hash-estavel>"
   }
 }
 ```
 
 Regras de uso no mobile:
 
-- `features` controla modulos disponiveis;
-- `permissions.products_view` habilita consulta de catalogo;
-- `permissions.sales_create` prepara o fluxo de venda;
-- `permissions.view_financial_metrics` controla exibicao de preco e dados financeiros.
+- `data.features` controla modulos disponiveis;
+- `data.permissions.products_view` habilita consulta de catalogo;
+- `data.permissions.sales_create` prepara o fluxo de venda;
+- `data.permissions.view_financial_metrics` controla exibicao de preco e dados financeiros;
+- `meta.revision` e uma revisao estavel do perfil.
 
-## 2. Dashboard mobile
+Quando `must_change_password` esta ativo, esta rota continua permitida, mas
+rotas operacionais retornam `403` com `code: password_change_required`.
+
+## 3. Dashboard mobile
 
 ### `GET /api/mobile/dashboard`
 
@@ -121,7 +137,7 @@ Observacoes:
 - a estrutura e ampla, mas o app pode consumir apenas os blocos necessarios;
 - dados internos ficam whitelistados pelo `DashboardResource`.
 
-## 3. Catalogo de produtos mobile
+## 4. Catalogo de produtos mobile
 
 ### `GET /api/mobile/products`
 
@@ -188,7 +204,7 @@ Regras importantes:
 - a decisao final de vender continua pertencendo ao servidor;
 - `updated_since` filtra por `products.updated_at >= valor informado`.
 
-## 4. Respostas de erro esperadas
+## 5. Respostas de erro esperadas
 
 ### `401 Unauthorized`
 
@@ -219,15 +235,15 @@ Quando:
 
 - o cliente ultrapassa `60` requisicoes por minuto.
 
-## 5. Endpoints planejados e ainda nao implementados
+## 6. Endpoints planejados e ainda nao implementados
 
 Definidos na `Spec 22`:
 
-- `POST /api/mobile/login`
-- `POST /api/mobile/logout`
 - `GET /api/mobile/reports/available-products`
 - `GET /api/mobile/reports/sold-products`
-- `POST /api/mobile/sale-intents`
-- `POST /api/mobile/sale-intents/{intent}/confirm`
 
-Esses endpoints ainda nao existem no codigo atual.
+Os dois endpoints de relatorio acima continuam planejados. Login, logout e
+`sale-intents` ja existem no backend `dev`: `POST /api/mobile/sale-intents`,
+`POST /api/mobile/sale-intents/{intent}/confirm` e
+`GET /api/mobile/sale-intents/{intent}`. A integracao mobile de vendas continua
+fora desta Spec 008.

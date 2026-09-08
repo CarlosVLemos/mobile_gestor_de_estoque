@@ -53,7 +53,8 @@ Esta Spec cobre somente a primeira fundação persistente do app:
 
 Não faz parte desta Spec:
 
-- implementar `POST /api/mobile/login` ou qualquer endpoint inexistente;
+- implementar a integração Flutter de autenticação, já delimitada pela Spec
+  008, ou qualquer endpoint inexistente;
 - armazenar token ou implementar `flutter_secure_storage`;
 - consumir o catálogo remoto em produção;
 - implementar `SyncEngine`, delta sync, retry, tombstones ou locks de sincronização;
