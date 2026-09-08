@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class RedactionInterceptor extends Interceptor {
   final void Function(String) logPrint;
@@ -9,9 +10,9 @@ class RedactionInterceptor extends Interceptor {
 
   const RedactionInterceptor({
     this.logPrint = print,
-    this.logRequest = true,
-    this.logResponse = true,
-    this.logError = true,
+    this.logRequest = kDebugMode,
+    this.logResponse = kDebugMode,
+    this.logError = kDebugMode,
   });
 
   static const _sensitiveKeys = {
@@ -28,7 +29,7 @@ class RedactionInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (logRequest) {
       logPrint('*** Request ***');
-      logPrint('Uri: ${options.uri}');
+      logPrint('Uri: ${_redactUri(options.uri)}');
       logPrint('Method: ${options.method}');
       logPrint('Headers: ${_redactHeaders(options.headers)}');
       if (options.queryParameters.isNotEmpty) {
@@ -46,7 +47,7 @@ class RedactionInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (logResponse) {
       logPrint('*** Response ***');
-      logPrint('Uri: ${response.requestOptions.uri}');
+      logPrint('Uri: ${_redactUri(response.requestOptions.uri)}');
       logPrint('StatusCode: ${response.statusCode}');
       logPrint('Headers: ${_redactHeaders(response.headers.map)}');
       if (response.data != null) {
@@ -61,12 +62,13 @@ class RedactionInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (logError) {
       logPrint('*** DioException ***');
-      logPrint('Uri: ${err.requestOptions.uri}');
+      logPrint('Uri: ${_redactUri(err.requestOptions.uri)}');
       logPrint('Type: ${err.type}');
-      logPrint('Message: ${err.message}');
       if (err.response != null) {
         logPrint('StatusCode: ${err.response?.statusCode}');
-        logPrint('Response Headers: ${_redactHeaders(err.response?.headers.map ?? {})}');
+        logPrint(
+          'Response Headers: ${_redactHeaders(err.response?.headers.map ?? {})}',
+        );
         logPrint('Response Body: ${_redactBody(err.response?.data)}');
       }
       logPrint('');
@@ -85,6 +87,19 @@ class RedactionInterceptor extends Interceptor {
       }
     }
     return redacted;
+  }
+
+  String _redactUri(Uri uri) {
+    return uri
+        .replace(
+          queryParameters: {
+            for (final entry in uri.queryParametersAll.entries)
+              entry.key: _sensitiveKeys.contains(entry.key.toLowerCase())
+                  ? '[REDACTED]'
+                  : entry.value,
+          },
+        )
+        .toString();
   }
 
   dynamic _redactBody(dynamic body) {
@@ -114,7 +129,9 @@ class RedactionInterceptor extends Interceptor {
       } else if (entry.value is Map<String, dynamic>) {
         redacted[entry.key] = _redactMap(entry.value as Map<String, dynamic>);
       } else if (entry.value is List) {
-        redacted[entry.key] = (entry.value as List).map((item) => _redactBody(item)).toList();
+        redacted[entry.key] = (entry.value as List)
+            .map((item) => _redactBody(item))
+            .toList();
       } else {
         redacted[entry.key] = entry.value;
       }

@@ -11,15 +11,25 @@ class NoInternetException extends ApiException {
 }
 
 class ConnectionTimeoutException extends ApiException {
-  const ConnectionTimeoutException([super.message = 'Tempo limite de conexão excedido.']);
+  const ConnectionTimeoutException([
+    super.message = 'Tempo limite de conexão excedido.',
+  ]);
+}
+
+class RequestCancelledException extends ApiException {
+  const RequestCancelledException([super.message = 'Requisição cancelada.']);
 }
 
 class UnauthorizedException extends ApiException {
-  const UnauthorizedException([super.message = 'Sessão expirada ou não autorizada.']);
+  const UnauthorizedException([
+    super.message = 'Sessão expirada ou não autorizada.',
+  ]);
 }
 
 class ForbiddenException extends ApiException {
-  const ForbiddenException([super.message = 'Acesso proibido a esta funcionalidade.']);
+  const ForbiddenException([
+    super.message = 'Acesso proibido a esta funcionalidade.',
+  ]);
 }
 
 class InvalidParamsException extends ApiException {
@@ -35,7 +45,10 @@ class InvalidParamsException extends ApiException {
 }
 
 class RateLimitException extends ApiException {
-  const RateLimitException([super.message = 'Limite de requisições excedido. Tente novamente mais tarde.']);
+  const RateLimitException([
+    super.message =
+        'Limite de requisições excedido. Tente novamente mais tarde.',
+  ]);
 }
 
 class ServerException extends ApiException {

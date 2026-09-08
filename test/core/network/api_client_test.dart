@@ -139,6 +139,33 @@ void main() {
       expect(logOutput, contains('scope: read'));
       expect(logOutput, contains('token: [REDACTED]'));
       expect(logOutput, contains('client_secret: [REDACTED]'));
+      expect(logOutput, contains('token=%5BREDACTED%5D'));
+      expect(logOutput, contains('client_secret=%5BREDACTED%5D'));
+      expect(logOutput, isNot(contains('token-na-url')));
+      expect(logOutput, isNot(contains('segredo-url')));
+    });
+
+    test('Não vaza query sensível no log de erro', () async {
+      mockAdapter.handler = (options) {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.connectionError,
+          message: 'token-na-mensagem',
+        );
+      };
+
+      await expectLater(
+        dio.get(
+          'https://example.test/auth',
+          queryParameters: {'token': 'token-no-log-de-erro'},
+        ),
+        throwsA(isA<DioException>()),
+      );
+
+      final logOutput = logs.join('\n');
+      expect(logOutput, contains('token=%5BREDACTED%5D'));
+      expect(logOutput, isNot(contains('token-no-log-de-erro')));
+      expect(logOutput, isNot(contains('token-na-mensagem')));
     });
   });
 
@@ -285,6 +312,37 @@ void main() {
         );
       },
     );
+
+    test('Mapeamento de cancelamento', () async {
+      mockAdapter.handler = (options) {
+        throw DioException(
+          requestOptions: options,
+          type: DioExceptionType.cancel,
+        );
+      };
+
+      expect(
+        () => apiClient.get('https://example.test'),
+        throwsA(isA<RequestCancelledException>()),
+      );
+    });
+
+    test('Não expõe detalhe técnico em falha desconhecida', () async {
+      mockAdapter.handler = (options) {
+        throw StateError('token-super-secreto');
+      };
+
+      expect(
+        () => apiClient.get('https://example.test'),
+        throwsA(
+          isA<UnknownException>().having(
+            (exception) => exception.message,
+            'message',
+            'Erro desconhecido.',
+          ),
+        ),
+      );
+    });
   });
 
   group('ApiExceptionToNetworkFailure', () {
@@ -298,25 +356,39 @@ void main() {
       ).toNetworkFailure();
 
       expect(
-        const NoInternetException().toNetworkFailure().message,
-        isNotEmpty,
+        const NoInternetException().toNetworkFailure().kind,
+        NetworkFailureKind.connectivity,
       );
       expect(
-        const ConnectionTimeoutException().toNetworkFailure().message,
-        isNotEmpty,
+        const ConnectionTimeoutException().toNetworkFailure().kind,
+        NetworkFailureKind.timeout,
       );
       expect(
-        const UnauthorizedException().toNetworkFailure().message,
-        isNotEmpty,
+        const RequestCancelledException().toNetworkFailure().kind,
+        NetworkFailureKind.cancelled,
       );
-      expect(const ForbiddenException().toNetworkFailure().message, isNotEmpty);
-      expect(const RateLimitException().toNetworkFailure().message, isNotEmpty);
       expect(
-        const ServerException(statusCode: 503).toNetworkFailure().message,
-        isNotEmpty,
+        const UnauthorizedException().toNetworkFailure().kind,
+        NetworkFailureKind.unauthorized,
       );
-      expect(const UnknownException().toNetworkFailure().message, isNotEmpty);
+      expect(
+        const ForbiddenException().toNetworkFailure().kind,
+        NetworkFailureKind.forbidden,
+      );
+      expect(
+        const RateLimitException().toNetworkFailure().kind,
+        NetworkFailureKind.rateLimited,
+      );
+      expect(
+        const ServerException(statusCode: 503).toNetworkFailure().kind,
+        NetworkFailureKind.server,
+      );
+      expect(
+        const UnknownException().toNetworkFailure().kind,
+        NetworkFailureKind.unknown,
+      );
       expect(validation.message, 'Campos inválidos.');
+      expect(validation.kind, NetworkFailureKind.invalidParams);
       expect(validation.validationErrors, {
         'email': 'Informe um e-mail válido.',
         'quantity': 'Deve ser positiva.',

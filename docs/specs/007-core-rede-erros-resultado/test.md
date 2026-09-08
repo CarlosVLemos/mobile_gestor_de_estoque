@@ -11,6 +11,8 @@ A implementação comprova que:
 - O pacote `dio` foi adicionado e as requisições HTTP ocorrem através dele;
 - O `ApiClient` está configurado com timeouts de conexão e interceptores corretos;
 - O `RedactionInterceptor` remove segredos dos logs impressos no console;
+- Logs padrao so ficam ativos em builds de debug; URIs e mensagens de erro nao
+  podem reintroduzir segredos mascarados em headers, query ou payload;
 - Respostas HTTP com erro disparam exceções tipadas de rede;
 - Falhas de conexão física (ex: modo avião, timeout) são capturadas e mapeadas para exceções;
 - O mapeador converte exceções de rede em falhas de domínio;
@@ -26,6 +28,8 @@ A implementação comprova que:
   - Enviar requisição com cabeçalho `X-Tenant-ID: 123`.
   - Enviar requisição com payload contendo `"password": "senha-secreta"`.
   - Confirmar nos logs gerados no console que os valores foram substituídos por `[REDACTED]`.
+  - Confirmar tambem a ausencia dos valores originais, inclusive quando o
+    segredo estiver na URI de request, response ou erro.
 
 ### 2. Mapeamento de Status HTTP
 * **Simular via Mock Adapter:**
@@ -39,7 +43,9 @@ A implementação comprova que:
 ### 3. Falhas Físicas e Timeouts
 * **Simular via Mock Adapter:**
   - Timeout de Conexão -> Lança `ConnectionTimeoutException`.
-  - Falha de Resolução DNS / SocketException -> Lança `NoInternetException`.
+- Falha de Resolução DNS / SocketException -> Lança `NoInternetException`.
+- Cancelamento pelo Dio -> Lança `RequestCancelledException` e pode ser
+  distinguido de erro de conectividade.
 
 ### 4. Padrão Result
 * **Verificar:**
@@ -57,3 +63,7 @@ A implementação comprova que:
 - [x] Classe `Result<S, F>` selada em `lib/core/result/result.dart`.
 - [x] Testes unitários cobrem resposta `2xx`, mapeamento de exceções e redação de logs.
 - [x] Testes validam a conversão de exceção de rede para falhas de domínio.
+- [x] Redaction cobre URI de request/response/erro e os testes afirmam que os
+  segredos originais nao aparecem no log.
+- [x] Falhas de dominio preservam sua categoria semantica em
+  `NetworkFailureKind`; cancelamento nao cai em erro desconhecido.

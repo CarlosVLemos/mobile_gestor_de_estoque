@@ -6,7 +6,9 @@ Implementada e encerrada em 8 de setembro de 2026.
 
 A auditoria anterior de 18 de junho identificou duas lacunas: conversao de
 `ApiException` para `NetworkFailure` e cobertura direta de uma resposta `2xx`
-pelo `ApiClient`. Ambas foram concluídas nesta revisão.
+pelo `ApiClient`. Ambas foram concluídas nesta revisão. Uma revisão de
+segurança posterior corrigiu a possibilidade de a URI ou a mensagem técnica
+reintroduzirem segredos nos logs e tornou cancelamento uma categoria explícita.
 
 ## O que foi implementado
 
@@ -22,6 +24,13 @@ pelo `ApiClient`. Ambas foram concluídas nesta revisão.
   `Success` e `Failure`;
 - Criacao de `lib/core/errors/failure.dart` e
   `lib/core/errors/network_failure.dart`;
+- Redaction de URI em request, response e erro, com logs habilitados por padrao
+  apenas em debug e sem imprimir mensagem bruta de `DioException`;
+- Mapeamento de cancelamento do Dio e categoria `NetworkFailureKind`, para que
+  consumidores diferenciem cancelamento, conectividade, autorizacao e demais
+  falhas sem depender da mensagem;
+- Mensagem generica para falhas desconhecidas, sem encaminhar detalhes tecnicos
+  potencialmente sensiveis para a interface;
 - Endurecimento dos testes de fronteira arquitetural para impedir imports de
   transporte, persistencia, Flutter/Riverpod em camadas proibidas.
 
@@ -43,6 +52,8 @@ pelo `ApiClient`. Ambas foram concluídas nesta revisão.
 - `ApiExceptionToNetworkFailure` converte conectividade, timeout, autenticacao,
   autorizacao, validacao, rate limit, servidor e erro desconhecido em falhas
   acionaveis, preservando erros de validacao por campo.
+- Os testes de redaction verificam a ausencia dos segredos da query URI e da
+  mensagem de erro, nao apenas a presenca de `[REDACTED]`.
 
 ## Limites preservados
 

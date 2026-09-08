@@ -11,9 +11,7 @@ final dioProvider = Provider<Dio>((ref) {
       connectTimeout: const Duration(seconds: 15),
       sendTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: {'Accept': 'application/json'},
     ),
   );
 
@@ -46,8 +44,8 @@ class ApiClient {
       );
     } on DioException catch (e) {
       throw _handleDioException(e);
-    } catch (e) {
-      throw UnknownException(e.toString());
+    } catch (_) {
+      throw const UnknownException();
     }
   }
 
@@ -68,12 +66,16 @@ class ApiClient {
       );
     } on DioException catch (e) {
       throw _handleDioException(e);
-    } catch (e) {
-      throw UnknownException(e.toString());
+    } catch (_) {
+      throw const UnknownException();
     }
   }
 
   ApiException _handleDioException(DioException e) {
+    if (e.type == DioExceptionType.cancel) {
+      return const RequestCancelledException();
+    }
+
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.sendTimeout ||
         e.type == DioExceptionType.receiveTimeout) {
@@ -108,10 +110,7 @@ class ApiClient {
               msg = responseData['message'] as String;
             }
           }
-          return InvalidParamsException(
-            message: msg,
-            errors: validationErrors,
-          );
+          return InvalidParamsException(message: msg, errors: validationErrors);
         case 429:
           return const RateLimitException();
         default:
@@ -121,6 +120,6 @@ class ApiClient {
       }
     }
 
-    return UnknownException(e.message ?? e.toString());
+    return const UnknownException();
   }
 }
