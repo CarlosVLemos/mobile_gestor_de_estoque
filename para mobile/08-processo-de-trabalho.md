@@ -1,201 +1,86 @@
 # Processo de Trabalho Mobile
 
-## Objetivo
+## 1. Orientar
 
-Este processo organiza uma entrega sem exigir releitura integral do projeto.
+Leia `AGENTS.md`, `.agents/quick-context.md`, `para mobile/00-contexto-operacional.md` e use `.agents/task-routing.md` para escolher somente contexto adicional necessário.
 
-## Fluxo padrão
+## 2. Classificar
 
-### 1. Orientar
+Jarvis escolhe:
 
-- ler `00-contexto-operacional.md`;
-- identificar feature e camadas afetadas;
-- ler apenas os documentos indicados;
-- verificar decisões aceitas e dependências abertas;
-- inspecionar o código diretamente relacionado.
+- `LIGHT`: ajuste pequeno/baixo risco;
+- `STANDARD`: feature normal ou integração multi-camada;
+- `CRITICAL`: auth, tenant/isolation, Drift/migração, sync, outbox/vendas, segurança, contrato ou release.
 
-### 2. Classificar
+## 3. Planejar
 
-Definir se a mudança é:
+Para STANDARD/CRITICAL, defina:
 
-- correção;
-- feature;
-- arquitetura;
-- interface;
-- integração;
-- sincronização/offline;
-- documentação.
+- objetivo e fora de escopo;
+- contrato real;
+- source of truth e persistência;
+- estados de UI;
+- permissões/tenant;
+- ownership;
+- validação;
+- `SINGLE_WRITER` ou `PARALLEL_SAFE`.
 
-Abrir especificação formal quando houver múltiplas camadas, mudança de contrato,
-suporte offline, migração, risco elevado ou trabalho dividido.
+CRITICAL exige `contract.md` FROZEN antes de implementação dependente dele.
 
-### 3. Decidir
+## 4. Executar
 
-Antes de implementar:
+- Maquiavel confirma backend/API quando houver integração.
+- Van Gogh implementa Flutter dentro do contrato.
+- máximo de 2 writers em PARALLEL_SAFE e somente em arquivos distintos.
+- não executar validação pesada em loop; seguir `terminal-budget.md`.
 
-- confirmar contrato existente;
-- listar estados de UI necessários;
-- identificar persistência e migração;
-- identificar permissões;
-- registrar nova decisão arquitetural quando houver.
+## 5. Change Request
 
-Não transformar hipótese em regra apenas porque o código precisa de uma resposta.
+Se contrato FROZEN, schema, tenant boundary, rota, idempotência ou ownership precisar mudar, registrar CR e voltar à decisão humana. Não ajustar silenciosamente.
 
-### 4. Implementar
+## 6. Validar
 
-- manter o escopo na feature;
-- seguir as fronteiras de camadas;
-- reaproveitar padrões existentes;
-- adicionar testes junto da mudança;
-- atualizar documentação somente quando comportamento ou decisão mudar.
+Mefisto escolhe o menor conjunto suficiente:
 
-### 5. Validar
+1. diff vs contrato;
+2. teste focado;
+3. análise estática;
+4. widget/integration conforme risco;
+5. suíte completa no fechamento/merge.
 
-Executar o subconjunto aplicável:
+Validação dependente de WSL/Docker/device/VPS pode ser executada pelo usuário com comando exato preparado por Mefisto.
 
-```text
-dart format
-flutter analyze
-flutter test
-teste de widget
-teste de integração
-validação visual
-```
+## 7. Fechar
 
-Para mudanças local-first:
+Mefisto emite `passed`, `failed`, `blocked` ou `passed_with_restrictions`. Jarvis registra fechamento e dependências abertas.
 
-- testar sem conexão;
-- testar refresh mantendo dados;
-- testar falha parcial;
-- verificar persistência após reinício.
+## Specs
 
-### 6. Fechar
+LIGHT normalmente não precisa de spec.
 
-Registrar:
+STANDARD usa spec quando múltiplas camadas/handoffs tornam a rastreabilidade útil.
 
-- o que mudou;
-- arquivos principais;
-- testes executados;
-- limitações;
-- decisões novas;
-- dependências externas abertas.
-
-## Quando criar uma especificação
-
-Criar pasta em `docs/specs/<id>-<nome>/` quando houver:
-
-- nova feature relevante;
-- alteração de contrato;
-- mudança de schema;
-- sincronização ou outbox;
-- refactor amplo;
-- mais de uma etapa de implementação;
-- aceite que precise de validação formal.
-
-Estrutura mínima:
+CRITICAL usa:
 
 ```text
-docs/specs/<id>-<nome>/
+docs/specs/<id>-<slug>/
   spec.md
+  contract.md
   tasks.md
   test.md
+  validation-result.md
   review.md
 ```
 
-Este repositório não deve depender de caminhos SDD existentes somente em outro
-projeto. Se a feature também exigir backend, cada repositório mantém sua
-execução e compartilha o contrato acordado.
+Specs independentes podem andar em paralelo se as dependências estiverem explícitas; não existe regra de uma única spec ativa.
 
-## Conteúdo mínimo da spec
+## Handoffs
 
-- problema;
-- objetivo;
-- fora de escopo;
-- regras de negócio;
-- decisões afetadas;
-- contrato consumido;
-- estados de interface;
-- dados locais;
-- riscos;
-- critérios de aceite.
+Agentes canônicos:
 
-## Handoff por responsabilidade
+- Jarvis: escopo/lifecycle;
+- Maquiavel: contrato API;
+- Van Gogh: Flutter;
+- Mefisto: QA.
 
-Nomes de agentes podem comunicar responsabilidade, mas não substituem arquivos,
-decisões ou testes.
-
-| Responsabilidade | Entrega |
-| --- | --- |
-| Coordenação | escopo, ordem, aceite e fechamento |
-| Contrato | payload, erros, permissões e sincronização |
-| Flutter | arquitetura, estado, UI e persistência |
-| Qualidade | testes, regressão, segurança e veredito |
-
-Não é obrigatório usar múltiplos agentes em tarefas pequenas.
-
-## Checklist de início
-
-- [ ] Li o contexto operacional.
-- [ ] Sei quais decisões aceitas se aplicam.
-- [ ] Diferenciei contrato existente de planejado.
-- [ ] Identifiquei camadas e arquivos afetados.
-- [ ] Sei quais estados de UI tratar.
-- [ ] Defini como validar.
-
-## Checklist de fechamento
-
-- [ ] Formatação executada.
-- [ ] Análise estática executada.
-- [ ] Testes relevantes executados.
-- [ ] Estados de erro e offline verificados.
-- [ ] Documentação atualizada quando necessário.
-- [ ] Nova decisão registrada quando necessário.
-- [ ] Limitações relatadas.
-
-## Atalhos para novos pedidos
-
-### Implementação de feature
-
-```text
-Implemente <feature>.
-Use o contexto operacional e leia apenas os documentos indicados para a tarefa.
-Escopo: <telas/casos de uso>.
-Fora de escopo: <itens>.
-Contrato: <existente, mock explícito ou dependente>.
-Valide com <testes>.
-Use os MCPs disponíveis conforme a política do projeto.
-```
-
-### Correção
-
-```text
-Corrija <problema> em <feature>.
-Preserve as decisões aceitas e não amplie o escopo.
-Investigue a causa, implemente a correção e execute os testes afetados.
-```
-
-### Decisão arquitetural
-
-```text
-Analise a decisão <tema>.
-Compare opções, impactos, migração e riscos.
-Não implemente antes de registrar a decisão em 06-registro-decisoes.md.
-Use Sequential Thinking se estiver disponível.
-```
-
-### Interface
-
-```text
-Implemente/ajuste a tela <nome>.
-Use 02-definicoes-de-interface.md e somente as seções relevantes do design.
-Trate os estados <lista>.
-Valide visualmente e com testes de widget aplicáveis.
-```
-
-### GitHub
-
-```text
-Use o GitHub MCP para <issue/PR/review>.
-Repositório: CarlosVLemos/mobile_gestor_de_estoque.
-Não faça escrita remota sem confirmar o alvo.
-```
+Handoff deve ser curto: objetivo, contrato, arquivos/camadas, decisões, riscos e validação necessária.

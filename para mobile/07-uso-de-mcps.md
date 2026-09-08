@@ -1,182 +1,77 @@
 # Uso de MCPs
 
-## Objetivo
+## Princípio
 
-MCPs devem reduzir leitura repetida, melhorar precisão e deixar verificações
-reproduzíveis. Eles não substituem as decisões canônicas deste repositório.
+MCP existe para reduzir shell, releitura e adivinhação. Não consultar todos em toda tarefa.
 
-Antes de usar um MCP:
+## Ordem preferida
 
-1. verificar se está disponível na sessão;
-2. confirmar que é adequado à tarefa;
-3. preferir fonte oficial ou dados estruturados;
-4. usar o fallback quando estiver ausente;
-5. registrar limitações relevantes no fechamento.
+### 1. Dart/Flutter MCP
 
-Não consultar todos os MCPs em toda tarefa.
+Primeira escolha para workspace, diagnostics, símbolos, testes e runtime Dart/Flutter. Quando ele consegue responder, prefira-o ao shell.
 
-## 1. Dart/Flutter MCP oficial
+Fallback: comandos Flutter/Dart executados no gate, não em loop durante implementação.
 
-Usar para tarefas diretamente relacionadas ao projeto Dart/Flutter:
+### 2. Developer Knowledge MCP
 
-- entender configuração do workspace;
-- obter diagnósticos;
-- executar ou orientar análise e testes;
-- consultar informações específicas do SDK e ferramentas;
-- reduzir comandos manuais repetitivos.
+Fonte preferida para documentação oficial Flutter, Dart e ecossistema Google suportado. Use para APIs/boas práticas atuais do SDK.
 
-Fallback:
+Configuração requer `GOOGLE_DEVELOPER_KNOWLEDGE_API_KEY` local; nunca versione a chave.
 
-- `flutter analyze`;
-- `flutter test`;
-- `dart format`;
-- documentação oficial do Flutter/Dart.
+### 3. Context7
 
-O resultado do MCP não substitui os testes relevantes do projeto.
+Use para packages de terceiros, especialmente Riverpod, Drift, Dio, go_router, shadcn_ui e flutter_secure_storage. Consulte somente o tópico necessário e respeite a versão do projeto.
 
-## 2. Context7
+### 4. GitHub MCP / Connector
 
-Usar quando a tarefa depender de documentação atual de bibliotecas:
+Reativado para leitura por padrão.
 
-- Riverpod;
-- Drift;
-- Dio;
-- `go_router`;
-- Freezed;
-- Workmanager;
-- demais packages adotados.
+Use para:
 
-Fluxo:
+- comparar branches/commits;
+- revisar PR/diff;
+- auditar o backend `CarlosVLemos/gestor_de_estoque`;
+- confirmar contratos cross-repo;
+- consultar issues/reviews quando relevante.
 
-1. identificar biblioteca e versão em `pubspec.lock`;
-2. consultar somente o tópico necessário;
-3. aplicar o padrão compatível com a versão do projeto;
-4. evitar exemplos que contradigam a arquitetura local.
+Escrita remota, commits, branches, PRs, comentários ou merge exigem pedido explícito do usuário.
 
-Fallback:
+### Sequential Thinking
 
-- documentação oficial da biblioteca;
-- código e testes presentes no repositório.
+Desativado por padrão. O projeto usa Jarvis + skills + subagentes para decomposição. Só reative se uma investigação concreta demonstrar ganho.
 
-Context7 responde como a biblioteca funciona. Este repositório decide como ela
-deve ser usada no produto.
+## Terminal budget
 
-## 3. GitHub MCP
+- não iniciar `flutter run`, emulator, Docker, watcher ou servidor automaticamente;
+- não fazer polling repetitivo;
+- não rodar `flutter test`/`flutter analyze` a cada edição;
+- agrupar alterações e deixar Mefisto validar no gate;
+- repetir comando apenas após mudança relevante ou hipótese nova.
 
-Status temporário: não usar o GitHub MCP nem o GitHub Connector até nova
-orientação. As regras abaixo ficam preservadas para quando forem reativados.
+Regra canônica: `.agents/rules/terminal-budget.md`.
 
-Usar para contexto remoto estruturado:
+## Configuração versionada
 
-- metadados do repositório;
-- issues;
-- pull requests;
-- comentários e reviews;
-- labels;
-- estado de colaboração.
+- Codex: `.codex/config.toml`
+- Antigravity: `.agents/mcp_config.json` contém o Dart MCP portátil; MCPs remotos com segredo devem ser configurados localmente/globalmente.
 
-Preferir GitHub MCP para leituras e mutações cobertas pelo conector.
-
-Usar Git local ou CLI para:
-
-- status e diff da árvore de trabalho;
-- branch local;
-- commits ainda não enviados;
-- operações dependentes do checkout;
-- logs de GitHub Actions não fornecidos pelo conector.
-
-Regras:
-
-- confirmar repositório e alvo antes de escrita remota;
-- não criar issue, comentário, PR ou label sem pedido explícito;
-- manter contexto remoto alinhado à branch local.
-
-Repositório atual validado pelo MCP:
+Variáveis locais esperadas quando aplicáveis:
 
 ```text
-CarlosVLemos/mobile_gestor_de_estoque
-branch padrão: main
+CONTEXT7_API_KEY
+GITHUB_PAT_TOKEN
+GOOGLE_DEVELOPER_KNOWLEDGE_API_KEY
 ```
 
-## 4. Sequential Thinking MCP
+Após mudar MCP/variável, recarregue a ferramenta e abra nova sessão.
 
-Usar em problemas com decisões encadeadas e impacto relevante:
+## Skills oficiais Flutter/Dart
 
-- desenho de sincronização;
-- migração de schema;
-- conflito entre offline e remoto;
-- mudança arquitetural;
-- investigação com múltiplas hipóteses;
-- planejamento de refactor amplo.
-
-Não usar para:
-
-- renome simples;
-- ajuste visual pequeno;
-- leitura de arquivo;
-- execução direta de teste;
-- decisão já registrada.
-
-Saída esperada:
-
-- hipóteses;
-- restrições;
-- opções;
-- trade-offs;
-- decisão recomendada;
-- pontos que precisam entrar em `06-registro-decisoes.md`.
-
-Fallback:
-
-- plano curto explícito;
-- investigação por etapas;
-- registro da decisão no documento canônico.
-
-## Configuração local atual
-
-Configuração realizada em 10 de junho de 2026:
-
-- Dart/Flutter MCP oficial: configurado por STDIO;
-- Context7: configurado pelo endpoint HTTP oficial;
-- GitHub MCP remoto: desabilitado temporariamente;
-- Sequential Thinking: configurado por STDIO via NPX;
-- GitHub Connector do Codex: disponível, mas suspenso por decisão do projeto;
-- Antigravity: recebeu os mesmos quatro servidores;
-- VS Code MCP nativo: configurado em `.vscode/mcp.json`.
-
-Arquivos locais:
+As skills oficiais podem ser instaladas manualmente sem duplicá-las no repositório:
 
 ```text
-.codex/config.toml
-.vscode/mcp.json
-%USERPROFILE%\.codex\.env
-%USERPROFILE%\.codex\config.toml
-%USERPROFILE%\.gemini\config\mcp_config.json
+npx skills add flutter/agent-plugins --skill '*' --agent universal --yes
+npx skills add dart-lang/skills --skill '*' --agent universal --yes
 ```
 
-Backups criados:
-
-```text
-%USERPROFILE%\.codex\config.toml.pre-mcp-backup
-%USERPROFILE%\.gemini\config\mcp_config.pre-arara-mobile-backup.json
-```
-
-O Context7 usa `CONTEXT7_API_KEY` a partir do ambiente. Para o Codex App e a
-extensão, a chave local fica em `%USERPROFILE%\.codex\.env`, que não deve ser
-versionado.
-
-Não use o GitHub MCP remoto nem o GitHub Connector até nova orientação.
-
-Após alterar configuração ou variáveis, recarregue a janela do editor e abra
-uma nova sessão para atualizar a lista de ferramentas.
-
-## Atalhos
-
-| Tarefa | MCP preferido | Leitura local |
-| --- | --- | --- |
-| Erro de build/teste Flutter | Dart/Flutter | contexto + arquivos afetados |
-| API de package | Context7 | arquitetura + `pubspec.lock` |
-| Issue ou PR | GitHub | diff local + spec relacionada |
-| Decisão arquitetural complexa | Sequential Thinking | arquitetura + decisões |
-| Ajuste visual | Nenhum obrigatório | interface + trecho do design |
-| Regra de negócio | Nenhum obrigatório | regras + contrato relacionado |
+As skills locais do Arara continuam em `.agents/skills/` e têm precedência arquitetural sobre exemplos genéricos.

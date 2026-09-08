@@ -2,182 +2,115 @@
 
 ## Para que serve
 
-Este e o primeiro documento a ser lido por pessoas e agentes antes de trabalhar
-no aplicativo. Ele resume o estado atual, as decisoes fixas e indica onde
-buscar detalhes sem reler toda a pasta.
+Este é o primeiro documento de contexto do Arara-Gastos Mobile. Ele resume somente o estado comprovado e aponta onde buscar detalhes sem reler toda a documentação.
 
 ## Estado atual
 
-- A fundacao Flutter ja esta materializada em `lib/`, com tema claro/escuro,
-  bootstrap, `go_router`, Riverpod e organizacao inicial por feature e camada.
-- O app ja usa uma shell operacional com quatro destinos principais:
-  dashboard, catalogo, vendas e Mais.
-- Existe toggle local de tema, drawer lateral compartilhado e headers
-  operacionais consistentes entre as telas principais.
-- Dashboard, catalogo e vendas ainda usam fixtures, estado local em memoria ou
-  repositorios locais. Eles nao comprovam integracao remota, persistencia local
-  definitiva nem sincronizacao.
-- A tela de vendas deixou de ser apenas placeholder: hoje ja permite selecionar
-  cliente, montar carrinho, respeitar restricao financeira local e registrar
-  rascunhos nao persistidos em memoria.
-- Existem contratos remotos documentados para perfil, dashboard e produtos.
-- A autenticacao mobile Sanctum ja possui contrato e implementacao no backend
-  `dev` (login, logout, perfil e troca de senha), mas ainda nao foi integrada
-  ao Flutter; vendas offline reais continuam dependentes da implementacao
-  local-first correspondente.
-- O core de rede com Dio, redaction de segredos, excecoes tipadas, conversao
-  para falhas de dominio e `Result` ja esta materializado no app.
-- Drift, armazenamento seguro, sincronizacao incremental e outbox seguem como
-  arquitetura aceita, mas ainda nao estao materializados no app.
-- A spec `007` esta concluida. A `008` foi auditada contra o contrato Sanctum
-  existente e esta pronta para implementacao; `008b`, `009a`, `009b`, `009c`
-  e `010` continuam abertas e nao representam codigo Flutter pronto.
-- Documentacao descreve intencao e decisoes; somente codigo, testes e
-  evidencias de execucao comprovam o que ja existe.
+- Fundação Flutter materializada em `lib/`, com Riverpod, `go_router`, tema claro/escuro, shell operacional e organização por feature/camada.
+- Shell principal com Painel, Produtos, Vendas e Mais.
+- Spec 007 concluída: Dio, redaction, erros tipados, `Result` e fronteira de rede.
+- Spec 008 concluída e mergeada na `dev`: autenticação Sanctum real, `flutter_secure_storage`, login, logout, `/api/mobile/me`, troca obrigatória de senha, restauração de sessão, sinal global de `401`, guards e `API_BASE_URL` configurável por `--dart-define`.
+- Dashboard, catálogo e vendas ainda contêm fixtures/estado local e não constituem fluxo local-first real completo.
+- Drift, sync incremental, outbox persistente e isolamento definitivo do banco por usuário/tenant continuam como próximas entregas.
+- O backend mobile já possui contratos reais para auth/perfil, dashboard, produtos e `sale-intents`; contratos antigos do mobile devem ser auditados novamente antes de 009A/009B/009C/010.
+- Venda real depende de cliente remoto válido; antes de 009C/010 deve existir/ser confirmado contrato mobile de clientes no backend.
 
-## Situacao do working tree
+Documentação descreve intenção; código, contrato implementado, testes e evidências comprovam estado real.
 
-Fotografia em 18 de junho de 2026:
+## Sequência estrutural atual
 
-- branch `main`, alinhada a `origin/main`;
-- existem alteracoes nao commitadas em codigo, testes, goldens e documentacao;
-- a feature `sales` saiu da condicao de pasta vazia e agora possui entidades,
-  repositorio fixture, controllers, pagina e testes;
-- ha novas specs em `docs/specs/006-*`, `007-*`, `008-*`, `008b-*`, `009a-*`,
-  `009b-*`, `009c-*` e `010-*`;
-- ha arquivos novos em `.agents/` com apoio local de contexto e roteamento;
-- o retrato anterior de 15 de junho, com staged e unstaged antigos da Spec 005,
-  nao descreve mais o estado real atual.
-
-Antes de publicar:
-
-1. revisar artefatos em `test/goldens/failures/`;
-2. separar commits por responsabilidade;
-3. validar shell, dashboard, catalogo e vendas em largura mobile compacta e com
-   `textScaler` alto;
-4. nao tratar specs novas de infraestrutura como implementacao.
+```text
+007  Core de rede                      ✅
+008  Sessão/autenticação                ✅
+008B Contexto/isolamento                próximo
+009A Drift/schema/migrações             pendente
+009B Sync incremental                   pendente
+009C Dashboard/produtos/clientes reais  pendente
+010  Outbox + sale-intents              pendente
+Release/VPS/APK                         pendente
+```
 
 ## Produto
 
-O app e uma extensao operacional mobile do Arara-Gastos.
+O app é uma extensão operacional mobile do Arara-Gastos.
 
 Prioridades:
 
-1. contexto do usuario e da empresa;
-2. dashboard resumido;
-3. catalogo de produtos;
-4. operacao resiliente com conexao instavel;
-5. evolucao para intencoes de venda offline.
+1. identidade, sessão e contexto user/tenant;
+2. persistência local segura;
+3. dashboard e catálogo reais local-first;
+4. operação resiliente a conexão instável;
+5. vendas com outbox, idempotência e reconciliação;
+6. APK funcional conectado à API implantada.
 
-## Decisoes fixas
+## Decisões fixas
 
-- Flutter para Android e iOS.
+- Flutter para Android/iOS.
 - Arquitetura local-first.
-- Organizacao por feature e camadas.
-- Riverpod para estado e injecao.
+- Organização por feature e camada.
+- Riverpod para estado/injeção.
 - Drift + SQLite como banco operacional local.
-- Dio para transporte HTTP.
-- `go_router` para navegacao.
-- Credenciais em armazenamento seguro.
-- Outbox para acoes offline relevantes.
-- Servidor remoto soberano para estoque, permissoes e confirmacao de operacoes.
-- Foreground como sincronizacao principal; background apenas como apoio.
-- Identidade visual azul, analitica e operacional.
+- Dio para HTTP.
+- `go_router` para navegação.
+- token em armazenamento seguro.
+- Outbox para ações offline relevantes.
+- servidor soberano para estoque, autorização e confirmação.
+- foreground sync como mecanismo principal; background como apoio.
+- identidade visual azul operacional.
 
-Detalhes e status: `06-registro-decisoes.md`.
+Detalhes: `06-registro-decisoes.md`.
 
-## Regras que nao podem ser quebradas
+## Invariantes
 
-- Tela nao acessa Dio ou Drift.
-- Camada `application` nao conhece Dio, Drift ou JSON.
-- Estado local nao transforma operacao pendente em confirmada.
-- Dados de usuarios ou empresas diferentes nao podem ser misturados.
-- Preco `null` nao e automaticamente erro.
-- Produto sem estoque pode existir no catalogo.
-- Feature ou permissao ausente deve alterar a navegacao e os estados da UI.
-- Operacao offline precisa de identificador estavel para reenvio.
-- Falha de migracao nao autoriza apagar banco, outbox ou operacoes pendentes.
-- Contrato planejado nao pode ser consumido como contrato existente.
+- `Page -> Controller -> UseCase -> Repository -> DAO/API`.
+- `presentation` não acessa Dio ou Drift.
+- `application` não conhece Dio, Drift, JSON ou widgets.
+- `domain` não conhece Flutter, persistência ou transporte.
+- pending local != confirmed remoto.
+- tenant/user nunca compartilham dados locais indevidamente.
+- `price = null` pode ser restrição válida.
+- produto sem estoque pode continuar visível conforme contrato.
+- permissão visual não substitui autorização remota.
+- falha de migração não autoriza apagar banco/outbox.
+- contrato planejado não pode ser consumido como existente.
 
-## Fluxo arquitetural
+## Estados de UI
 
-```text
-Page
-  -> Controller Riverpod
-    -> UseCase
-      -> Repository
-        -> Local DAO / Remote Data Source
-```
+Use o subconjunto aplicável:
 
-A UI observa o estado produzido pela aplicacao. Repositorios escondem a origem
-local ou remota. Sincronizacao atualiza o banco e a interface reage aos dados
-locais.
+- initial;
+- loading;
+- ready;
+- refreshing;
+- empty;
+- offline;
+- restricted;
+- syncing;
+- failure.
 
-## Estados obrigatorios de interface
-
-Telas operacionais devem considerar o subconjunto aplicavel:
-
-- `initial`;
-- `loading`;
-- `ready`;
-- `refreshing`;
-- `empty`;
-- `offline`;
-- `restricted`;
-- `syncing`;
-- `failure`.
-
-Dados locais podem continuar visiveis durante refresh ou falha remota.
+Dados locais podem permanecer visíveis durante refresh/falha quando a feature for local-first.
 
 ## Como escolher o que ler
 
-### Arquitetura ou dependencias
+Use `.agents/task-routing.md`. Não leia toda a pasta `para mobile/` por padrão.
 
-- `05-arquitetura-mobile.md`;
-- `06-registro-decisoes.md`.
+- arquitetura/dependências: `05-arquitetura-mobile.md` + `06-registro-decisoes.md`;
+- negócio/offline: `04-regras-e-necessidades-mobile.md`;
+- interface: `02-definicoes-de-interface.md`;
+- integração: `03-endpoints-mobile.md` + auditoria do backend real;
+- processo/agentes: `08-processo-de-trabalho.md` + `.agents/`;
+- MCPs: `07-uso-de-mcps.md`.
 
-### Regra de negocio ou offline
+## Próximo caminho crítico
 
-- `04-regras-e-necessidades-mobile.md`;
-- se necessario, as secoes de sync e outbox da arquitetura.
+1. 008B: lifecycle de contexto user/tenant.
+2. 009A: Drift e migrações seguras.
+3. 009B/009C: sync e leituras reais, incluindo clientes.
+4. 010: outbox + protocolo real de `sale-intents`.
+5. release: ambiente, INTERNET/HTTPS, VPS, APK e smoke E2E.
 
-### Interface
+A auditoria do endpoint mobile de clientes pode seguir em paralelo antes de 009C/010.
 
-- `02-definicoes-de-interface.md`;
-- `designmobile.md` somente para trabalho visual amplo.
+## Definição curta de pronto
 
-### Integracao
-
-- `03-endpoints-mobile.md`;
-- confirmar se o contrato esta marcado como existente ou planejado.
-
-### Processo
-
-- `08-processo-de-trabalho.md`;
-- `07-uso-de-mcps.md`.
-
-## Proxima sequencia recomendada
-
-1. Revisar o working tree atual e transformar as mudancas em commits coerentes
-   por responsabilidade.
-2. Validar manualmente a shell, o dashboard, o catalogo e a tela local de
-   vendas nos tamanhos previstos.
-3. Revisar e limpar artefatos de falha em `test/goldens/failures/`.
-4. Reutilizar o core de erros, resultado e cliente HTTP apenas em integracoes
-   cujo contrato remoto esteja confirmado.
-5. Implementar sessao usando o contrato Sanctum auditado na Spec 008, antes de
-   substituir o bootstrap fixture por uma sessao real.
-6. Criar banco Drift e estrategia segura de migracao.
-7. Substituir fixtures de dashboard e catalogo por fontes locais/remotas sem
-   romper os estados operacionais existentes.
-8. Introduzir sincronizacao incremental quando houver contrato confirmado.
-9. Implementar outbox somente junto de uma operacao offline real.
-
-Nao antecipar toda a infraestrutura de vendas offline antes de existir um caso
-de uso e contrato que a exercite.
-
-## Definicao curta de pronto
-
-Uma entrega esta pronta quando respeita as camadas, trata estados relevantes,
-tem testes proporcionais ao risco, passa por analise estatica e nao contradiz
-uma decisao aceita.
+Entrega pronta respeita boundaries, contrato real, estados relevantes, persistência/isolamento quando aplicável, testes proporcionais ao risco e gate de Mefisto. Em trabalho CRITICAL, o contrato precisa estar FROZEN antes da implementação dependente.

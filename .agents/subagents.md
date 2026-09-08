@@ -1,103 +1,53 @@
-# Playbook de Subagentes
+# Orquestração multiagente
 
-Este repositorio nao exige multiagente em tarefas pequenas. Use divisao de
-responsabilidades quando a tarefa envolver multiplas camadas, risco alto ou
-validacao pesada.
+Os agentes canônicos são Jarvis, Maquiavel, Van Gogh e Mefisto.
 
-## Quando vale a pena dividir
+## Jarvis
 
-- feature com UI + regra + integracao;
-- refactor amplo;
-- mudanca de contrato;
-- sync/offline;
-- migracao de schema;
-- revisao com risco de regressao visual e arquitetural.
+Dono de escopo, classificação LIGHT/STANDARD/CRITICAL, dependências, contrato, ownership, handoffs e fechamento. Não implementa a feature como owner principal e não roda validação pesada.
 
-## Papeis recomendados
+## Maquiavel
 
-### 1. Coordenacao
+Dono da fronteira mobile ↔ backend. Confirma rota, método, payload, tipos de ID, paginação, erros, permissões, tenant scope, idempotência e gaps reais. No repositório mobile, não altera o backend sem pedido cross-repo explícito.
 
-Responsavel por:
+## Van Gogh
 
-- definir escopo;
-- escolher leitura minima;
-- separar implementado de planejado;
-- consolidar riscos, testes e fechamento.
+Dono da implementação Flutter: UI, Riverpod, go_router, use cases, repositories, data sources e integração local/remote dentro do contrato. Não inventa backend e não declara QA aprovada.
 
-Perguntas que este agente deve responder:
+## Mefisto
 
-- o contrato ja existe?
-- quais camadas serao afetadas?
-- precisa abrir spec?
-- quais estados de UI sao obrigatorios?
+Dono da validação: diff vs contrato, análise estática, testes focados, regressões, segurança e veredito `passed`, `failed`, `blocked` ou `passed_with_restrictions`. Suíte completa fica para o gate final.
 
-### 2. Contrato
+## Paralelismo
 
-Responsavel por:
+Use `PARALLEL_SAFE` somente quando:
 
-- validar endpoints reais;
-- mapear payloads e erros;
-- verificar permissoes, feature flags e tenant scope;
-- impedir que contrato planejado entre como se fosse real.
+- contrato necessário já está congelado;
+- writers editam arquivos distintos;
+- não existe dependência de decisão entre eles;
+- máximo de 2 writers concorrentes.
 
-Leitura principal:
+Use `SINGLE_WRITER` para auth, migração, lifecycle de banco, router central, protocolo de outbox ou qualquer alteração com sobreposição de estado.
 
-- `para mobile/03-endpoints-mobile.md`
-- `para mobile/04-regras-e-necessidades-mobile.md`
-- `para mobile/06-registro-decisoes.md`
+Maquiavel pode auditar backend em paralelo enquanto Van Gogh prepara estruturas que não dependem de campos ainda desconhecidos. Mefisto pode preparar matriz de testes sem alterar código produtivo.
 
-### 3. Flutter
+## Handoff curto
 
-Responsavel por:
+Cada handoff deve conter no máximo cerca de 300 palavras:
 
-- implementar ou revisar `Page -> Controller -> UseCase -> Repository`;
-- preservar fronteiras de camada;
-- tratar estados visuais e responsividade;
-- manter alinhamento com tema e widgets compartilhados.
+- objetivo;
+- arquivos/camadas afetados;
+- contrato consumido;
+- decisões tomadas;
+- riscos/assunções;
+- validação necessária.
 
-Leitura principal:
+Não cole arquivos completos nem logs extensos.
 
-- `para mobile/05-arquitetura-mobile.md`
-- `para mobile/02-definicoes-de-interface.md`
-- codigo da feature afetada
+## Critical path
 
-### 4. Qualidade
+Jarvis deve sempre distinguir:
 
-Responsavel por:
-
-- definir testes minimos relevantes;
-- checar risco de regressao arquitetural;
-- checar risco de overflow ou regressao visual;
-- confirmar limitacoes do ambiente.
-
-Leitura principal:
-
-- `para mobile/08-processo-de-trabalho.md`
-- testes existentes da feature
-
-## Sequencia recomendada
-
-1. Coordenacao delimita escopo e leitura.
-2. Contrato confirma o que e real e o que ainda depende de backend.
-3. Flutter implementa ou revisa a mudanca.
-4. Qualidade valida testes, estados e riscos.
-
-## Saida esperada de um handoff curto
-
-- objetivo da tarefa;
-- arquivos e camadas afetadas;
-- documentos obrigatorios;
-- riscos conhecidos;
-- o que ja esta implementado;
-- o que continua dependente;
-- validacao esperada.
-
-## Regra importante
-
-Subagente nao substitui documento canonico. Se aparecer conflito, seguir:
-
-1. `06-registro-decisoes.md`
-2. `05-arquitetura-mobile.md`
-3. `04-regras-e-necessidades-mobile.md`
-4. `02-definicoes-de-interface.md`
-5. `03-endpoints-mobile.md`
+- trabalho que pode seguir agora;
+- trabalho bloqueado por handoff;
+- caminho crítico até o aceite.

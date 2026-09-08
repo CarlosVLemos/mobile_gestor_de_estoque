@@ -1,84 +1,95 @@
-# Instruções do Projeto Mobile
+# Arara-Gastos Mobile — Instruções para Agentes
 
-## Objetivo
+Estas regras valem para Codex, Antigravity e qualquer agente que trabalhe neste repositório. Instruções explícitas do usuário têm prioridade sobre estas diretrizes, salvo conflito com segurança ou impossibilidade técnica.
 
-Este repositório contém o aplicativo Flutter do Arara-Gastos.
+## Bootstrap mínimo
 
-Antes de implementar, leia `para mobile/00-contexto-operacional.md`. Esse é o
-ponto de entrada canônico e informa quais documentos adicionais são necessários
-para cada tipo de tarefa.
+Antes de alterar código:
 
-## Leitura por tipo de tarefa
+1. leia `para mobile/00-contexto-operacional.md`;
+2. use `.agents/task-routing.md` para escolher somente a leitura adicional necessária;
+3. ative a skill relevante em `.agents/skills/` quando a tarefa se encaixar nela;
+4. não leia toda a documentação por padrão.
 
-Não leia toda a documentação por padrão.
+## Fontes canônicas
 
-| Tarefa | Leitura obrigatória |
-| --- | --- |
-| Qualquer alteração | `00-contexto-operacional.md` |
-| Arquitetura, dependências ou estrutura | `05-arquitetura-mobile.md` e `06-registro-decisoes.md` |
-| Regra de negócio, permissão ou offline | `04-regras-e-necessidades-mobile.md` |
-| Tela, componente ou estado visual | `02-definicoes-de-interface.md` |
-| Integração remota | `03-endpoints-mobile.md` |
-| Trabalho visual amplo | `designmobile.md` |
-| Processo, spec ou handoff | `08-processo-de-trabalho.md` |
-| Uso de ferramentas externas | `07-uso-de-mcps.md` |
+Em caso de conflito, use esta ordem:
 
-## Hierarquia das fontes
+1. decisão aceita em `para mobile/06-registro-decisoes.md`;
+2. arquitetura em `para mobile/05-arquitetura-mobile.md`;
+3. regras em `para mobile/04-regras-e-necessidades-mobile.md`;
+4. interface em `para mobile/02-definicoes-de-interface.md`;
+5. contrato remoto implementado e auditado;
+6. `para mobile/03-endpoints-mobile.md`;
+7. código legado, fixtures e comentários.
 
-Quando houver conflito, use esta ordem:
+Nunca trate `planejado`, `proposto` ou `dependente` como implementado.
 
-1. decisão aceita em `06-registro-decisoes.md`;
-2. arquitetura em `05-arquitetura-mobile.md`;
-3. regras de negócio em `04-regras-e-necessidades-mobile.md`;
-4. regras de interface em `02-definicoes-de-interface.md`;
-5. contrato implementado em `03-endpoints-mobile.md`;
-6. blueprint visual em `designmobile.md`;
-7. comentários e código legado.
+## Arquitetura obrigatória
 
-Não trate item marcado como `proposto`, `planejado` ou `dependente` como se já
-estivesse implementado.
+Fluxo padrão:
 
-## Regras de implementação
+`Page -> Controller -> UseCase -> Repository -> DAO/API`
 
-- Organizar código por feature e camada.
-- Fluxo padrão: `Page -> Controller -> UseCase -> Repository -> DAO/API`.
 - `presentation` não acessa Dio ou Drift.
 - `application` não conhece Dio, Drift, JSON ou widgets.
 - `domain` não conhece Flutter, transporte ou persistência.
-- A UI lê estado operacional por repositórios e fontes locais.
-- Operações offline relevantes são persistidas antes de aparecer como salvas.
-- Permissão visual não substitui autorização remota.
-- Preço ausente pode ser uma restrição válida, não um erro.
-- Não inventar campos ou endpoints ausentes.
-- Não alterar decisões aceitas silenciosamente; registrar a mudança primeiro.
+- UI consome estado de aplicação; servidor continua soberano para autorização, estoque e confirmação remota.
+- operação offline pendente nunca é apresentada como confirmada.
+- dados de usuários/tenants diferentes nunca podem compartilhar contexto local indevidamente.
 
-## Erros de interface que não podem voltar
+Regras mais específicas para `lib/` estão em `lib/AGENTS.md`.
 
-- Não recriar overflow horizontal em componentes mobile, especialmente em cards de catálogo.
-- Houve um erro real em `lib/shared/widgets/product_card.dart`: um `Row` estourou `12 px` à direita no celular porque `coreContent` e `infoContent` tentaram coexistir na mesma linha sem reflow suficiente para larguras compactas.
-- Em Flutter, `Row` com texto, badges, preço e metadados não pode assumir largura de desktop ou web. Sempre prever telas estreitas e textos maiores.
-- Quando houver conteúdo principal e trailing no mesmo eixo horizontal, o bloco que pode encolher deve usar `Expanded` ou `Flexible`, e o trailing deve respeitar limite de largura ou quebrar para baixo.
-- Textos variáveis devem usar `maxLines` e `TextOverflow.ellipsis` quando a perda controlada de conteúdo for aceitável.
-- Se nome, SKU, marca, badges e preço disputarem espaço, prefira reflow vertical em largura compacta em vez de forçar tudo na mesma linha.
-- Mudanças em cards, listas e barras horizontais devem ser validadas pelo menos em largura mobile compacta e com `textScaler` alto, para evitar novos `RenderFlex overflowed by ... pixels`.
+## Agentes canônicos
+
+Os únicos nomes permanentes são:
+
+- **Jarvis** — escopo, spec, dependências, contrato, handoffs e fechamento.
+- **Maquiavel** — auditoria do contrato da API/backend e gaps cross-repo.
+- **Van Gogh** — implementação Flutter, UI e integração seguindo o contrato congelado.
+- **Mefisto** — testes, regressão, análise estática e veredito técnico.
+
+Detalhes: `.agents/subagents.md` e `.agents/agents/`.
+
+## Modos de trabalho
+
+- `LIGHT`: correção pequena, texto, ícone ou mudança local de baixo risco. Sem spec formal por padrão.
+- `STANDARD`: feature normal ou integração com contrato já conhecido. Spec curta quando houver múltiplas camadas.
+- `CRITICAL`: auth, tenancy, isolamento, Drift/migração, sync, outbox/vendas, mudança de contrato, segurança ou release. Exige contrato explícito e gate de validação.
+
+Jarvis escolhe o modo antes de uma tarefa relevante.
+
+## Orçamento de terminal
+
+Durante implementação, priorize leitura estática e MCPs. Não execute repetidamente `flutter test`, `flutter analyze`, `dart format`, builds, `flutter run`, Docker, emulator, watchers ou polling de terminal.
+
+Por padrão:
+
+- Jarvis, Maquiavel e Van Gogh não fazem validação pesada de ambiente;
+- Mefisto executa a validação no gate, usando o menor conjunto relevante;
+- suíte completa ocorre no fechamento/merge, não após cada alteração;
+- não repita comando sem mudança de código ou nova hipótese que justifique a repetição;
+- processos persistentes ou interativos só devem ser iniciados por solicitação explícita do usuário.
+
+Detalhes: `.agents/rules/terminal-budget.md`.
+
+## Ferramentas
+
+Preferência:
+
+1. Dart/Flutter MCP para diagnostics, símbolos, testes e runtime Flutter;
+2. Developer Knowledge MCP para documentação oficial Flutter/Dart/Google;
+3. Context7 para bibliotecas de terceiros;
+4. GitHub MCP/Connector para leitura cross-repo, branches, diffs e contratos.
+
+GitHub pode ser lido por padrão. Escritas remotas, commits, branches, PRs ou merges exigem pedido explícito do usuário.
+
+Não use Sequential Thinking por padrão; a complexidade deve ser tratada por Jarvis, skills e subagentes quando realmente necessário.
+
+## Backend relacionado
+
+O backend canônico é `CarlosVLemos/gestor_de_estoque`. Quando o mobile depender de endpoint, payload, ID, paginação, erro, permissão ou tenant scope, Maquiavel deve confirmar o contrato real antes de Van Gogh consumir a API. Não invente endpoint ausente.
 
 ## Qualidade
 
-Toda alteração deve executar o menor conjunto relevante:
-
-- `dart format`;
-- `flutter analyze`;
-- testes unitários, de widget ou integração afetados;
-- validação visual para mudanças de interface.
-
-Se uma ferramenta não puder ser executada, registre isso no fechamento.
-
-## MCPs
-
-Use os MCPs conforme `para mobile/07-uso-de-mcps.md`.
-
-Disponibilidade varia por sessão. Nunca presuma que um MCP está instalado:
-verifique as ferramentas disponíveis e use o fallback documentado.
-
-Por decisão temporária do projeto, não use o GitHub Connector nem o GitHub MCP
-até nova orientação.
+Toda entrega precisa de validação proporcional ao risco. `test/AGENTS.md` define a política de testes e `docs/specs/AGENTS.md` governa specs novas.
