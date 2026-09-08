@@ -2,11 +2,11 @@
 
 ## Status
 
-Auditada em 18 de junho de 2026.
+Implementada e encerrada em 8 de setembro de 2026.
 
-Implementacao encontrada no working tree com validacao parcial concluida.
-Esta spec nao esta mais apenas "planejada", mas tambem nao pode ser tratada
-como 100% encerrada porque ainda ha pelo menos duas lacunas de fechamento.
+A auditoria anterior de 18 de junho identificou duas lacunas: conversao de
+`ApiException` para `NetworkFailure` e cobertura direta de uma resposta `2xx`
+pelo `ApiClient`. Ambas foram concluídas nesta revisão.
 
 ## O que foi implementado
 
@@ -27,27 +27,29 @@ como 100% encerrada porque ainda ha pelo menos duas lacunas de fechamento.
 
 ## O que foi verificado nesta auditoria
 
-- `flutter analyze` executado com sucesso em 18 de junho de 2026: sem issues;
+- `flutter analyze` executado com sucesso em 8 de setembro de 2026: sem issues;
 - `flutter test test/core/network/api_client_test.dart` executado com sucesso:
-  12 testes passando;
+  15 testes passando;
+- `flutter test` executado com sucesso em 8 de setembro de 2026: 140 testes
+  passando;
 - `flutter test test/architecture/layer_boundaries_test.dart` executado com
   sucesso: 30 testes passando;
 - O interceptor realmente censura `Authorization`, `X-Tenant-ID`,
   `Cookie`/`Set-Cookie`, `password`, `token` e `client_secret`;
 - O `ApiClient` realmente mapeia timeout, falha de conectividade, `401`, `403`,
   `422`, `429` e `5xx`;
-- O tipo `Result` realmente suporta `switch` pattern matching.
+- O tipo `Result` realmente suporta `switch` pattern matching;
+- o caminho `2xx` do `ApiClient` retorna a resposta tipada esperada;
+- `ApiExceptionToNetworkFailure` converte conectividade, timeout, autenticacao,
+  autorizacao, validacao, rate limit, servidor e erro desconhecido em falhas
+  acionaveis, preservando erros de validacao por campo.
 
-## O que ficou pendente ou sem evidencia suficiente
+## Limites preservados
 
-- Nao foi encontrado um conversor explicito e centralizado de `ApiException`
-  para `NetworkFailure`, apesar das classes de falha ja existirem;
-- Nao foi encontrado um teste explicito do caminho de sucesso `2xx` passando
-  pelo `ApiClient`; a suite atual cobre bem os cenarios de erro e redaction,
-  mas nao comprova esse caminho de forma direta;
-- A documentacao operacional geral ainda descreve a spec 007 como "documentacao
-  de proxima fase", entao o fechamento documental do projeto ainda esta
-  inconsistente com o codigo atual.
+- nenhuma feature passou a chamar endpoints reais;
+- nao foram adicionados login, sessao, Drift, sincronizacao ou outbox;
+- repositorios remotos concretos permanecem para as specs que tiverem contrato
+  e escopo de integracao liberados.
 
 ## Arquivos efetivamente tocados na implementacao auditada
 
@@ -65,10 +67,7 @@ como 100% encerrada porque ainda ha pelo menos duas lacunas de fechamento.
 
 ## Veredito
 
-Spec 007 esta substancialmente implementada e tecnicamente validada no que diz
-respeito ao core de rede, redaction e mapeamento principal de erros.
-
-Ela ainda nao deve ser marcada como totalmente concluida sem:
-
-- fechar o mapeamento de `ApiException` para `NetworkFailure`; e
-- adicionar evidencia direta do caminho feliz `2xx` via `ApiClient`.
+Spec 007 concluida: o core de rede possui Dio injetavel por Riverpod, redaction
+de segredos, mapeamento de transporte, conversao para falhas de dominio e
+`Result` selado. A integracao de features continua intencionalmente fora do
+escopo.

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/core/errors/api_exception.dart';
 import 'package:gestor_de_estoque/core/errors/failure.dart' as domain;
@@ -90,7 +91,10 @@ void main() {
       expect(requestLogs, contains('set-cookie: [REDACTED]'));
 
       // E que as credenciais originais NÃO foram substituídas nas opções de requisição que o Dio envia de verdade
-      expect(dio.options.headers['Authorization'], isNull); // Configurações globais não mudam
+      expect(
+        dio.options.headers['Authorization'],
+        isNull,
+      ); // Configurações globais não mudam
     });
 
     test('Censura campos sensíveis no corpo JSON da requisição', () async {
@@ -150,6 +154,25 @@ void main() {
       apiClient = ApiClient(dio);
     });
 
+    test('Retorna resposta 2xx pelo ApiClient', () async {
+      mockAdapter.handler = (options) {
+        return ResponseBody.fromString(
+          '{"status":"ok"}',
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
+      };
+
+      final response = await apiClient.get<Map<String, dynamic>>(
+        'https://example.test/health',
+      );
+
+      expect(response.statusCode, 200);
+      expect(response.data, {'status': 'ok'});
+    });
+
     test('Mapeamento de 401 Unauthorized', () async {
       mockAdapter.handler = (options) {
         return ResponseBody.fromString('{}', 401);
@@ -179,8 +202,8 @@ void main() {
             'message': 'Os campos são inválidos.',
             'errors': {
               'email': ['O campo email é obrigatório.'],
-              'password': ['A senha deve conter pelo menos 6 caracteres.']
-            }
+              'password': ['A senha deve conter pelo menos 6 caracteres.'],
+            },
           }),
           422,
           headers: {
@@ -197,7 +220,10 @@ void main() {
         final ex = e as InvalidParamsException;
         expect(ex.message, equals('Os campos são inválidos.'));
         expect(ex.errors['email'], contains('O campo email é obrigatório.'));
-        expect(ex.errors['password'], contains('A senha deve conter pelo menos 6 caracteres.'));
+        expect(
+          ex.errors['password'],
+          contains('A senha deve conter pelo menos 6 caracteres.'),
+        );
       }
     });
 
@@ -242,20 +268,67 @@ void main() {
       );
     });
 
-    test('Mapeamento de falha física (Falta de Internet / SocketException)', () async {
-      mockAdapter.handler = (options) {
-        throw DioException(
-          requestOptions: options,
-          type: DioExceptionType.connectionError,
-          error: const SocketException('No Internet Connection'),
+    test(
+      'Mapeamento de falha física (Falta de Internet / SocketException)',
+      () async {
+        mockAdapter.handler = (options) {
+          throw DioException(
+            requestOptions: options,
+            type: DioExceptionType.connectionError,
+            error: const SocketException('No Internet Connection'),
+          );
+        };
+
+        expect(
+          () => apiClient.get('https://example.test'),
+          throwsA(isA<NoInternetException>()),
         );
-      };
+      },
+    );
+  });
+
+  group('ApiExceptionToNetworkFailure', () {
+    test('converte exceções de transporte em falhas de domínio acionáveis', () {
+      final validation = InvalidParamsException(
+        message: 'Campos inválidos.',
+        errors: {
+          'email': ['Informe um e-mail válido.'],
+          'quantity': 'Deve ser positiva.',
+        },
+      ).toNetworkFailure();
 
       expect(
-        () => apiClient.get('https://example.test'),
-        throwsA(isA<NoInternetException>()),
+        const NoInternetException().toNetworkFailure().message,
+        isNotEmpty,
       );
+      expect(
+        const ConnectionTimeoutException().toNetworkFailure().message,
+        isNotEmpty,
+      );
+      expect(
+        const UnauthorizedException().toNetworkFailure().message,
+        isNotEmpty,
+      );
+      expect(const ForbiddenException().toNetworkFailure().message, isNotEmpty);
+      expect(const RateLimitException().toNetworkFailure().message, isNotEmpty);
+      expect(
+        const ServerException(statusCode: 503).toNetworkFailure().message,
+        isNotEmpty,
+      );
+      expect(const UnknownException().toNetworkFailure().message, isNotEmpty);
+      expect(validation.message, 'Campos inválidos.');
+      expect(validation.validationErrors, {
+        'email': 'Informe um e-mail válido.',
+        'quantity': 'Deve ser positiva.',
+      });
     });
+  });
+
+  test('ApiClient é injetável pelo provider Riverpod', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(apiClientProvider), isA<ApiClient>());
   });
 
   group('Result Type Tests', () {
@@ -267,10 +340,7 @@ void main() {
       expect(result.successOrNull, equals('sucesso'));
       expect(result.failureOrNull, isNull);
 
-      final foldVal = result.fold(
-        (val) => 'OK: $val',
-        (err) => 'FAIL: $err',
-      );
+      final foldVal = result.fold((val) => 'OK: $val', (err) => 'FAIL: $err');
       expect(foldVal, equals('OK: sucesso'));
 
       // Pattern matching switch test

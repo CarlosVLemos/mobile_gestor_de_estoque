@@ -23,10 +23,13 @@ buscar detalhes sem reler toda a pasta.
 - Existem contratos remotos documentados para perfil, dashboard e produtos.
 - Autenticacao mobile por token e vendas offline reais continuam dependentes de
   contratos ainda nao implementados.
-- Drift, Dio, armazenamento seguro, sincronizacao incremental e outbox seguem
-  como arquitetura aceita, mas ainda nao estao materializados no app.
-- As specs `007`, `008`, `008b`, `009a`, `009b`, `009c` e `010` ja foram
-  abertas como documentacao de proxima fase, mas nao representam codigo pronto.
+- O core de rede com Dio, redaction de segredos, excecoes tipadas, conversao
+  para falhas de dominio e `Result` ja esta materializado no app.
+- Drift, armazenamento seguro, sincronizacao incremental e outbox seguem como
+  arquitetura aceita, mas ainda nao estao materializados no app.
+- A spec `007` esta concluida. As specs `008`, `008b`, `009a`, `009b`, `009c`
+  e `010` continuam abertas como documentacao de proxima fase e nao
+  representam codigo pronto.
 - Documentacao descreve intencao e decisoes; somente codigo, testes e
   evidencias de execucao comprovam o que ja existe.
 
@@ -158,7 +161,8 @@ Dados locais podem continuar visiveis durante refresh ou falha remota.
 2. Validar manualmente a shell, o dashboard, o catalogo e a tela local de
    vendas nos tamanhos previstos.
 3. Revisar e limpar artefatos de falha em `test/goldens/failures/`.
-4. Criar contratos compartilhados de erro, resultado e cliente HTTP.
+4. Reutilizar o core de erros, resultado e cliente HTTP apenas em integracoes
+   cujo contrato remoto esteja confirmado.
 5. Criar banco Drift e estrategia segura de migracao.
 6. Implementar sessao e contexto do usuario quando o contrato de autenticacao
    estiver disponivel.

@@ -1,19 +1,22 @@
-# Spec 007 - Referência de Validação Futura
+# Spec 007 - Validação de fechamento
 
 ## Objetivo
 
-Registrar como a futura implementação da Spec 007 (Core de Rede, Erros e Resultado) deverá ser validada. Este arquivo serve exclusivamente como referência para a fase posterior de testes.
+Registrar a validação da implementação da Spec 007 (Core de Rede, Erros e
+Resultado). Os cenários permanecem como referência de regressão.
 
 ## O que verificar depois
 
-A futura implementação deverá comprovar que:
+A implementação comprova que:
 - O pacote `dio` foi adicionado e as requisições HTTP ocorrem através dele;
 - O `ApiClient` está configurado com timeouts de conexão e interceptores corretos;
 - O `RedactionInterceptor` remove segredos dos logs impressos no console;
 - Respostas HTTP com erro disparam exceções tipadas de rede;
 - Falhas de conexão física (ex: modo avião, timeout) são capturadas e mapeadas para exceções;
 - O mapeador converte exceções de rede em falhas de domínio;
-- A UI ou UseCases recebem e processam a estrutura `Result<Success, Failure>`.
+- Repositórios remotos futuros podem converter exceções tipadas em
+  `Result<Success, Failure>` sem expor Dio a application ou domain; nenhuma
+  feature remota concreta faz parte desta spec.
 
 ## Cenários de Teste a Cobrir
 
@@ -46,11 +49,11 @@ A futura implementação deverá comprovar que:
 
 ## Checklist de Validação
 
-- [ ] Dependência do `dio` configurada no `pubspec.yaml`.
-- [ ] Interceptor de log censura cabeçalhos (`Authorization`, `X-Tenant-ID`, `Cookie`, `Set-Cookie`).
-- [ ] Interceptor de log censura chaves confidenciais no corpo do JSON (`password`, `token`, etc.).
-- [ ] Exceções para 401, 403, 422, 429, 5xx criadas e mapeadas.
-- [ ] Exceções para timeout e falta de rede criadas e mapeadas.
-- [ ] Classe `Result<S, F>` selada em `lib/core/result/result.dart`.
-- [ ] Testes unitários cobrindo o mapeamento de exceções e a redação de logs passando com sucesso.
-- [ ] Testes validando o mapeamento de exceção de rede para falhas de domínio.
+- [x] Dependência do `dio` configurada no `pubspec.yaml`.
+- [x] Interceptor de log censura cabeçalhos (`Authorization`, `X-Tenant-ID`, `Cookie`, `Set-Cookie`).
+- [x] Interceptor de log censura chaves confidenciais no corpo do JSON (`password`, `token`, etc.).
+- [x] Exceções para 401, 403, 422, 429, 5xx criadas e mapeadas.
+- [x] Exceções para timeout e falta de rede criadas e mapeadas.
+- [x] Classe `Result<S, F>` selada em `lib/core/result/result.dart`.
+- [x] Testes unitários cobrem resposta `2xx`, mapeamento de exceções e redação de logs.
+- [x] Testes validam a conversão de exceção de rede para falhas de domínio.
