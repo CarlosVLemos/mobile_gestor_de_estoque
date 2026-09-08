@@ -43,9 +43,9 @@ A futura implementação deverá comprovar que:
 
 ## Checklist de Validação
 
-- [ ] Lógica lazy no `DatabaseFactory` implementada.
-- [ ] Nome do arquivo de banco contendo `${userId}` e `${tenantId}` dinâmicos.
-- [ ] Classe `DataPurgeService` implementando a sequência de passos.
-- [ ] O `AuthController` intercepta e executa o purge no encerramento de sessão.
-- [ ] Testes unitários validando a unicidade dos caminhos físicos passando com sucesso.
-- [ ] Testes comprovando a não-perda física de vendas pendentes ao deslogar.
+- [x] Lógica lazy no `DatabaseFactory` implementada.
+- [x] Nome do arquivo de banco contendo `${userId}` e `${tenantId}` dinâmicos.
+- [x] Classe `DataPurgeService` implementando a sequência de passos.
+- [x] O `AuthController` intercepta e executa o purge no encerramento de sessão.
+- [x] Testes unitários validando a unicidade dos caminhos físicos passando com sucesso.
+- [x] Testes comprovando a não-perda física de vendas pendentes ao deslogar.

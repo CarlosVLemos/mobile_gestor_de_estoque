@@ -1,41 +1,37 @@
-# Spec 008B - Revisão de Abertura
+# Spec 008B — Revisão de Fechamento
 
 ## Status
 
-Planejada em 18 de junho de 2026. Não implementada.
+Concluída em 8 de setembro de 2026.
 
-## Escopo pretendido
+## Escopo entregue
 
-- Implementação do `DatabaseFactory` para abrir caminhos de arquivos SQLite nomeados dinamicamente (`app_database_u_${userId}_t_${tenantId}.db`);
-- Instanciação tardia (lazy) da conexão Drift vinculada à autenticação ativa do usuário;
-- Criação do `DataPurgeService` para limpeza estruturada de dados pós-logout;
-- Estabelecimento do sequenciamento estrito de expurgo de dados antes de redirecionar a navegação;
-- Preservação da fila Outbox de forma física para cada usuário, permitindo o logout seguro sem perda de transações offline pendentes;
-- Alerta visual opcional se o usuário deslogar com pendências de envio;
-- Testes cobrindo múltiplos logins sequenciais com caminhos físicos isolados no SQLite.
+- `DatabaseFactory` cria e reabre arquivos Drift determinísticos por `userId` + `tenantId`.
+- A abertura do banco ocorre somente após login ou restauração de sessão válida.
+- `DataPurgeService` executa `stop sync -> close database -> clear scoped cache -> invalidate providers`.
+- Logout e expiração aguardam o purge antes de o estado de autenticação redirecionar para `/login`.
+- `sync_outbox` permanece no arquivo físico do contexto; o logout avisa antes de prosseguir quando há itens pendentes.
+- Testes cobrem isolamento físico, reabertura, preservação da outbox, ordem do purge e integração com autenticação.
 
 ## Gate de implementação
 
-FECHADO.
-
-Esta especificação serve como guia de isolamento físico e purificação do banco. Nenhum código no aplicativo está liberado para escrita.
+ABERTO e autorizado pela solicitação de implementação da Spec 008B. O
+`contract.md` foi congelado antes do código de contexto local.
 
 ## Fontes consultadas
 
 - `para mobile/00-contexto-operacional.md`;
-- `para mobile/05-arquitetura-mobile.md` (concorrência e segurança local);
-- `para mobile/06-registro-decisoes.md` (decisões MOB-005, MOB-012, MOB-013, Questão Aberta 1).
+- `para mobile/05-arquitetura-mobile.md`;
+- `para mobile/06-registro-decisoes.md`;
+- `docs/specs/008b-isolamento-contexto-local/contract.md`.
 
-## Decisões já assumidas pelo pedido do usuário
+## Riscos residuais
 
-- Os bancos de dados locais são separados por par de usuário/tenant;
-- Deslogar fecha ativamente as conexões do Drift para evitar corrupção de arquivos;
-- Estados de Riverpod em memória são completamente invalidados no logout.
-
-## Pontos curtos a refinar antes de aprovar a spec
-
-- Esclarecer o comportamento de limpeza: a limpeza de imagens temporárias deve atingir apenas o cache do usuário ativo, preservando outras imagens que possam ser úteis caso o mesmo dispositivo seja operado offline com frequência por outros membros da mesma organização.
+- O motor real de sync e o protocolo de envio de vendas continuam fora de
+  escopo das Specs 009/010. A 008B fornece o boundary `SyncLifecycle` e a
+  persistência contextual que essas specs deverão usar.
 
 ## Veredito
 
-Especificação detalhada e em total conformidade com a arquitetura local-first. O gate permanece fechado até aprovação final de implementação.
+`passed` — implementação e validações focadas concluídas; ver
+`validation-result.md`.
