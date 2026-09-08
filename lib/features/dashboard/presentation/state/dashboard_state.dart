@@ -2,7 +2,7 @@ import '../../../../shared/ui_states/view_status.dart';
 import '../../domain/entities/dashboard_overview.dart';
 
 class DashboardState {
-  const DashboardState({required this.status, this.overview, this.message});
+  const DashboardState({required this.status, this.overview, this.message, this.syncMessage, this.syncing = false});
 
   const DashboardState.initial() : this(status: ViewStatus.initial);
 
@@ -30,4 +30,6 @@ class DashboardState {
   final ViewStatus status;
   final DashboardOverview? overview;
   final String? message;
+  final String? syncMessage;
+  final bool syncing;
 }

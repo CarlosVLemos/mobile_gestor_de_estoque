@@ -11,6 +11,8 @@ class CatalogState {
     List<String> categories = const ['Todos'],
     this.message,
     this.restrictionKind,
+    this.syncMessage,
+    this.syncing = false,
   }) : items = List.unmodifiable(items),
        categories = List.unmodifiable(categories);
 
@@ -26,6 +28,9 @@ class CatalogState {
     CatalogRestrictionKind? restrictionKind,
     bool clearMessage = false,
     bool clearRestrictionKind = false,
+    String? syncMessage,
+    bool clearSyncMessage = false,
+    bool? syncing,
   }) {
     return CatalogState(
       status: status ?? this.status,
@@ -36,6 +41,8 @@ class CatalogState {
       restrictionKind: clearRestrictionKind
           ? null
           : (restrictionKind ?? this.restrictionKind),
+      syncMessage: clearSyncMessage ? null : (syncMessage ?? this.syncMessage),
+      syncing: syncing ?? this.syncing,
     );
   }
 
@@ -45,4 +52,6 @@ class CatalogState {
   final List<String> categories;
   final String? message;
   final CatalogRestrictionKind? restrictionKind;
+  final String? syncMessage;
+  final bool syncing;
 }

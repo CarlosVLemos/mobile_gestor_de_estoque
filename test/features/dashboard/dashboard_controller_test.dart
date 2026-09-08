@@ -154,7 +154,7 @@ ProviderContainer _createContainer(_QueuedDashboardRepository repository) {
     overrides: [dashboardRepositoryProvider.overrideWithValue(repository)],
   );
   addTearDown(container.dispose);
-  container.read(dashboardControllerProvider);
+  container.listen(dashboardControllerProvider, (_, _) {});
   return container;
 }
 

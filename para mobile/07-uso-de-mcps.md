@@ -180,3 +180,13 @@ uma nova sessão para atualizar a lista de ferramentas.
 | Decisão arquitetural complexa | Sequential Thinking | arquitetura + decisões |
 | Ajuste visual | Nenhum obrigatório | interface + trecho do design |
 | Regra de negócio | Nenhum obrigatório | regras + contrato relacionado |
+
+## Ferramentas verificadas na execução da 009
+
+Em 8 de setembro de 2026, Context7 foi consultado para Drift/streams/transações,
+com documentação oficial como referência. Não havia Dart/Flutter MCP disponível
+e os comandos `dart`/`flutter` não foram encontrados no ambiente. Nenhum SDK foi
+instalado. GitHub MCP/Connector não foram usados.
+
+Inspeção textual de imports e SQL isolado com SQLite/Python são evidências
+limitadas; não substituem analyze, testes Drift/Riverpod ou validação visual.

@@ -75,3 +75,17 @@ Quando uma resposta for necessária, ela deve virar uma decisão aceita.
 | ID | Decisão antiga | Substituída por |
 | --- | --- | --- |
 | OLD-001 | `application` pode conhecer Dio, Drift e JSON | MOB-003 |
+
+## Registro de execução da 009 — 8 de setembro de 2026
+
+Este registro não altera as decisões aceitas acima nem resolve a questão aberta
+de isolamento. A implementação recebe um banco já isolado; sua abertura continua
+responsabilidade da 008B.
+
+MOB-016 e DEP-004 limitam o avanço atual: não há decoder de dashboard baseado em
+campos presumidos nem watermark criado do relógio/máximo de timestamps. A carga
+repete a janela paginada até confirmar protocolo estável. A persistência do painel
+é modelada pelas entidades locais, com KPIs/alertas relacionais e detalhes locais
+versionados. O contrato HTTP continua independente desse formato.
+
+Código da 009 escrito, sem aceite SDK. [Estado completo](../docs/estado-atual.md).

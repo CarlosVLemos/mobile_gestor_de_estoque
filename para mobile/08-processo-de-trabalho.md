@@ -199,3 +199,26 @@ Use o GitHub MCP para <issue/PR/review>.
 Repositório: CarlosVLemos/mobile_gestor_de_estoque.
 Não faça escrita remota sem confirmar o alvo.
 ```
+
+## Execução atual sem SDK — 009A/B/C
+
+O usuário autorizou implementação com validação Flutter na próxima sessão.
+Neste cenário, registrar separadamente:
+
+1. código escrito;
+2. contrato confirmado ou dependente;
+3. verificação que realmente foi executada;
+4. testes escritos mas pendentes;
+5. aceite final ainda aberto.
+
+A autorização atual de execução substitui gates históricos de abertura da 009.
+Ela não torna contratos planejados reais nem aprova testes não executados.
+Não editar lockfiles ou `.g.dart` manualmente para simular geração.
+
+Antes de encerrar, atualizar contexto, mapa do projeto, revisão/tarefas/testes
+das specs afetadas e roteiro central. Ao retomar com SDK, resolver dependências,
+gerar Drift, formatar, analisar, testar e inspecionar visualmente, nessa ordem.
+Roteiro exato em [estado atual](../docs/estado-atual.md).
+
+O histórico das specs anteriores permanece datado; seus testes não servem de
+evidência para a árvore atual. Só marcar pronto após executar o aceite aplicável.

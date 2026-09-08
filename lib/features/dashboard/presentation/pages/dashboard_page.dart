@@ -61,7 +61,16 @@ class DashboardPage extends ConsumerWidget {
         onRefresh: controller.refresh,
         child: ListView(
           padding: AppSpacing.screenPadding,
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
+            if (state.syncMessage != null) ...[
+              OfflineStateBanner(message: state.syncMessage!, label: 'Atualização'),
+              const SizedBox(height: AppSpacing.sectionGap),
+            ],
+            if (state.syncing) ...[
+              const LinearProgressIndicator(),
+              const SizedBox(height: AppSpacing.sectionGap),
+            ],
             if (state.status == ViewStatus.offline &&
                 state.message != null) ...[
               OfflineStateBanner(message: state.message!),
@@ -119,7 +128,7 @@ class DashboardPage extends ConsumerWidget {
             state.message ??
             'Tente novamente em instantes para recarregar este resumo.',
         action: TextButton(
-          onPressed: () => controller.load(),
+          onPressed: () => controller.refresh(),
           child: const Text('Tentar novamente'),
         ),
       );

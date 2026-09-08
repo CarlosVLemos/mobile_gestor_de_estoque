@@ -41,3 +41,11 @@ lib/core/sync/
 * Falhas de rede ou interrupções abruptas abortam a sincronização, liberam o lock de concorrência e preservam o último checkpoint seguro.
 * A suíte de testes unitários valida o comportamento do `SyncLock` (incluindo liberação no `finally`), a execução em ordem das coleções registradas, e o limitador de gatilhos (throttling).
 
+
+## Estado de execução atual
+
+Código de engine/lease e composição condicional escrito, sem aceite SDK. A 009C
+acrescenta falhas seguras e negação de acesso persistente na engine. A paginação
+real usa replay da janela enquanto DEP-004 não for resolvida; o texto de delta
+acima continua objetivo arquitetural, não protocolo remoto já garantido.
+Ver `review.md` e [estado atual](../../estado-atual.md).

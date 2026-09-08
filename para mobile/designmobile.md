@@ -1,5 +1,8 @@
 # Design Mobile Blueprint
 
+> Este documento é o blueprint visual, não o status de implementação. A execução
+> atual da 009 e suas validações pendentes estão em [estado atual](../docs/estado-atual.md).
+
 ## Objetivo
 
 Este documento descreve o visual atual da aplicacao web do Arara-Gastos em nivel suficiente para reproduzir a experiencia em um aplicativo mobile nativo ou híbrido, sem precisar reinterpretar a identidade visual do produto.

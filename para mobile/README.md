@@ -33,9 +33,11 @@ manutenção da documentação.
 
 ## Status atual
 
-- Ja existem endpoints JSON em `api/mobile/*`.
-- Hoje os endpoints existentes cobrem perfil autenticado, dashboard e catalogo de produtos.
-- O fluxo de login por token Sanctum e a sincronizacao offline de vendas continuam apenas planejados na `Spec 22`.
+- Código da 009A/B/C escrito; validação com Flutter pendente.
+- Startup demonstrativo até haver sessão/banco isolado fornecido pela 008/008B.
+- Catálogo com fonte paginada e leitura Drift; decoder HTTP do painel dependente.
+- Login por token e outbox/vendas remotas ainda não implementados.
+- [Estado consolidado e próxima sessão](../docs/estado-atual.md).
 
 ## Fonte principal
 

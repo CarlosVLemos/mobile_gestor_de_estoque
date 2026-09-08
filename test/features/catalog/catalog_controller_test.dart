@@ -168,7 +168,7 @@ ProviderContainer _createContainer(_QueuedCatalogRepository repository) {
     overrides: [catalogRepositoryProvider.overrideWithValue(repository)],
   );
   addTearDown(container.dispose);
-  container.read(catalogControllerProvider);
+  container.listen(catalogControllerProvider, (_, _) {});
   return container;
 }
 

@@ -1,5 +1,23 @@
 # Suite de testes
 
+## Sessão atual da 009
+
+Dart/Flutter ausentes em 8 de setembro de 2026. Novos testes estão escritos,
+mas não executados. Antes da validação padrão:
+
+```sh
+flutter pub get
+dart run build_runner build
+dart format lib test
+```
+
+Roteiro e limitações em [estado atual](../docs/estado-atual.md).
+Testes prioritários: `test/core/database`, `test/core/sync`,
+`test/features/catalog`, `test/features/dashboard` e
+`test/features/reading_reactivity_test.dart`. Dublê do decoder do painel não
+comprova compatibilidade com o backend. AutoDispose é validado por desmontagem,
+não por simples troca de aba em IndexedStack.
+
 ## Validacao padrao
 
 Execute antes de fechar uma alteracao:

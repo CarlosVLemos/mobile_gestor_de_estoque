@@ -1,24 +1,27 @@
-# Tasks: Spec 009C - Sincronização de Leitura de Catálogo e Painel
+# Tasks — Spec 009C
 
-- [ ] **Fase 1: Coleções de Sincronização**
-  - [ ] Criar `ProductSyncCollection` em `lib/features/catalog/data/sync/product_sync_collection.dart` implementando o contrato de sync (obter lista de `/api/mobile/products`).
-  - [ ] Implementar paginação recursiva ou iterativa no fetch de produtos.
-  - [ ] Criar `DashboardSyncCollection` em `lib/features/dashboard/data/sync/dashboard_sync_collection.dart` consumindo o JSON do `/api/mobile/dashboard`.
-  - [ ] Registrar as duas novas coleções no `SyncEngine`.
+Atualizado em 8 de setembro de 2026. Marcação de código escrito não é aceite.
 
-- [ ] **Fase 2: Repositórios Drift Reativos**
-  - [ ] Criar `DriftProductRepository` em `lib/features/catalog/data/repositories/drift_product_repository.dart`.
-  - [ ] Implementar retornos baseados em Streams reativas do Drift.
-  - [ ] Criar `DriftDashboardRepository` em `lib/features/dashboard/data/repositories/drift_dashboard_repository.dart`.
+## Implementação escrita
 
-- [ ] **Fase 3: Vinculação de Provedores e Telas**
-  - [ ] Alterar o `productRepositoryProvider` para apontar para `DriftProductRepository`.
-  - [ ] Alterar o `dashboardRepositoryProvider` para apontar para `DriftDashboardRepository`.
-  - [ ] Ajustar controladores de tela (Presentation) para observar as novas streams usando `.autoDispose` nos provedores.
-  - [ ] Implementar a exibição condicional do banner de aviso offline/falha de sync sem apagar os dados locais em cache já renderizados.
+- [x] Fonte HTTP de produtos respeitando `per_page <= 50` e envelope documentado.
+- [x] Coleção de produtos com páginas sequenciais e upsert transacional.
+- [x] Replay de janela em nova execução, sem cursor/watermark presumido.
+- [x] Fonte/coleção do dashboard com decoder explícito obrigatório.
+- [x] Tabelas e substituição transacional de KPIs, alertas e snapshot local.
+- [x] Repositórios Drift reativos e casos de uso de observação.
+- [x] StreamProviders/controllers autoDispose e tratamento de resultados atrasados.
+- [x] Cache durante refresh/falha e bloqueio visual em 401/403.
+- [x] Composição condicional de engine/bootstrap/observer para banco validado.
+- [x] Testes escritos de coleções, repositórios, controllers e UI reativa.
+- [x] Documentação de estado e processo atualizada.
 
-- [ ] **Fase 4: Testes de Integração e UI**
-  - [ ] Criar testes unitários para os repositórios Drift mockando as chamadas HTTP.
-  - [ ] Testar a interface do catálogo sob estado de restrição visual financeira (campo `price = null` no SQLite).
-  - [ ] Validar que dados continuam visíveis na tela quando a chamada de sync remota falha e o banner de offline é exibido coerentemente.
-  - [ ] Testar se o fechamento do widget desmonta a inscrição do stream do Drift (verificando `.autoDispose` do Riverpod).
+## Dependências e validação
+
+- [ ] Obter contrato interno do DashboardResource e implementar decoder real.
+- [ ] Integrar contexto autenticado e arquivo isolado via 008/008B.
+- [ ] Confirmar cursor/watermark/tombstones para delta com avanço seguro.
+- [ ] Resolver dependências, atualizar lockfile e gerar Drift.
+- [ ] Executar dart format, flutter analyze e testes afetados.
+- [ ] Validar UI em largura compacta/texto alto, offline e reinício real.
+- [ ] Executar regressão e inspecionar goldens antes de aprovar entrega.

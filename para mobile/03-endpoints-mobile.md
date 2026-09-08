@@ -231,3 +231,17 @@ Definidos na `Spec 22`:
 - `POST /api/mobile/sale-intents/{intent}/confirm`
 
 Esses endpoints ainda nao existem no codigo atual.
+
+## Limites de integração encontrados na 009C
+
+- O cliente usa `per_page: 50`, nunca `limit: 100`. Categorias vêm aninhadas
+  nos produtos; não foi criado endpoint de categorias.
+- `page`/`updated_since` não garantem snapshot ou cursor estável. A janela é
+  repetida desde a página 1 em nova execução, mantendo `updated_since` fixo
+  quando houver referência confiável. Não inferir watermark de máximo local
+  nem apagar itens ausentes sem tombstones.
+- Faltam chaves e tipos internos de KPIs, alertas, movimentos e gráficos do
+  dashboard. O decoder permanece sem implementação real; obter resposta
+  anonimizada ou o DashboardResource antes de completar esse mapeamento.
+- Formato JSON de snapshot local não define o contrato HTTP.
+- Não houve validação contra servidor real nesta execução sem SDK/sessão.

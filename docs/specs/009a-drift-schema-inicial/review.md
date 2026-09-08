@@ -1,42 +1,40 @@
-# Spec 009A - Revisão de Abertura
+# Spec 009A — Revisão da implementação parcial
 
-## Status
+## Status em 8 de setembro de 2026
 
-Planejada em 18 de junho de 2026. Não implementada.
+Execução autorizada pelo pedido atual do usuário, substituindo o gate de abertura
+anterior. Implementação parcial, sem validação executável e sem aceite final.
 
-## Escopo pretendido
+## Entregue em código
 
-- Adição das dependências do `drift`, `sqlite3` e `build_runner` ao projeto;
-- Modelagem física da tabela de Categorias (`CategoriesTable`);
-- Modelagem física da tabela de Produtos (`ProductsTable`) com chave estrangeira vinculada às categorias e suporte a preço nulo (`price = null`);
-- Modelagem física da tabela de KPIs consolidados do Painel (`DashboardKpisTable`);
-- Modelagem física de checkpoints de sincronização (`SyncCheckpointsTable`) com suporte a carimbos de data/hora e cursores;
-- Implementação da classe base `AppDatabase` configurando a conexão local Drift com suporte a testes unitários em memória;
-- Geração dos arquivos compilados de persistência (`.g.dart`) via build_runner;
-- Suíte de testes unitários de banco validando operações de CRUD e integridade relacional.
+- Dependências Drift, SQLite e geração declaradas no `pubspec.yaml`.
+- Categorias, produtos e checkpoints com chaves estáveis em texto.
+- KPIs e alertas relacionais, detalhes do painel em snapshot JSON local v1,
+  derivados das entidades locais existentes; não definem campos HTTP.
+- Tabela `sync_locks` acrescentada pela 009B ao schema inicial não publicado.
+- Preço anulável e categoria opcional com `ON DELETE SET NULL`.
+- `AppDatabase` versão 1 com executor injetado e foreign keys habilitadas em
+  `beforeOpen`. Migração não implementada falha sem recriar o banco.
+- Testes de CRUD/upsert, preço nulo, integridade referencial, rollback de página
+  com preservação do checkpoint e persistência após reabertura de arquivo.
 
-## Gate de implementação
+## Pendências
 
-FECHADO.
+- Dart e Flutter ausentes: dependências não resolvidas, `pubspec.lock` não
+  atualizado, geração `.g.dart`, formatação, análise e testes não executados.
+- Gerar `app_database.g.dart` antes de analisar ou compilar o projeto. Não foi
+  escrito código gerado manualmente. Arquivo gerado não incluído nesta entrega.
+- O schema local do painel está escrito. Seu decoder remoto ainda depende
+  dos campos internos do contrato e da validação descrita na 009C.
+- O provider de banco está preparado para injeção. A abertura de arquivo em
+  produção aguarda isolamento de contexto da 008B.
+- Spec 009B em implementação parcial, com engine, lease e checkpoints Drift.
+  Spec 009C em implementação parcial; veja sua revisão. O startup permanece
+  demonstrativo enquanto não houver contexto autenticado injetado.
+- A 009C respeita o contrato canônico: `per_page` de 1 a 50, em lugar de
+  `limit: 100`. Cursor remoto continua dependente de contrato confirmado.
 
-Esta especificação define o schema do banco de dados relacional Drift. Nenhuma escrita em arquivos do app está autorizada.
+## Referência técnica
 
-## Fontes consultadas
-
-- `para mobile/00-contexto-operacional.md`;
-- `para mobile/05-arquitetura-mobile.md` (banco local e Drift);
-- `para mobile/06-registro-decisoes.md` (decisões MOB-005, MOB-010, MOB-012, UI-006, Questão Aberta 3).
-
-## Decisões já assumidas pelo pedido do usuário
-
-- O Drift é o banco de dados operacional local principal;
-- O schema do banco de dados relacional deve ser versionado;
-- Os produtos devem tolerar preços nulos sem quebrar ou causar erros de parsing.
-
-## Pontos curtos a refinar antes de aprovar a spec
-
-- Garantir que a integridade relacional (foreign keys) no SQLite esteja ativa por padrão através de um callback de abertura (`onConfigure: (db) async { await db.customStatement('PRAGMA foreign_keys = ON;'); }`). Isto é importante para verificar se a Sync Engine está respeitando a ordem de inserção necessária (Categorias antes de Produtos).
-
-## Veredito
-
-Especificação do Drift Schema revisada e refinada. O gate permanece fechado aguardando liberação para execução.
+Configuração consultada na [documentação oficial do Drift](https://drift.simonbinder.eu/setup/).
+As versões declaradas ainda precisam ser resolvidas e verificadas com o SDK do projeto.

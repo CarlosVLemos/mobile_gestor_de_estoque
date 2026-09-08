@@ -43,6 +43,33 @@ A futura implementação deverá comprovar que:
 - [ ] Tabela de categorias criada e mapeada.
 - [ ] Tabela de produtos criada com chave estrangeira para categoria e `price` anulável.
 - [ ] Tabela de checkpoints de sync suportando nome da coleção, carimbo e cursor.
-- [ ] Testes unitários rodando sobre `DatabaseConnection.inMemory()`.
+- [ ] Testes unitários rodando sobre `NativeDatabase.memory()`.
 - [ ] Testes de chaves estrangeiras ativos e passando.
 - [ ] Testes de nulos de preços passando.
+
+## Roteiro para a próxima sessão com Flutter
+
+Testes escritos em `test/core/database/app_database_test.dart`, ainda não executados.
+Execute na raiz, nesta ordem:
+
+```sh
+flutter pub get
+dart run build_runner build
+dart format lib/core/database test/core/database
+flutter analyze
+flutter test test/core/database/app_database_test.dart
+flutter test
+```
+
+Revisar e versionar o `pubspec.lock` resultante da resolução. Não marcar o aceite
+como concluído antes de gerar o código e executar os testes. O teste de rollback
+valida a transação do banco, não uma SyncEngine implementada. A continuação 009C alterou estados
+de tela; seguir também seus testes de reatividade e roteiro visual.
+
+## Painel e lease adicionados na continuação
+
+Executar também `flutter test test/core/database/drift_sync_store_test.dart` e
+`flutter test test/features/dashboard/dashboard_sync_test.dart`. Esses testes
+cobrem exclusão/renovação de locks, substituição atômica de KPIs/alertas, nulos,
+rollback e leitura local. O decoder do painel usado no teste é um dublê explícito.
+Nenhum desses testes foi executado nesta sessão.

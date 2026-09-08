@@ -12,7 +12,7 @@ Implementar as coleções de sincronização para produtos (`ProductSyncCollecti
 
 ## Regras de Negócio e Diretrizes Técnicas
 1. **Sincronização de Produtos (`ProductSyncCollection`):**
-   * Consumir o endpoint `GET /api/mobile/products` passando parâmetros `limit` (tamanho do lote, ex: 100), `page` (número da página) e `updated_since` (carimbo do checkpoint, se houver).
+   * Consumir o endpoint `GET /api/mobile/products` passando parâmetros `per_page` (máximo de 50, conforme contrato canônico), `page` (número da página) e `updated_since` (carimbo do checkpoint, se houver).
    * Tratar paginação do endpoint remoto. O bootstrap deve baixar todas as páginas de forma sequencial até que `has_more_pages` seja falso.
    * Realizar o "upsert" em massa das categorias e produtos na base de dados Drift local usando blocos de transação.
 2. **Sincronização do Painel (`DashboardSyncCollection`):**
@@ -50,3 +50,19 @@ lib/features/dashboard/
 * A ausência de preços nos produtos (`price = null` devido a restrição visual) não quebra a renderização dos cards na lista do catálogo.
 * Testes de widget e de integração validam o comportamento offline, renderização do catálogo reativo e descarte de subscrições.
 
+
+## Ajustes da execução autorizada — 8 de setembro de 2026
+
+- O contrato por `page` não promete snapshot/cursor estável. A implementação
+  repetirá a janela desde a página 1 em cada execução, preservando o mesmo
+  `updated_since` quando já houver um checkpoint confiável. Não deriva watermark
+  de `max(updated_at)` nem do relógio do aparelho. Sem watermark confirmado,
+  novas execuções fazem leitura completa com upsert e sem apagar ausências.
+- O schema local do painel seguirá as entidades existentes: KPIs e alertas em
+  tabelas próprias e detalhes restantes em snapshot local versionado. Esse
+  formato de persistência não define campos do contrato HTTP.
+- A tradução do dashboard remoto exige um decoder explícito, até recebermos a
+  estrutura interna documentada. Não haverá decoder fixture em produção.
+- A composição só habilita Drift/rede com banco de contexto validado fornecido
+  pela sessão. Sem esse contexto, o startup permanece demonstrativo.
+- Implementação escrita neste ambiente não equivale a aceite: SDK ausente.

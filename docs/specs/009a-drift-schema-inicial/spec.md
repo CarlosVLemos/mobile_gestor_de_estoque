@@ -65,3 +65,18 @@ lib/core/
 * A suíte de testes unitários de banco de dados (`test/core/database/app_database_test.dart`) valida operações básicas de CRUD (inserção, leitura e exclusão) para todas as tabelas descritas.
 * Testes validam que um produto sem preço (`price = null`) é inserido e lido com sucesso.
 
+
+## Schema escrito na execução de setembro de 2026
+
+Versão inicial 1, ainda não gerada/publicada. Além das tabelas acima:
+
+- `sync_locks`: name (PK), owner_id, acquired_at/expires_at em milissegundos UTC.
+- `dashboard_kpis`: position (PK local), label, value/subtitle anuláveis,
+  is_currency, is_restricted, is_highlighted.
+- `dashboard_stock_alerts`: position (PK local), product_name, stock_label, tone_label.
+- `dashboard_snapshots`: id (PK, `current`), details (JSON de formato local v1).
+
+KPIs/alertas são substituídos atomicamente com os detalhes; posições são ordem
+local de exibição, não identificadores remotos. O snapshot serializa somente
+entidades locais conhecidas e não inventa o contrato HTTP. Os detalhes de
+implementação/validação estão em `review.md` e [estado atual](../../estado-atual.md).

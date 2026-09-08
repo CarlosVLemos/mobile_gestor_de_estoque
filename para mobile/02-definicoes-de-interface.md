@@ -149,3 +149,15 @@ Quando `price` vier `null`, a interpretacao correta e:
 
 - usuario sem permissao financeira; ou
 - dado propositalmente mascarado para esse perfil.
+
+## Estados preparados pela 009C
+
+Controllers de catálogo/painel passam a observar repositórios por streams
+autoDispose. Atualizações locais preservam o conteúdo durante sync. Falha de rede
+ou servidor acrescenta aviso de atualização; somente conectividade é chamada de
+offline. Sem cache, exibir ação de nova tentativa. `401`/`403` bloqueiam conteúdo
+até revalidação do contexto, inclusive ao remontar a tela.
+
+Validação visual ainda pendente: 320px, texto 2x, preço nulo, avisos longos e
+refresh sem overflow. A shell com IndexedStack pode manter abas montadas;
+cancelamento por autoDispose ocorre ao remover o último consumidor.

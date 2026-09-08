@@ -60,3 +60,10 @@ A `Spec 22` define como proximo passo:
 - venda offline via intencao de venda;
 - proposta ajustada quando faltar estoque;
 - confirmacao explicita antes de criar venda ajustada.
+
+## Recorte implementado no cliente
+
+Em 8 de setembro de 2026, a 009A/B/C tem código de persistência, engine e
+leitura reativa, sem validação SDK nesta sessão. O uso remoto continua condicionado
+a sessão/banco isolado e o dashboard exige decoder do contrato interno.
+Detalhes e próximos passos em [estado atual](../docs/estado-atual.md).

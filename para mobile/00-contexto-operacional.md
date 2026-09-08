@@ -6,51 +6,37 @@ Este e o primeiro documento a ser lido por pessoas e agentes antes de trabalhar
 no aplicativo. Ele resume o estado atual, as decisoes fixas e indica onde
 buscar detalhes sem reler toda a pasta.
 
-## Estado atual
+## Estado atual — 8 de setembro de 2026
 
-- A fundacao Flutter ja esta materializada em `lib/`, com tema claro/escuro,
-  bootstrap, `go_router`, Riverpod e organizacao inicial por feature e camada.
-- O app ja usa uma shell operacional com quatro destinos principais:
-  dashboard, catalogo, vendas e Mais.
-- Existe toggle local de tema, drawer lateral compartilhado e headers
-  operacionais consistentes entre as telas principais.
-- Dashboard, catalogo e vendas ainda usam fixtures, estado local em memoria ou
-  repositorios locais. Eles nao comprovam integracao remota, persistencia local
-  definitiva nem sincronizacao.
-- A tela de vendas deixou de ser apenas placeholder: hoje ja permite selecionar
-  cliente, montar carrinho, respeitar restricao financeira local e registrar
-  rascunhos nao persistidos em memoria.
-- Existem contratos remotos documentados para perfil, dashboard e produtos.
-- Autenticacao mobile por token e vendas offline reais continuam dependentes de
-  contratos ainda nao implementados.
-- Drift, Dio, armazenamento seguro, sincronizacao incremental e outbox seguem
-  como arquitetura aceita, mas ainda nao estao materializados no app.
-- As specs `007`, `008`, `008b`, `009a`, `009b`, `009c` e `010` ja foram
-  abertas como documentacao de proxima fase, mas nao representam codigo pronto.
-- Documentacao descreve intencao e decisoes; somente codigo, testes e
-  evidencias de execucao comprovam o que ja existe.
+- Base Flutter com shell `Painel`, `Produtos`, `Vendas`, `Mais`, tema e drawer.
+- Dio, ApiClient, erros e Result possuem código; auditoria antiga da 007 não
+  comprova a árvore atual.
+- 009A: schema Drift v1 de categorias, produtos, KPIs, alertas, snapshot local,
+  checkpoints e locks escrito, ainda sem geração/execução neste ambiente.
+- 009B: engine, lease com TTL, transações, cooldown e estado reativo escritos.
+- 009C: coleções de leitura, repositórios Drift, streams autoDispose, controllers,
+  refresh, avisos e composição condicional de bootstrap/lifecycle escritos.
+- O catálogo respeita `per_page <= 50`. Repete a janela a partir da página 1 em
+  nova execução; não inventa cursor estável, watermark ou tombstones.
+- O painel ainda precisa do decoder real: faltam campos internos do contrato.
+- Sem banco autenticado injetado, o startup segue demonstrativo, sem abrir banco
+  anônimo. Sessão, arquivo isolado e logout (008/008B) continuam pendentes.
+- Vendas continuam rascunhos em memória. Não há outbox nem venda remota real.
+- Dart/Flutter ausentes por restrição desta execução: geração, formatação,
+  análise, testes e validação visual pendentes. Não declarar 009A/B/C prontas.
 
-## Situacao do working tree
+Detalhes, limites, evidências e comandos da próxima sessão:
+[Estado e validação](../docs/estado-atual.md).
 
-Fotografia em 18 de junho de 2026:
+## Situação do working tree
 
-- branch `main`, alinhada a `origin/main`;
-- existem alteracoes nao commitadas em codigo, testes, goldens e documentacao;
-- a feature `sales` saiu da condicao de pasta vazia e agora possui entidades,
-  repositorio fixture, controllers, pagina e testes;
-- ha novas specs em `docs/specs/006-*`, `007-*`, `008-*`, `008b-*`, `009a-*`,
-  `009b-*`, `009c-*` e `010-*`;
-- ha arquivos novos em `.agents/` com apoio local de contexto e roteamento;
-- o retrato anterior de 15 de junho, com staged e unstaged antigos da Spec 005,
-  nao descreve mais o estado real atual.
+Branch local `main`; esta execução contém mudanças não commitadas em código,
+testes e documentação da 009. Não foi verificado alinhamento remoto.
+Use `git status --short` e `git diff` antes de preparar commits. Fotografias de
+junho nos registros antigos não representam staging nem validação atuais.
 
-Antes de publicar:
-
-1. revisar artefatos em `test/goldens/failures/`;
-2. separar commits por responsabilidade;
-3. validar shell, dashboard, catalogo e vendas em largura mobile compacta e com
-   `textScaler` alto;
-4. nao tratar specs novas de infraestrutura como implementacao.
+Antes de publicar, gerar o schema, resolver o lockfile, executar as verificações
+e inspecionar UI/goldens. Não tratar código escrito como aceite aprovado.
 
 ## Produto
 
@@ -151,24 +137,14 @@ Dados locais podem continuar visiveis durante refresh ou falha remota.
 - `08-processo-de-trabalho.md`;
 - `07-uso-de-mcps.md`.
 
-## Proxima sequencia recomendada
+## Próxima sequência recomendada
 
-1. Revisar o working tree atual e transformar as mudancas em commits coerentes
-   por responsabilidade.
-2. Validar manualmente a shell, o dashboard, o catalogo e a tela local de
-   vendas nos tamanhos previstos.
-3. Revisar e limpar artefatos de falha em `test/goldens/failures/`.
-4. Criar contratos compartilhados de erro, resultado e cliente HTTP.
-5. Criar banco Drift e estrategia segura de migracao.
-6. Implementar sessao e contexto do usuario quando o contrato de autenticacao
-   estiver disponivel.
-7. Substituir fixtures de dashboard e catalogo por fontes locais/remotas sem
-   romper os estados operacionais existentes.
-8. Introduzir sincronizacao incremental quando houver contrato confirmado.
-9. Implementar outbox somente junto de uma operacao offline real.
-
-Nao antecipar toda a infraestrutura de vendas offline antes de existir um caso
-de uso e contrato que a exercite.
+1. Executar o roteiro com SDK em `docs/estado-atual.md` e corrigir falhas.
+2. Confirmar o contrato interno do dashboard e implementar seu decoder.
+3. Concluir sessão/isolamento 008/008B antes de habilitar dados reais.
+4. Validar bootstrap, offline, permissões, reinício e teardown no aparelho.
+5. Confirmar cursor/watermark/tombstones antes de promover delta com avanço.
+6. Revisar/publicar a entrega validada; outbox depende de operação e contrato reais.
 
 ## Definicao curta de pronto
 

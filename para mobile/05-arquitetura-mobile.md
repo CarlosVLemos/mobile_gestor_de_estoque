@@ -635,3 +635,22 @@ usuário.
 > O mobile mantém uma visão operacional local, registra intenções com segurança
 > e se reconcilia com a fonte remota sem assumir decisões que não pertencem ao
 > aplicativo.
+
+## Estado de execução da arquitetura — 8 de setembro de 2026
+
+O schema v1 escrito contém categorias, produtos, KPIs, alertas, detalhes de
+painel em snapshot local v1, checkpoints e locks. Não foi gerado/publicado.
+O snapshot representa entidades locais; não é persistência cega de payload HTTP.
+
+A engine compõe mutex e lease Drift com TTL, renovação/validação transacional e
+liberação em `finally`. Os adaptadores de coleção e lease devem usar o mesmo
+AppDatabase. `dispose()` aguarda término; a sessão deve aguardá-lo antes de fechar
+o banco. TTL de dois minutos é o valor inicial da composição de leitura.
+
+`lib/app/sync` registra bootstrap/lifecycle condicionalmente. Repositórios de
+leitura são selecionados pelos providers de feature; controllers usam casos de
+uso e streams autoDispose. Nenhuma tela acessa Drift ou Dio. Sem banco validado,
+o app mantém a demonstração e não abre arquivo anônimo.
+
+Cursor estável, decoder remoto do painel, sessão/isolamento e execução das
+validações seguem pendentes. [Estado completo](../docs/estado-atual.md).

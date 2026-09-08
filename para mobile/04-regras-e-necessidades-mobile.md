@@ -111,3 +111,14 @@ Quando existir proposta ajustada, a confirmacao futura deve depender de `intent_
 - armazenar `updated_at` dos produtos para sync incremental;
 - encapsular tratamento de `401`, `403`, `422` e `429` em uma camada de API compartilhada;
 - preparar a modelagem local para `sale-intent`, mesmo antes do endpoint existir.
+
+## Aplicação parcial na 009C
+
+O repositório de catálogo mascara preços ao receber acesso financeiro negado.
+O painel impede leitura de snapshot financeiro antigo por acesso restrito.
+Falhas de rede não apagam cache. `401`/`403` sinalizam bloqueio visual persistente
+na engine até recomposição por contexto revalidado; isso não implementa logout
+nem substitui autorização do backend. Sessão/isolamento continuam na 008/008B.
+
+Ausência em paginação não significa remoção; não há tombstones confirmados.
+Vendas/outbox permanecem fora da implementação da 009.

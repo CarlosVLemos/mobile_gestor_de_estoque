@@ -1,55 +1,47 @@
-# Spec 009C - Referência de Validação Futura
+# Validação — Spec 009C
 
-## Objetivo
+## Estado
 
-Registrar como a futura implementação da Spec 009C (Sincronização de Leitura de Catálogo e Painel) deverá ser validada.
+Testes escritos, nenhum executado nesta sessão sem Dart/Flutter. A compilação
+exige primeiro resolução de dependências e geração do schema Drift.
 
-## O que verificar depois
+```sh
+flutter pub get
+dart run build_runner build
+dart format lib test
+flutter analyze
+flutter test test/core/database test/core/sync
+flutter test test/features/catalog test/features/dashboard test/features/reading_reactivity_test.dart
+flutter test test/app test/architecture test/shared test/theme
+flutter test
+```
 
-A futura implementação deverá comprovar que:
-- O catálogo de produtos e os KPIs do painel são alimentados a partir do banco de dados SQLite (Drift) via streams;
-- A inicialização do aplicativo executa o bootstrap de dados com progresso observável;
-- O fechamento da tela cancela a subscrição do stream do Drift;
-- Desconectar a internet exibe os dados salvos localmente juntamente com um banner informativo;
-- A restrição visual financeira (`price = null` no SQLite) exibe "Restrito" ou oculta o preço, sem quebrar os cards do catálogo.
+## Cenários automatizados preparados
 
-## Cenários de Teste a Cobrir
+- Bootstrap paginado de produtos, categorias precedendo produtos, preço nulo,
+  upsert idempotente e dados/checkpoint preservados em falha parcial.
+- Nova execução repete página 1; não testar retomada por offset estável inexistente.
+- Filtro updated_since fixo quando checkpoint confiável é fornecido; sem promoção
+  de timestamp máximo/local a watermark remoto.
+- Payload inválido aborta página; HTTP 401/403/429/500 preserva banco e classifica falha.
+- Catálogo observa alterações do banco e filtra SKU/categoria localmente.
+- Painel substitui KPIs/alertas/detalhes e reverte tudo se checkpoint falhar.
+- Preço/KPI nulo e bloqueio de snapshot financeiro antigo por perfil restrito.
+- Controllers preservam dados durante refresh/falha e descartam resultados atrasados.
+- Widgets exibem atualizações de stream, aviso de sync e bloqueio em 401/403.
+- Desmontagem cancela assinatura; catálogo preparado para 320px e textScaler 2x.
 
-### 1. Bootstrap Paginado e Retomável
-* **Verificar:**
-  - Iniciar o aplicativo sem banco local.
-  - Simular o endpoint de produtos com 3 páginas de dados (e a flag `has_more_pages` verdadeira nas duas primeiras).
-  - Validar que o app executa 3 requisições consecutivas (`page=1`, `page=2`, `page=3`).
-  - Validar que o estado visual de bootstrap informa o progresso incremental.
-  - Simular queda de rede na página 2, confirmar interrupção do bootstrap e verificar que ao reabrir o app o bootstrap é reiniciado a partir do cursor pendente.
+## Pendências de integração real
 
-### 2. Stream Auto-Disposable (Vazamentos de Memória)
-* **Verificar:**
-  - Abrir a página do catálogo.
-  - Fechar a página (navegar para outra aba).
-  - Validar nos logs ou testes de widget que a subscrição do stream do Drift foi devidamente cancelada (evitando consultas em background em abas invisíveis).
+O decoder de dashboard no teste é um dublê explícito. Confirmar o contrato do
+backend, implementar o decoder real e acrescentar fixtures HTTP fiéis ao contrato.
+A composição atual não abre sessão/banco anônimo; validar com injeção de contexto
+correto depois de concluir 008/008B.
 
-### 3. Convivência de Preços Nulos na UI
-* **Verificar:**
-  - Criar produtos com preços válidos e alguns com preços `null` no Drift.
-  - Abrir o catálogo.
-  - Validar que os produtos com preços normais exibem o valor formatado.
-  - Validar que os produtos com preço `null` exibem um aviso estilizado ("Preço indisponível" ou "Restrito") e que a tela não sofre quebras ou transbordamento (RenderFlex overflow).
+No dispositivo: reinício offline com cache, perda de rede na página intermediária,
+refresh preservando conteúdo, mudança de usuário/tenant, negação de acesso e
+revalidação da sessão. Inspecionar painel e catálogo em 320px/texto 2x e goldens.
+A shell usa IndexedStack: alternar aba pode preservar widgets montados, portanto
+não confundir troca de aba com descarte de assinatura por autoDispose.
 
-### 4. Modo Offline na UI
-* **Verificar:**
-  - Com dados locais carregados, ativar o modo offline (simular falha de rede física).
-  - Abrir a página de catálogo ou painel.
-  - Confirmar que a tela renderiza os dados em cache local imediatamente.
-  - Confirmar a renderização do banner `OfflineStateBanner` informando que a sincronização falhou, permitindo o uso normal do catálogo de forma offline.
-
-## Checklist de Validação
-
-- [ ] `ProductSyncCollection` implementa paginação e cursor checkpoints.
-- [ ] `DashboardSyncCollection` mapeia KPIs e salva localmente no Drift.
-- [ ] Repositórios de Catálogo e Painel usam Streams reativas.
-- [ ] Providers do Riverpod usam `.autoDispose`.
-- [ ] UI responde a atualizações locais em background.
-- [ ] `OfflineStateBanner` integrado e funcional em caso de erro de sync.
-- [ ] Testes de integração validando o modo offline passando com sucesso.
-- [ ] Testes de widget cobrindo `price = null` passando sem overflow.
+Detalhes e evidências disponíveis em [estado atual](../../estado-atual.md).

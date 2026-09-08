@@ -6,15 +6,16 @@ import '../../app/theme/app_theme_context.dart';
 import 'status_badge.dart';
 
 class OfflineStateBanner extends StatelessWidget {
-  const OfflineStateBanner({super.key, required this.message});
+  const OfflineStateBanner({super.key, required this.message, this.label = 'Offline'});
 
   final String message;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     final isTextLarge = MediaQuery.textScalerOf(context).scale(1) > 1.3;
-    final badge = const StatusBadge(
-      label: 'Offline',
+    final badge = StatusBadge(
+      label: label,
       tone: AppStatusTone.warning,
     );
     final text = Text(

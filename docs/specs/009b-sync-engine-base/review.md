@@ -1,42 +1,65 @@
-# Spec 009B - Revisão de Abertura
+# Spec 009B — Revisão da implementação parcial
 
-## Status
+## Status em 8 de setembro de 2026
 
-Planejada em 18 de junho de 2026. Não implementada.
+Execução autorizada pelo usuário nesta conversa, substituindo o gate de abertura.
+Código preparado para validação posterior, sem aceite de conclusão.
 
-## Escopo pretendido
+## Implementado
 
-- Implementação do `SyncLock` como semáforo lógico em memória e persistência para controle concorrente;
-- Liberação obrigatória do `SyncLock` em bloco `finally` para evitar travamentos permanentes em falhas;
-- Definição da abstração `SyncCollection` com ciclo de vida estruturado de 4 passos (obter cursor, baixar remetente, salvar local, atualizar cursor);
-- Implementação do orquestrador central `SyncEngine` que gerencia a fila de coleções registradas;
-- Exposição reativa do estado de sync global (`syncStateProvider` do Riverpod);
-- Criação do `SyncLifecycleObserver` para monitorar o estado `resumed` do app;
-- Mecanismo de cooldown/throttling de 5 minutos para sincronizações automáticas pós-foco;
-- Testes unitários para locks de concorrência, recuperação de erros e lógica de throttling.
+- Mutex no isolate e contrato obrigatório de lock persistido na `SyncEngine`.
+- `DriftSyncLeaseStore`: aquisição atômica por UPSERT, identidade aleatória por
+  aquisição, TTL obrigatório configurável e liberação condicionada ao dono.
+- Tabela `sync_locks` com nome, dono, aquisição e expiração em milissegundos UTC.
+- Renovação antes de baixar cada página e validação/renovação dentro da transação
+  de escrita. Posse expirada não pode ser renovada; a engine deve adquirir outra
+  lease em uma nova execução. Download que exceder o TTL será descartado.
+- Proteção antes e depois da escrita: expiração durante a transação reverte a
+  página e seu checkpoint. Não há timer de renovação nem rede na transação.
+- `DriftSyncCheckpointStore`: leitura por coleção e commit transacional de dados
+  e checkpoint; upserts concretos continuam responsabilidade da coleção.
+- Coleções e páginas sequenciais, interrupção em falha, proteção contra página
+  intermediária sem avanço e cancelamento cooperativo.
+- Liberação no `finally`; erro na liberação persistida não retém mutex local.
+  O TTL permite recuperação posterior. `dispose()` aguarda execução e liberação.
+- Estado reativo, cooldown de cinco minutos após término e observer de lifecycle.
+  Chamada descartada por lock ocupado não inicia cooldown. Ação manual ignora-o.
+- `syncStateProvider.autoDispose` e testes escritos para estado e descarte.
 
-## Gate de implementação
+## Composição e limitações
 
-FECHADO.
+- Lease, checkpoints e callbacks de escrita DEVEM compartilhar o mesmo
+  `AppDatabase`. O contrato genérico não protege escritas em outro banco nem
+  efeitos externos. As coleções da 009C são compostas com esse mesmo banco.
+- A 009C registra composição/bootstrap/lifecycle condicionalmente. O contexto
+  autenticado/isolado ainda precisa ser fornecido pela 008/008B.
+- O TTL deve ser escolhido na composição considerando timeouts e tamanho das
+  páginas. Saltos do relógio do dispositivo podem antecipar ou atrasar recuperação.
+- Classificação de sync implementada: offline, unauthorized, forbidden, remote,
+  invalidData e local; negação de acesso persiste na engine até recomposição
+  por contexto validado. Logs estruturados continuam pendentes.
+- A versão 1 do schema ainda não foi gerada, executada ou publicada nesta entrega;
+  `sync_locks` integra esse schema inicial. Se houver banco de outra versão em uso,
+  preparar migração aditiva e testes de preservação antes de conectar o app.
 
-Esta especificação define o motor central de reconciliação de dados. Nenhuma codificação de comportamento está liberada no app.
+## Testes e evidências
 
-## Fontes consultadas
+Escritos, ainda não executados com Flutter:
 
-- `para mobile/00-contexto-operacional.md`;
-- `para mobile/05-arquitetura-mobile.md` (motor de sincronização, checkpoints, gatilhos, concorrência);
-- `para mobile/06-registro-decisoes.md` (decisões MOB-001, MOB-011).
+- engine: ordem, concorrência, cooldown, falhas de aquisição/liberação, perda de
+  posse durante download, cancelamento e descarte aguardando término;
+- banco: disputa entre conexões, reabertura, recuperação por TTL, dono antigo,
+  renovação, rollback por expiração e falhas de dados/checkpoint, idempotência;
+- integração engine/Drift: mutexes distintos disputam a mesma lease e a página
+  de executor cuja posse expirou não é gravada;
+- provider: estado inicial/atualização e cancelamento de assinatura por autoDispose.
 
-## Decisões já assumidas pelo pedido do usuário
+Executado neste ambiente:
 
-- Sincronização concorrente de coleções é proibida;
-- Erros de rede abrem a trava logicamente;
-- O relógio local não define cursores remotamente.
+- `git diff --check`, sem erros;
+- instruções SQL extraídas do adaptador, executadas com SQLite via Python:
+  aquisição exclusiva, recuperação no TTL, rejeição do dono antigo, liberação
+  condicionada e rollback. Verifica SQL isolado, não bindings ou transações Drift.
 
-## Pontos curtos a refinar antes de aprovar a spec
-
-- O cooldown de 5 minutos deve ser calculado em milissegundos e persistido em variável em memória. Não há necessidade de gravação em storage seguro, bastando o ciclo de vida da instância ativa do app.
-
-## Veredito
-
-Especificação refinada técnica e operacionalmente, cobrindo o controle estrito de concorrência e cooldown. O desenvolvimento continua bloqueado pelo gate.
+Dart e Flutter ausentes: geração, formatação, análise e testes seguem pendentes.
+Referência: [transações Drift](https://drift.simonbinder.eu/dart_api/transactions/).
