@@ -29,16 +29,28 @@ void main() {
           .insert(
             SyncOutboxCompanion.insert(id: 'sale-pending', status: 'pending'),
           );
+      await xDatabase.into(xDatabase.productsTable).insert(
+        ProductsTableCompanion.insert(
+          id: 'product-x',
+          name: 'Produto X',
+          sku: 'SKU-X',
+          stockQuantity: 1,
+          stockStatus: 'available',
+          isAvailableForSale: true,
+        ),
+      );
       await factory.closeActive();
       expect(File(xPath).existsSync(), isTrue);
 
       final yDatabase = await factory.open(y);
       expect(await yDatabase.pendingOutboxCount(), 0);
+      expect(await yDatabase.activeProducts().get(), isEmpty);
       await factory.closeActive();
       expect(File(yPath).existsSync(), isTrue);
 
       final restoredX = await factory.open(x);
       expect(await restoredX.pendingOutboxCount(), 1);
+      expect(await restoredX.activeProducts().get(), hasLength(1));
       await factory.closeActive();
     },
   );

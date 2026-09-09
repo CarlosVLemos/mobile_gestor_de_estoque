@@ -1,5 +1,10 @@
 import 'package:drift/drift.dart';
 
+import 'tables/categories_table.dart';
+import 'tables/dashboard_snapshots_table.dart';
+import 'tables/products_table.dart';
+import 'tables/sync_collections_table.dart';
+
 part 'app_database.g.dart';
 
 /// Minimal durable queue boundary. The delivery protocol belongs to Spec 010;
@@ -16,16 +21,41 @@ class SyncOutbox extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [SyncOutbox])
+@DriftDatabase(
+  tables: [
+    SyncOutbox,
+    CategoriesTable,
+    ProductsTable,
+    DashboardSnapshotsTable,
+    SyncCollectionsTable,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
-  MigrationStrategy get migration =>
-      MigrationStrategy(onCreate: (migrator) async => migrator.createAll());
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (migrator) async => migrator.createAll(),
+    onUpgrade: (migrator, from, to) async {
+      if (from == 1 && to == 2) {
+        // 008B's sync_outbox is deliberately absent from this migration: the
+        // v1 table and all of its rows must remain untouched.
+        await migrator.createTable(categoriesTable);
+        await migrator.createTable(productsTable);
+        await migrator.createTable(dashboardSnapshotsTable);
+        await migrator.createTable(syncCollectionsTable);
+        return;
+      }
+
+      throw StateError('Migração de schema $from para $to não implementada.');
+    },
+    beforeOpen: (_) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 
   Future<int> pendingOutboxCount() async {
     final entries =
@@ -39,4 +69,19 @@ class AppDatabase extends _$AppDatabase {
             .get();
     return entries.length;
   }
+
+  Selectable<StoredProduct> activeProducts() => select(productsTable)
+    ..where((product) => product.deletedAt.isNull());
+
+  Stream<List<StoredProduct>> watchActiveProducts() => activeProducts().watch();
+
+  Stream<StoredDashboardSnapshot?> watchDashboardSnapshot(String scopeKey) =>
+      (select(dashboardSnapshotsTable)
+            ..where((snapshot) => snapshot.scopeKey.equals(scopeKey)))
+          .watchSingleOrNull();
+
+  Future<StoredSyncCollection?> readSyncCollection(String collection) =>
+      (select(syncCollectionsTable)
+            ..where((row) => row.collection.equals(collection)))
+          .getSingleOrNull();
 }
