@@ -1,5 +1,14 @@
 # Spec 010: Outbox de Vendas e Resiliência Offline
 
+## Status
+
+`IN PROGRESS` — Fase A. O contrato congelado está em `contract.md`.
+
+Esta fase evolui a `sync_outbox` existente. Idempotência usa
+`client_request_id` no payload; `X-Request-ID` não é requisito. O backend é
+soberano em preços e eles não são enviados. Clientes reais e recuperação do
+token de confirmação aguardam `HANDOFF-010-BACKEND`.
+
 ## Problema
 A realização de vendas no aplicativo precisa operar de forma resiliente mesmo quando o dispositivo estiver sem conexão à internet (ambiente instável ou sem sinal). Para garantir isso, o aplicativo não deve tentar enviar a transação diretamente pela rede; em vez disso, deve gravá-la localmente em uma fila de envio ("Outbox") e tentar a sincronização em segundo plano.
 
@@ -17,7 +26,7 @@ Implementar o fluxo de vendas offline resiliente utilizando o padrão Outbox no 
 2. **Resiliência, Idempotência e Chaves UUID:**
    * Cada registro de outbox deve possuir um identificador único estável (UUID `client_request_id`) gerado no mobile.
    * O reenvio deve consumir os endpoints `POST /api/mobile/sale-intents` e subsequentemente `POST /api/mobile/sale-intents/{intent}/confirm`.
-   * Para garantir a idempotência e evitar vendas duplicadas no backend Laravel (devido a oscilações de rede em confirmações), o `client_request_id` deve ser transmitido em um cabeçalho HTTP dedicado (ex: `X-Request-ID: <UUID>`) ou como um campo chave no payload JSON do intent.
+   * Para garantir a idempotência, o `client_request_id` é persistido e transmitido no payload JSON do intent em toda tentativa.
 3. **Mapeamento de Falhas, Conflitos e Estados Canônicos:**
    * A coluna `status` na tabela de outbox deve adotar as strings correspondentes aos estados canônicos da arquitetura:
      | Status | Significado | Ação do Processador |
@@ -57,6 +66,5 @@ lib/features/sales/
 * Sucesso na API atualiza o registro do Outbox para `confirmed` e marca a venda correspondente como sincronizada.
 * Erros de negócio retornados pelo servidor (`422`) travam a fila, marcam o item como `failed_permanent` e exibem um alerta de conflito na UI.
 * Retentativas temporárias calculam corretamente o backoff exponencial com jitter e escrevem no campo `next_attempt_at`.
-* O cabeçalho de idempotência `X-Request-ID` é anexado a todas as chamadas de criação de venda.
+* O campo `client_request_id` permanece estável no payload v1 de todas as tentativas.
 * Suíte de testes integrados valida o comportamento da fila diante de oscilações de conexão e retentativas ordenadas.
-

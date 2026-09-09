@@ -8,6 +8,7 @@ import 'package:gestor_de_estoque/core/sync/sync_exception.dart';
 import 'package:gestor_de_estoque/core/sync/sync_lease.dart';
 import 'package:gestor_de_estoque/core/sync/sync_lock.dart';
 import 'package:gestor_de_estoque/core/sync/sync_state.dart';
+import 'package:gestor_de_estoque/core/sync/outbox_drainer.dart';
 
 class _Page implements SyncPage {
   const _Page(this.checkpoint);
@@ -58,6 +59,7 @@ class _LeaseStore implements SyncLeaseStore {
 class _Lease implements SyncLease {
   int renewals = 0;
   int releases = 0;
+  int protectedWrites = 0;
   bool lost = false;
   bool failRelease = false;
   int? blockRenewalNumber;
@@ -81,6 +83,7 @@ class _Lease implements SyncLease {
   @override
   Future<void> protect(Future<void> Function() write) async {
     _check();
+    protectedWrites++;
     await write();
     _check();
   }
@@ -89,6 +92,26 @@ class _Lease implements SyncLease {
   Future<void> release() async {
     releases++;
     if (failRelease) throw StateError('release failed');
+  }
+}
+
+class _Outbox implements OutboxDrainer {
+  int drains = 0;
+  bool cancelled = false;
+  Completer<void>? requestGate;
+
+  @override
+  Future<void> drain({required OutboxWriteGuard protect}) async {
+    drains++;
+    await protect(() async {});
+    await requestGate?.future;
+  }
+
+  @override
+  void cancel() {
+    cancelled = true;
+    final gate = requestGate;
+    if (gate != null && !gate.isCompleted) gate.complete();
   }
 }
 
@@ -125,6 +148,42 @@ void main() {
     expect(await running, SyncOutcome.succeeded);
     expect(lease.releases, 1);
     expect(await second.sync(), SyncOutcome.succeeded);
+  });
+
+  test('drena outbox sob o mesmo lease antes das coleções', () async {
+    final outbox = _Outbox();
+    engine = SyncEngine(
+      context: context,
+      collections: [collection],
+      lock: lock,
+      leaseStore: _LeaseStore(lease),
+      outboxDrainer: outbox,
+    );
+
+    expect(await engine.sync(), SyncOutcome.succeeded);
+    expect(outbox.drains, 1);
+    expect(lease.protectedWrites, greaterThanOrEqualTo(2));
+    expect(collection.commits, 1);
+  });
+
+  test('stop cancela request da outbox e aguarda ponto seguro', () async {
+    final outbox = _Outbox()..requestGate = Completer<void>();
+    engine = SyncEngine(
+      context: context,
+      collections: [collection],
+      lock: lock,
+      leaseStore: _LeaseStore(lease),
+      outboxDrainer: outbox,
+    );
+
+    final running = engine.sync();
+    await Future<void>.delayed(Duration.zero);
+    await engine.stop(context);
+
+    expect(outbox.cancelled, isTrue);
+    expect(await running, SyncOutcome.cancelled);
+    expect(engine.isStopped, isTrue);
+    expect(collection.commits, 0);
   });
 
   test('commit failure keeps the last safe checkpoint and releases lease', () async {

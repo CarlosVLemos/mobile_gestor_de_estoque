@@ -55,6 +55,25 @@ class RateLimitException extends ApiException {
   ]);
 }
 
+/// Structured non-success response used by domain-specific protocols. The
+/// response body is deliberately not included in [toString], because it may
+/// contain short-lived secrets such as a confirmation token.
+class ProtocolException extends ApiException {
+  const ProtocolException({
+    required this.statusCode,
+    required this.code,
+    required this.data,
+    String message = 'A operação remota exige tratamento específico.',
+  }) : super(message);
+
+  final int statusCode;
+  final String? code;
+  final Map<String, dynamic> data;
+
+  @override
+  String toString() => 'ProtocolException ($statusCode, code: $code): $message';
+}
+
 class ServerException extends ApiException {
   final int? statusCode;
 

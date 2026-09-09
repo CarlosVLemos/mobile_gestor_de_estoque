@@ -108,6 +108,7 @@ void main() {
           'email': 'maria@example.test',
           'password': 'minha-senha-secreta',
           'token': 'token-temp',
+          'confirmation_token': 'token-confirmacao-secreto',
           'client_secret': 'chave-do-cliente',
         },
       );
@@ -117,6 +118,8 @@ void main() {
       expect(logOutput, contains('email: maria@example.test'));
       expect(logOutput, contains('password: [REDACTED]'));
       expect(logOutput, contains('token: [REDACTED]'));
+      expect(logOutput, contains('confirmation_token: [REDACTED]'));
+      expect(logOutput, isNot(contains('token-confirmacao-secreto')));
       expect(logOutput, contains('client_secret: [REDACTED]'));
     });
 
@@ -263,6 +266,31 @@ void main() {
         () => apiClient.get('https://example.test'),
         throwsA(isA<RateLimitException>()),
       );
+    });
+
+    test('409 preserva code e dados sem expor token no toString', () async {
+      mockAdapter.handler = (options) {
+        return ResponseBody.fromString(
+          json.encode({
+            'code': 'requires_confirmation',
+            'confirmation_token': 'segredo',
+          }),
+          409,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
+      };
+
+      try {
+        await apiClient.post('https://example.test/sale-intents');
+        fail('Deveria ter lançado ProtocolException');
+      } on ProtocolException catch (error) {
+        expect(error.statusCode, 409);
+        expect(error.code, 'requires_confirmation');
+        expect(error.data['confirmation_token'], 'segredo');
+        expect(error.toString(), isNot(contains('segredo')));
+      }
     });
 
     test('Mapeamento de 5xx Server Error', () async {

@@ -140,6 +140,8 @@ class AuthController extends Notifier<AuthState> {
                 canViewProducts: value.permissions['products_view'] == true,
                 canViewFinancialMetrics:
                     value.permissions['view_financial_metrics'] == true,
+                hasSalesFeature: value.features.contains('sales'),
+                canCreateSales: value.permissions['sales_create'] == true,
               );
           ref.read(activeSyncContextProvider.notifier).state = context;
           ref.invalidate(contextSyncEngineProvider);

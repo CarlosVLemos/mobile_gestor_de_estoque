@@ -6,6 +6,7 @@ import 'sync_exception.dart';
 import 'sync_lease.dart';
 import 'sync_lifecycle.dart';
 import 'sync_lock.dart';
+import 'outbox_drainer.dart';
 import 'sync_state.dart';
 
 /// Executes finite, ordered rounds for exactly one local user/tenant context.
@@ -15,6 +16,7 @@ class SyncEngine implements SyncLifecycle {
     required List<SyncCollection> collections,
     required this.lock,
     required this.leaseStore,
+    this.outboxDrainer,
     DateTime Function()? now,
     this.resumeCooldown = const Duration(minutes: 5),
     this.stopTimeout = const Duration(seconds: 10),
@@ -31,6 +33,7 @@ class SyncEngine implements SyncLifecycle {
   final List<SyncCollection> _collections;
   final SyncLock lock;
   final SyncLeaseStore leaseStore;
+  final OutboxDrainer? outboxDrainer;
   final DateTime Function() _now;
   final Duration resumeCooldown;
   final Duration stopTimeout;
@@ -58,6 +61,7 @@ class SyncEngine implements SyncLifecycle {
         cancellable.cancelPendingRequest();
       }
     }
+    outboxDrainer?.cancel();
   }
 
   void _emit(SyncState value) {
@@ -108,12 +112,20 @@ class SyncEngine implements SyncLifecycle {
           } on SyncLeaseLost {
             _ownershipLost = true;
             _cancelled = true;
+            outboxDrainer?.cancel();
           } catch (_) {
             _ownershipLost = true;
             _cancelled = true;
+            outboxDrainer?.cancel();
           }
         },
       );
+      final drainer = outboxDrainer;
+      if (drainer != null && !_cancelled) {
+        await lease.renew();
+        if (!_cancelled) await drainer.drain(protect: lease.protect);
+        await lease.renew();
+      }
       for (final collection in _collections) {
         if (_cancelled) break;
         final completed = await _runCollection(collection, lease, pages);

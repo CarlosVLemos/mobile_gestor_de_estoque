@@ -44,12 +44,12 @@ void main() {
     await database.close();
   });
 
-  test('banco novo cria o schema v3 completo', () async {
+  test('banco novo cria o schema v4 completo', () async {
     final rows = await database.customSelect(
       "SELECT name FROM sqlite_master WHERE type = 'table'",
     ).get();
 
-    expect(database.schemaVersion, 3);
+    expect(database.schemaVersion, 4);
     expect(
       rows.map((row) => row.read<String>('name')),
       containsAll(<String>[
@@ -59,6 +59,8 @@ void main() {
         'dashboard_snapshots',
         'sync_collections',
         'sync_locks',
+        'local_sales',
+        'local_sale_items',
       ]),
     );
   });
@@ -157,7 +159,7 @@ void main() {
     expect(stored?.totalReceived, 42);
   });
 
-  test('migração v1 para v3 preserva linha pendente da sync_outbox', () async {
+  test('migração v1 para v4 preserva linha pendente da sync_outbox', () async {
     final directory = await Directory.systemTemp.createTemp('arara-v1-to-v2-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
     final legacy = sqlite3.open(file.path);
@@ -179,7 +181,7 @@ void main() {
 
       expect(pending.id, 'sale-pending');
       expect(pending.status, 'pending');
-      expect(version.read<int>('user_version'), 3);
+      expect(version.read<int>('user_version'), 4);
       expect(
         tables.map((row) => row.read<String>('name')),
         containsAll(<String>[
@@ -189,6 +191,8 @@ void main() {
           'dashboard_snapshots',
           'sync_collections',
           'sync_locks',
+          'local_sales',
+          'local_sale_items',
         ]),
       );
     } finally {
@@ -197,7 +201,7 @@ void main() {
     }
   });
 
-  test('migração v2 para v3 preserva 009A e adiciona sync_locks', () async {
+  test('migração v2 para v4 preserva 009A e adiciona schema 010', () async {
     final directory = await Directory.systemTemp.createTemp('arara-v2-to-v3-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
     final legacy = sqlite3.open(file.path);
@@ -223,9 +227,103 @@ void main() {
     }
   });
 
+  test('migração v3 para v4 preserva e evolui a sync_outbox', () async {
+    final directory = await Directory.systemTemp.createTemp('arara-v3-to-v4-');
+    final file = File('${directory.path}${Platform.pathSeparator}context.db');
+    final legacy = sqlite3.open(file.path);
+    legacy
+      ..execute(
+        'CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)',
+      )
+      ..execute(
+        'CREATE TABLE categories (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL)',
+      )
+      ..execute(
+        'CREATE TABLE products (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, sku TEXT NOT NULL, brand TEXT, price REAL, stock_quantity INTEGER NOT NULL, stock_status TEXT NOT NULL, is_available_for_sale INTEGER NOT NULL, image_url TEXT, category_id TEXT, remote_updated_at INTEGER, deleted_at INTEGER)',
+      )
+      ..execute(
+        'CREATE TABLE dashboard_snapshots (scope_key TEXT NOT NULL PRIMARY KEY, period TEXT NOT NULL, group_by TEXT NOT NULL, page INTEGER NOT NULL, revision TEXT NOT NULL, generated_at INTEGER NOT NULL, reference_date TEXT NOT NULL, web_dashboard_url TEXT NOT NULL, can_view_financial INTEGER NOT NULL, payload_json TEXT NOT NULL)',
+      )
+      ..execute(
+        'CREATE TABLE sync_collections (collection TEXT NOT NULL PRIMARY KEY, mode TEXT NOT NULL, cursor TEXT, checkpoint TEXT, target_checkpoint TEXT, revision TEXT, last_success_at INTEGER, is_bootstrapped INTEGER NOT NULL, total_received INTEGER NOT NULL, last_error TEXT)',
+      )
+      ..execute(
+        'CREATE TABLE sync_locks (name TEXT NOT NULL PRIMARY KEY, owner_id TEXT NOT NULL, acquired_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)',
+      )
+      ..execute(
+        "INSERT INTO sync_outbox VALUES ('legacy-pending', 'pending')",
+      )
+      ..execute("INSERT INTO categories VALUES ('1', 'Categoria')")
+      ..execute(
+        "INSERT INTO products VALUES ('2', 'Produto', 'SKU-2', NULL, NULL, 1, 'available', 1, NULL, '1', NULL, NULL)",
+      )
+      ..execute(
+        "INSERT INTO dashboard_snapshots VALUES ('day:2026-09:1', '2026-09', 'day', 1, 'r1', 1, '2026-09-09', 'https://example.test', 0, '{}')",
+      )
+      ..execute(
+        "INSERT INTO sync_collections VALUES ('products', 'delta', 'cursor', NULL, NULL, NULL, NULL, 1, 1, NULL)",
+      )
+      ..execute("INSERT INTO sync_locks VALUES ('global', 'owner', 1, 2)")
+      ..execute('PRAGMA user_version = 3')
+      ..close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    try {
+      final row = await upgraded.select(upgraded.syncOutbox).getSingle();
+      expect(row.id, 'legacy-pending');
+      expect(row.status, 'pending');
+      expect(row.operationType, 'legacy_unknown');
+      expect(row.clientRequestId, isNull);
+      expect(row.payloadJson, '{}');
+      expect(row.payloadVersion, 1);
+      expect(row.attempts, 0);
+      expect(
+        await upgraded.customSelect('SELECT id FROM products').get(),
+        hasLength(1),
+      );
+      expect(
+        await upgraded.customSelect('SELECT scope_key FROM dashboard_snapshots').get(),
+        hasLength(1),
+      );
+      expect((await upgraded.readSyncCollection('products'))?.cursor, 'cursor');
+      expect(
+        await upgraded.customSelect('SELECT name FROM sync_locks').get(),
+        hasLength(1),
+      );
+      final indexes = await upgraded.customSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'index'",
+      ).get();
+      expect(
+        indexes.map((row) => row.read<String>('name')),
+        containsAll(<String>[
+          'sync_outbox_client_request_id_unique',
+          'sync_outbox_local_operation_id_unique',
+          'sync_outbox_eligibility',
+        ]),
+      );
+      await upgraded.customStatement(
+        "INSERT INTO sync_outbox (id, status, client_request_id) VALUES ('new-1', 'pending', 'duplicate')",
+      );
+      await expectLater(
+        upgraded.customStatement(
+          "INSERT INTO sync_outbox (id, status, client_request_id) VALUES ('new-2', 'pending', 'duplicate')",
+        ),
+        throwsA(isA<SqliteException>()),
+      );
+      expect(await upgraded.select(upgraded.localSalesTable).get(), isEmpty);
+      expect(
+        await upgraded.select(upgraded.localSaleItemsTable).get(),
+        isEmpty,
+      );
+    } finally {
+      await upgraded.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('future migration without an explicit path fails closed', () async {
     await expectLater(
-      database.migration.onUpgrade(Migrator(database), 3, 4),
+      database.migration.onUpgrade(Migrator(database), 4, 5),
       throwsA(isA<StateError>()),
     );
   });

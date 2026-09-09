@@ -22,6 +22,7 @@ class RedactionInterceptor extends Interceptor {
     'set-cookie',
     'password',
     'token',
+    'confirmation_token',
     'client_secret',
   };
 

@@ -2,24 +2,23 @@
 
 ## Status
 
-Planejada em 18 de junho de 2026. Não implementada.
+`IN PROGRESS` — Fase A autorizada em 9 de setembro de 2026.
 
 ## Escopo pretendido
 
-- Modelagem física no Drift das tabelas `SalesTable` e `OutboxEventsTable` (com suporte a versões de payload, contagem de tentativas e tempo de backoff);
+- Evolução não destrutiva da `sync_outbox` existente e criação de `local_sales`/`local_sale_items`;
 - Geração de código do Drift correspondente;
 - Implementação de `DriftSalesRepository` para gravação de transações locais e enfileiramento na Outbox em transação única atômica (SQLite);
 - Criação de `OutboxProcessor` para drenagem em lote ordenada e sequencial dos itens na fila;
-- Conexão do `OutboxProcessor` com `ApiClient` anexando cabeçalho de idempotência `X-Request-ID` usando o identificador único do evento;
+- Conexão do `OutboxProcessor` com `ApiClient` usando `client_request_id` no payload persistido;
 - Algoritmo de backoff exponencial com ruído aleatório (jitter) para retentativas de rede;
 - Exibição na UI dos estados canônicos de sincronização por pílulas no card de venda;
 - Suíte de testes integrados e unitários cobrindo resiliência offline e idempotência de reenvio.
 
 ## Gate de implementação
 
-FECHADO.
-
-Esta especificação define o mecanismo de resiliência e envio em segundo plano das vendas locais (Outbox). Nenhum código de negócio está liberado para escrita.
+ABERTO PARA FASE A conforme `contract.md`. Clientes reais e recuperação do
+token de confirmação permanecem bloqueados por `HANDOFF-010-BACKEND`.
 
 ## Fontes consultadas
 
@@ -36,8 +35,10 @@ Esta especificação define o mecanismo de resiliência e envio em segundo plano
 
 ## Pontos curtos a refinar antes de aprovar a spec
 
-- Esclarecer sobre o limite de tentativas: após atingir o limite de 5 tentativas sem sucesso em erros temporários, o status deve progredir de `failed_retryable` para `failed_permanent`, exigindo reprocessamento manual ou limpeza por parte do usuário.
+- Não existe limite artificial de cinco retentativas de transporte; a regra de
+  cinco tentativas pertence ao token de confirmação no backend.
 
 ## Veredito
 
-Especificação detalhada e alinhada com as melhores práticas de persistência resiliente. O gate permanece fechado.
+Contrato da Fase A congelado. A spec permanece em progresso até o handoff
+backend e o gate de validação de Mefisto.

@@ -19,6 +19,8 @@ import '../features/catalog/presentation/controllers/catalog_controller.dart';
 import '../features/dashboard/presentation/controllers/dashboard_controller.dart';
 import '../features/sales/presentation/controllers/pending_sales_controller.dart';
 import '../features/sales/presentation/controllers/sales_controller.dart';
+import '../features/sales/application/outbox_processor.dart';
+import '../features/sales/sales_sync_composition.dart';
 import '../features/settings/presentation/controllers/operational_context_controller.dart';
 import 'shell/shell_profile.dart';
 
@@ -41,11 +43,15 @@ class OperationalReadAccess {
     required this.hasCatalogFeature,
     required this.canViewProducts,
     required this.canViewFinancialMetrics,
+    required this.hasSalesFeature,
+    required this.canCreateSales,
   });
 
   final bool hasCatalogFeature;
   final bool canViewProducts;
   final bool canViewFinancialMetrics;
+  final bool hasSalesFeature;
+  final bool canCreateSales;
 }
 
 final activeSyncContextProvider = StateProvider<LocalContext?>((ref) => null);
@@ -57,6 +63,23 @@ final operationalReadAccessProvider = StateProvider<OperationalReadAccess?>(
 /// The current database exists only after authentication opened its scoped
 /// context. Feature repositories and collections never fall back to fixtures.
 final operationalDatabaseProvider = Provider<AppDatabase?>((ref) => ref.watch(databaseFactoryProvider).activeDatabase);
+
+/// Context-bound sales worker. It is shared by automatic draining and the
+/// future explicit acceptance UI, without capturing [Ref] inside the worker.
+final contextOutboxProcessorProvider = Provider<OutboxProcessor?>((ref) {
+  final database = ref.watch(operationalDatabaseProvider);
+  final accessToken = ref.watch(activeAccessTokenProvider);
+  if (database == null || accessToken == null || accessToken.isEmpty) {
+    return null;
+  }
+  final processor = buildSalesOutboxProcessor(
+    database: database,
+    api: ref.watch(apiClientProvider),
+    accessToken: accessToken,
+  );
+  ref.onDispose(processor.cancel);
+  return processor;
+});
 
 final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
   final database = ref.watch(operationalDatabaseProvider);
@@ -101,6 +124,7 @@ final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
     ],
     lock: SyncLock(),
     leaseStore: DriftSyncLeaseStore(database: database),
+    outboxDrainer: ref.watch(contextOutboxProcessorProvider),
   );
   lifecycle.register(engine);
   return engine;
@@ -122,6 +146,7 @@ final contextStateInvalidatorProvider = Provider<ContextStateInvalidator>((
     ref.invalidate(operationalContextControllerProvider);
     ref.invalidate(shellDisplayNameControllerProvider);
     ref.invalidate(contextSyncEngineProvider);
+    ref.invalidate(contextOutboxProcessorProvider);
     ref.invalidate(operationalDatabaseProvider);
     ref.read(activeSyncContextProvider.notifier).state = null;
     ref.read(activeAccessTokenProvider.notifier).state = null;

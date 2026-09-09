@@ -29,7 +29,7 @@ void main() {
   test('an active product clears an existing tombstone and upserts its category', () async {
     final collection = ProductSyncCollection(database: database, remote: _Remote(_page(hasMore: false)));
     await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
-    final deleteCollection = ProductSyncCollection(database: database, remote: _Remote(_page(hasMore: false, products: const [], tombstones: const [_Tombstone('p', '2026-09-10T12:00:00Z')])));
+    final deleteCollection = ProductSyncCollection(database: database, remote: _Remote(_page(hasMore: false, products: const [], tombstones: const [_Tombstone('1', '2026-09-10T12:00:00Z')])));
     await deleteCollection.commitPage(await deleteCollection.fetchPage(const SyncCheckpoint()));
     expect((await database.select(database.productsTable).getSingle()).deletedAt, isNotNull);
     await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
@@ -67,7 +67,7 @@ void main() {
         hasMore: false,
         products: const [
           {
-            'id': 'no-category',
+            'id': '3',
             'name': 'Produto sem categoria',
             'sku': 'SKU-NONE',
             'brand': null,
@@ -96,7 +96,7 @@ void main() {
         hasMore: false,
         products: [
           {
-            'id': 'priced',
+            'id': '4',
             'name': 'Produto',
             'sku': 'SKU-PRICE',
             'brand': null,
@@ -130,7 +130,7 @@ class _Remote extends ProductRemoteDataSource {
 }
 
 Map<String, dynamic> _page({required bool hasMore, List<Map<String, dynamic>>? products, List<_Tombstone> tombstones = const []}) => {
-  'data': products ?? [{'id': 'p', 'name': 'Produto', 'sku': 'SKU', 'brand': null, 'price': null, 'stock_quantity': 1, 'stock_status': 'available', 'is_available_for_sale': true, 'image_url': null, 'updated_at': null, 'category': {'id': 'c', 'name': 'Categoria'}}],
+  'data': products ?? [{'id': '1', 'name': 'Produto', 'sku': 'SKU', 'brand': null, 'price': null, 'stock_quantity': 1, 'stock_status': 'available', 'is_available_for_sale': true, 'image_url': null, 'updated_at': null, 'category': {'id': '2', 'name': 'Categoria'}}],
   'tombstones': [for (final tombstone in tombstones) {'id': tombstone.id, 'deleted_at': tombstone.deletedAt}],
   'meta': {'next_cursor': hasMore ? 'opaque+cursor' : null, 'has_more': hasMore, 'target_checkpoint': '2026-09-09T12:00:00Z'},
 };

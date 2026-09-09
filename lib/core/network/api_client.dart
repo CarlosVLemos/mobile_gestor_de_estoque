@@ -141,6 +141,19 @@ class ApiClient {
           );
         case 429:
           return const RateLimitException();
+        case 409:
+        case 410:
+          return ProtocolException(
+            statusCode: statusCode,
+            code: _codeFrom(response.data),
+            data: response.data is Map
+                ? Map<String, dynamic>.from(response.data as Map)
+                : const {},
+            message: _messageFrom(
+              response.data,
+              'A operação remota não pôde ser concluída.',
+            ),
+          );
         default:
           if (statusCode >= 500) {
             return ServerException(statusCode: statusCode);
@@ -152,12 +165,12 @@ class ApiClient {
   }
 
   String? _codeFrom(dynamic data) =>
-      data is Map<String, dynamic> && data['code'] is String
+      data is Map && data['code'] is String
       ? data['code'] as String
       : null;
 
   String _messageFrom(dynamic data, String fallback) =>
-      data is Map<String, dynamic> && data['message'] is String
+      data is Map && data['message'] is String
       ? data['message'] as String
       : fallback;
 }

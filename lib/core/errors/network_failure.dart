@@ -107,6 +107,7 @@ extension ApiExceptionToNetworkFailure on ApiException {
       RateLimitException(:final message) => NetworkFailure.rateLimited(
         message: message,
       ),
+      ProtocolException(:final message) => NetworkFailure.unknown(message),
       ServerException(:final message) => NetworkFailure.server(
         message: message,
       ),
