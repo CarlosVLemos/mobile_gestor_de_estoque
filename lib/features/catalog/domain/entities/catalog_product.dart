@@ -18,7 +18,7 @@ class CatalogProduct {
   final String id;
   final String name;
   final String sku;
-  final String brand;
+  final String? brand;
   final int stockQuantity;
   final CatalogStockStatus stockStatus;
   final bool isAvailableForSale;

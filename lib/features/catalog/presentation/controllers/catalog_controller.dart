@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/ui_states/view_status.dart';
+import '../../../../app/local_context_lifecycle.dart';
+import '../../../../core/sync/sync_state.dart';
 import '../../catalog_providers.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../state/catalog_state.dart';
@@ -11,12 +14,17 @@ final catalogControllerProvider =
 class CatalogController extends Notifier<CatalogState> {
   var _initialized = false;
   var _requestSequence = 0;
+  StreamSubscription<CatalogLoadResult>? _localSubscription;
 
   @override
   CatalogState build() {
     if (!_initialized) {
       _initialized = true;
-      Future<void>.microtask(load);
+      Future<void>.microtask(() async {
+        await _watchLocal();
+        await load();
+      });
+      ref.onDispose(() => _localSubscription?.cancel());
     }
     return CatalogState.initial();
   }
@@ -47,7 +55,24 @@ class CatalogController extends Notifier<CatalogState> {
     final query = state.query;
     state = state.copyWith(status: ViewStatus.refreshing, clearMessage: true);
     try {
-      final result = await ref.read(loadCatalogUseCaseProvider).call(query);
+      final engine = ref.read(contextSyncEngineProvider);
+      final outcome = engine == null
+          ? SyncOutcome.succeeded
+          : await engine.sync(trigger: SyncTrigger.manual);
+      final loaded = await ref.read(loadCatalogUseCaseProvider).call(query);
+      final result = outcome == SyncOutcome.succeeded || outcome == SyncOutcome.busy
+          ? loaded
+          : loaded.items.isEmpty
+          ? CatalogLoadResult.failure(
+              message: 'Não foi possível atualizar o catálogo.',
+              items: const [],
+              categories: loaded.categories,
+            )
+          : CatalogLoadResult.offline(
+              message: 'Não foi possível atualizar o catálogo. Exibindo os dados locais.',
+              items: loaded.items,
+              categories: loaded.categories,
+            );
       if (requestId != _requestSequence) {
         return;
       }
@@ -62,6 +87,7 @@ class CatalogController extends Notifier<CatalogState> {
 
   Future<void> updateSearch(String search) async {
     state = state.copyWith(query: state.query.copyWith(search: search));
+    await _watchLocal();
     await load();
   }
 
@@ -72,7 +98,15 @@ class CatalogController extends Notifier<CatalogState> {
         clearCategory: category == 'Todos',
       ),
     );
+    await _watchLocal();
     await load();
+  }
+
+  Future<void> _watchLocal() async {
+    await _localSubscription?.cancel();
+    final repository = ref.read(catalogRepositoryProvider);
+    if (repository is! ReactiveCatalogRepository) return;
+    _localSubscription = repository.watch(state.query).listen(_applyResult);
   }
 
   void _applyResult(CatalogLoadResult result) {

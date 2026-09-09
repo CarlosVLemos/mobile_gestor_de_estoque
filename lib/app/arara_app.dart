@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'localization/app_strings.dart';
+import 'context_sync_scope.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_theme_mode_controller.dart';
@@ -20,6 +21,9 @@ class AraraApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) => ContextSyncScope(
+        child: child ?? const SizedBox.shrink(),
+      ),
     );
   }
 }

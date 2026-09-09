@@ -44,3 +44,7 @@ class DashboardLoadResult {
 abstract class DashboardRepository {
   Future<DashboardLoadResult> load();
 }
+
+abstract interface class ReactiveDashboardRepository implements DashboardRepository {
+  Stream<DashboardLoadResult> watch();
+}

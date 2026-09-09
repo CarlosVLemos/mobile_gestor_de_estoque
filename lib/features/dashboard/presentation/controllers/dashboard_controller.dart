@@ -1,4 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../app/local_context_lifecycle.dart';
+import '../../../../core/sync/sync_state.dart';
 
 import '../../dashboard_providers.dart';
 import '../../domain/repositories/dashboard_repository.dart';
@@ -12,12 +16,18 @@ final dashboardControllerProvider =
 class DashboardController extends Notifier<DashboardState> {
   var _initialized = false;
   var _requestSequence = 0;
+  StreamSubscription<DashboardLoadResult>? _localSubscription;
 
   @override
   DashboardState build() {
     if (!_initialized) {
       _initialized = true;
       Future<void>.microtask(load);
+      final repository = ref.read(dashboardRepositoryProvider);
+      if (repository is ReactiveDashboardRepository) {
+        _localSubscription = repository.watch().listen(_applyResult);
+      }
+      ref.onDispose(() => _localSubscription?.cancel());
     }
     return const DashboardState.initial();
   }
@@ -49,7 +59,19 @@ class DashboardController extends Notifier<DashboardState> {
         ? const DashboardState.loading()
         : DashboardState.refreshing(current);
     try {
-      final result = await ref.read(loadDashboardUseCaseProvider).call();
+      final engine = ref.read(contextSyncEngineProvider);
+      final outcome = engine == null
+          ? SyncOutcome.succeeded
+          : await engine.sync(trigger: SyncTrigger.manual);
+      final loaded = await ref.read(loadDashboardUseCaseProvider).call();
+      final result = outcome == SyncOutcome.succeeded || outcome == SyncOutcome.busy
+          ? loaded
+          : loaded.overview == null
+          ? const DashboardLoadResult.failure('Não foi possível atualizar o painel.')
+          : DashboardLoadResult.offline(
+              'Não foi possível atualizar o painel. Exibindo os dados locais.',
+              overview: loaded.overview,
+            );
       if (requestId != _requestSequence) {
         return;
       }

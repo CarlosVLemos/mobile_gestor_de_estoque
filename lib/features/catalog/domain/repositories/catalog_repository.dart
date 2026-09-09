@@ -103,3 +103,7 @@ class CatalogLoadResult {
 abstract class CatalogRepository {
   Future<CatalogLoadResult> load(CatalogQuery query);
 }
+
+abstract interface class ReactiveCatalogRepository implements CatalogRepository {
+  Stream<CatalogLoadResult> watch(CatalogQuery query);
+}

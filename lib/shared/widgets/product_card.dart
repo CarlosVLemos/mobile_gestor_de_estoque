@@ -23,7 +23,7 @@ class ProductCardData {
 
   final String name;
   final String sku;
-  final String brand;
+  final String? brand;
   final int stockQuantity;
   final ProductCardStockTone stockTone;
   final bool availableForSale;
@@ -80,7 +80,7 @@ class ProductCard extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxs),
         Text(
-          '${product.brand} • ${product.sku}',
+          '${product.brand ?? '—'} • ${product.sku}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: context.textTheme.bodySmall?.copyWith(

@@ -13,8 +13,8 @@ class SyncEngine implements SyncLifecycle {
   SyncEngine({
     required this.context,
     required List<SyncCollection> collections,
-    required this._lock,
-    required this._leaseStore,
+    required this.lock,
+    required this.leaseStore,
     DateTime Function()? now,
     this.resumeCooldown = const Duration(minutes: 5),
     this.stopTimeout = const Duration(seconds: 10),
@@ -29,8 +29,8 @@ class SyncEngine implements SyncLifecycle {
   static const defaultHeartbeatInterval = Duration(seconds: 30);
   final LocalContext context;
   final List<SyncCollection> _collections;
-  final SyncLock _lock;
-  final SyncLeaseStore _leaseStore;
+  final SyncLock lock;
+  final SyncLeaseStore leaseStore;
   final DateTime Function() _now;
   final Duration resumeCooldown;
   final Duration stopTimeout;
@@ -67,18 +67,18 @@ class SyncEngine implements SyncLifecycle {
 
   Future<SyncOutcome> sync({SyncTrigger trigger = SyncTrigger.manual}) {
     if (_stopping || _stopped) return Future.value(SyncOutcome.stopped);
-    if (_activeRun != null || !_lock.tryAcquire()) return Future.value(SyncOutcome.busy);
+    if (_activeRun != null || !lock.tryAcquire()) return Future.value(SyncOutcome.busy);
     final lastFinished = _lastFinishedAt;
     if (trigger == SyncTrigger.resumed &&
         lastFinished != null &&
         _now().difference(lastFinished) <= resumeCooldown) {
-      _lock.release();
+      lock.release();
       return Future.value(SyncOutcome.throttled);
     }
     late final Future<SyncOutcome> run;
     run = _run().whenComplete(() {
       if (identical(_activeRun, run)) _activeRun = null;
-      _lock.release();
+      lock.release();
     });
     _activeRun = run;
     return run;
@@ -94,7 +94,7 @@ class SyncEngine implements SyncLifecycle {
     var outcome = SyncOutcome.failed;
     SyncFailureKind? failure;
     try {
-      lease = await _leaseStore.tryAcquire();
+      lease = await leaseStore.tryAcquire();
       if (lease == null) {
         outcome = SyncOutcome.busy;
         return outcome;

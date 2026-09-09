@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/local_context_lifecycle.dart';
 import '../../../../core/database/local_context.dart';
 import '../../../../core/network/session_invalidation_signal.dart';
 import '../../../../core/result/result.dart';
+import '../../../../core/sync/sync_state.dart';
 import '../../auth_providers.dart';
 import '../../domain/entities/auth_failure.dart';
 import '../../domain/entities/user_session.dart';
@@ -112,6 +114,9 @@ class AuthController extends Notifier<AuthState> {
               .open(
                 LocalContext(userId: value.userId, tenantId: value.tenantId),
               );
+          ref.invalidate(operationalDatabaseProvider);
+          final engine = ref.read(contextSyncEngineProvider);
+          if (engine != null) unawaited(engine.sync(trigger: SyncTrigger.startup));
           state = AuthState(
             status: value.mustChangePassword
                 ? AuthStatus.passwordChangeRequired
