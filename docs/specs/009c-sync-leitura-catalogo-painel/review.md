@@ -2,7 +2,7 @@
 
 ## Status
 
-`BLOCKED` por dependências 009A/009B. O contrato remoto está `FROZEN`.
+`IMPLEMENTED` — 009A/009B foram entregues e a 009C foi integrada ao engine contextual.
 
 ## Auditoria backend
 
@@ -18,8 +18,8 @@ A UI continuará lendo Drift. HTTP apenas reconcilia o armazenamento local; falh
 
 ## Gate
 
-Contrato remoto `FROZEN`, implementação FECHADA até 009A e 009B concluídas.
+Contrato remoto `FROZEN`; alterações posteriores exigem Change Request.
 
 ## Veredito
 
-`BLOCKED` somente por dependência. Não há campo remoto inventado conhecido após a auditoria.
+Implementação concluída sem alterar backend, schema, SyncEngine ou outbox.

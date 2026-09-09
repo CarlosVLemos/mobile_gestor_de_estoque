@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,7 +21,9 @@ void main() {
     await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
     final row = await database.watchDashboardSnapshot('day:2026-09:1').first;
     expect(row!.revision, 'r-1');
-    expect(row.payloadJson, contains('"value":null'));
+    final payload = jsonDecode(row.payloadJson) as Map<String, dynamic>;
+    final kpis = payload['kpis'] as Map<String, dynamic>;
+    expect(kpis['monthly_revenue'], isNull);
     expect(await database.watchDashboardSnapshot('week:2026-09:1').first, isNull);
   });
 

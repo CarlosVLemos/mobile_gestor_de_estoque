@@ -2,7 +2,7 @@
 
 ## Status
 
-`blocked` por dependência: requer 009A e 009B implementadas. O contrato remoto foi auditado e congelado.
+`done` — 009A e 009B foram entregues; a leitura local-first de catálogo e dashboard está integrada ao SyncEngine.
 
 ## Backend auditado
 

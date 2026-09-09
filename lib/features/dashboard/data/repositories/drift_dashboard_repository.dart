@@ -181,5 +181,5 @@ double _number(Object? value) => value is num && value.isFinite
     : 0;
 
 String _moneyFromCents(Object? value) => value is num
-    ? 'R$ ${(value / 100).toStringAsFixed(2)}'
+    ? 'R\$ ${(value / 100).toStringAsFixed(2)}'
     : '—';
