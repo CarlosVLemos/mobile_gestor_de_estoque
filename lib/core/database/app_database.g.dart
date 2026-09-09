@@ -2441,6 +2441,321 @@ class SyncCollectionsTableCompanion
   }
 }
 
+class $SyncLocksTableTable extends SyncLocksTable
+    with TableInfo<$SyncLocksTableTable, StoredSyncLock> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncLocksTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerIdMeta = const VerificationMeta(
+    'ownerId',
+  );
+  @override
+  late final GeneratedColumn<String> ownerId = GeneratedColumn<String>(
+    'owner_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _acquiredAtMeta = const VerificationMeta(
+    'acquiredAt',
+  );
+  @override
+  late final GeneratedColumn<int> acquiredAt = GeneratedColumn<int>(
+    'acquired_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<int> expiresAt = GeneratedColumn<int>(
+    'expires_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [name, ownerId, acquiredAt, expiresAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_locks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredSyncLock> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('owner_id')) {
+      context.handle(
+        _ownerIdMeta,
+        ownerId.isAcceptableOrUnknown(data['owner_id']!, _ownerIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ownerIdMeta);
+    }
+    if (data.containsKey('acquired_at')) {
+      context.handle(
+        _acquiredAtMeta,
+        acquiredAt.isAcceptableOrUnknown(data['acquired_at']!, _acquiredAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_acquiredAtMeta);
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {name};
+  @override
+  StoredSyncLock map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredSyncLock(
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      ownerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_id'],
+      )!,
+      acquiredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}acquired_at'],
+      )!,
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}expires_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SyncLocksTableTable createAlias(String alias) {
+    return $SyncLocksTableTable(attachedDatabase, alias);
+  }
+}
+
+class StoredSyncLock extends DataClass implements Insertable<StoredSyncLock> {
+  final String name;
+  final String ownerId;
+  final int acquiredAt;
+  final int expiresAt;
+  const StoredSyncLock({
+    required this.name,
+    required this.ownerId,
+    required this.acquiredAt,
+    required this.expiresAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['name'] = Variable<String>(name);
+    map['owner_id'] = Variable<String>(ownerId);
+    map['acquired_at'] = Variable<int>(acquiredAt);
+    map['expires_at'] = Variable<int>(expiresAt);
+    return map;
+  }
+
+  SyncLocksTableCompanion toCompanion(bool nullToAbsent) {
+    return SyncLocksTableCompanion(
+      name: Value(name),
+      ownerId: Value(ownerId),
+      acquiredAt: Value(acquiredAt),
+      expiresAt: Value(expiresAt),
+    );
+  }
+
+  factory StoredSyncLock.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredSyncLock(
+      name: serializer.fromJson<String>(json['name']),
+      ownerId: serializer.fromJson<String>(json['ownerId']),
+      acquiredAt: serializer.fromJson<int>(json['acquiredAt']),
+      expiresAt: serializer.fromJson<int>(json['expiresAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'ownerId': serializer.toJson<String>(ownerId),
+      'acquiredAt': serializer.toJson<int>(acquiredAt),
+      'expiresAt': serializer.toJson<int>(expiresAt),
+    };
+  }
+
+  StoredSyncLock copyWith({
+    String? name,
+    String? ownerId,
+    int? acquiredAt,
+    int? expiresAt,
+  }) => StoredSyncLock(
+    name: name ?? this.name,
+    ownerId: ownerId ?? this.ownerId,
+    acquiredAt: acquiredAt ?? this.acquiredAt,
+    expiresAt: expiresAt ?? this.expiresAt,
+  );
+  StoredSyncLock copyWithCompanion(SyncLocksTableCompanion data) {
+    return StoredSyncLock(
+      name: data.name.present ? data.name.value : this.name,
+      ownerId: data.ownerId.present ? data.ownerId.value : this.ownerId,
+      acquiredAt: data.acquiredAt.present
+          ? data.acquiredAt.value
+          : this.acquiredAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredSyncLock(')
+          ..write('name: $name, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('acquiredAt: $acquiredAt, ')
+          ..write('expiresAt: $expiresAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(name, ownerId, acquiredAt, expiresAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredSyncLock &&
+          other.name == this.name &&
+          other.ownerId == this.ownerId &&
+          other.acquiredAt == this.acquiredAt &&
+          other.expiresAt == this.expiresAt);
+}
+
+class SyncLocksTableCompanion extends UpdateCompanion<StoredSyncLock> {
+  final Value<String> name;
+  final Value<String> ownerId;
+  final Value<int> acquiredAt;
+  final Value<int> expiresAt;
+  final Value<int> rowid;
+  const SyncLocksTableCompanion({
+    this.name = const Value.absent(),
+    this.ownerId = const Value.absent(),
+    this.acquiredAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncLocksTableCompanion.insert({
+    required String name,
+    required String ownerId,
+    required int acquiredAt,
+    required int expiresAt,
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       ownerId = Value(ownerId),
+       acquiredAt = Value(acquiredAt),
+       expiresAt = Value(expiresAt);
+  static Insertable<StoredSyncLock> custom({
+    Expression<String>? name,
+    Expression<String>? ownerId,
+    Expression<int>? acquiredAt,
+    Expression<int>? expiresAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (ownerId != null) 'owner_id': ownerId,
+      if (acquiredAt != null) 'acquired_at': acquiredAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncLocksTableCompanion copyWith({
+    Value<String>? name,
+    Value<String>? ownerId,
+    Value<int>? acquiredAt,
+    Value<int>? expiresAt,
+    Value<int>? rowid,
+  }) {
+    return SyncLocksTableCompanion(
+      name: name ?? this.name,
+      ownerId: ownerId ?? this.ownerId,
+      acquiredAt: acquiredAt ?? this.acquiredAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (ownerId.present) {
+      map['owner_id'] = Variable<String>(ownerId.value);
+    }
+    if (acquiredAt.present) {
+      map['acquired_at'] = Variable<int>(acquiredAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<int>(expiresAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncLocksTableCompanion(')
+          ..write('name: $name, ')
+          ..write('ownerId: $ownerId, ')
+          ..write('acquiredAt: $acquiredAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2453,6 +2768,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $DashboardSnapshotsTableTable(this);
   late final $SyncCollectionsTableTable syncCollectionsTable =
       $SyncCollectionsTableTable(this);
+  late final $SyncLocksTableTable syncLocksTable = $SyncLocksTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2463,6 +2779,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     productsTable,
     dashboardSnapshotsTable,
     syncCollectionsTable,
+    syncLocksTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4005,6 +4322,200 @@ typedef $$SyncCollectionsTableTableProcessedTableManager =
       StoredSyncCollection,
       PrefetchHooks Function()
     >;
+typedef $$SyncLocksTableTableCreateCompanionBuilder =
+    SyncLocksTableCompanion Function({
+      required String name,
+      required String ownerId,
+      required int acquiredAt,
+      required int expiresAt,
+      Value<int> rowid,
+    });
+typedef $$SyncLocksTableTableUpdateCompanionBuilder =
+    SyncLocksTableCompanion Function({
+      Value<String> name,
+      Value<String> ownerId,
+      Value<int> acquiredAt,
+      Value<int> expiresAt,
+      Value<int> rowid,
+    });
+
+class $$SyncLocksTableTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncLocksTableTable> {
+  $$SyncLocksTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerId => $composableBuilder(
+    column: $table.ownerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get acquiredAt => $composableBuilder(
+    column: $table.acquiredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SyncLocksTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncLocksTableTable> {
+  $$SyncLocksTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerId => $composableBuilder(
+    column: $table.ownerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get acquiredAt => $composableBuilder(
+    column: $table.acquiredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SyncLocksTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncLocksTableTable> {
+  $$SyncLocksTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerId =>
+      $composableBuilder(column: $table.ownerId, builder: (column) => column);
+
+  GeneratedColumn<int> get acquiredAt => $composableBuilder(
+    column: $table.acquiredAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+}
+
+class $$SyncLocksTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SyncLocksTableTable,
+          StoredSyncLock,
+          $$SyncLocksTableTableFilterComposer,
+          $$SyncLocksTableTableOrderingComposer,
+          $$SyncLocksTableTableAnnotationComposer,
+          $$SyncLocksTableTableCreateCompanionBuilder,
+          $$SyncLocksTableTableUpdateCompanionBuilder,
+          (
+            StoredSyncLock,
+            BaseReferences<_$AppDatabase, $SyncLocksTableTable, StoredSyncLock>,
+          ),
+          StoredSyncLock,
+          PrefetchHooks Function()
+        > {
+  $$SyncLocksTableTableTableManager(
+    _$AppDatabase db,
+    $SyncLocksTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncLocksTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncLocksTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncLocksTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> name = const Value.absent(),
+                Value<String> ownerId = const Value.absent(),
+                Value<int> acquiredAt = const Value.absent(),
+                Value<int> expiresAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SyncLocksTableCompanion(
+                name: name,
+                ownerId: ownerId,
+                acquiredAt: acquiredAt,
+                expiresAt: expiresAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String name,
+                required String ownerId,
+                required int acquiredAt,
+                required int expiresAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SyncLocksTableCompanion.insert(
+                name: name,
+                ownerId: ownerId,
+                acquiredAt: acquiredAt,
+                expiresAt: expiresAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SyncLocksTableTable, StoredSyncLock>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $SyncLocksTableTable,
+                    StoredSyncLock
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SyncLocksTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SyncLocksTableTable,
+      StoredSyncLock,
+      $$SyncLocksTableTableFilterComposer,
+      $$SyncLocksTableTableOrderingComposer,
+      $$SyncLocksTableTableAnnotationComposer,
+      $$SyncLocksTableTableCreateCompanionBuilder,
+      $$SyncLocksTableTableUpdateCompanionBuilder,
+      (
+        StoredSyncLock,
+        BaseReferences<_$AppDatabase, $SyncLocksTableTable, StoredSyncLock>,
+      ),
+      StoredSyncLock,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4022,4 +4533,6 @@ class $AppDatabaseManager {
       );
   $$SyncCollectionsTableTableTableManager get syncCollectionsTable =>
       $$SyncCollectionsTableTableTableManager(_db, _db.syncCollectionsTable);
+  $$SyncLocksTableTableTableManager get syncLocksTable =>
+      $$SyncLocksTableTableTableManager(_db, _db.syncLocksTable);
 }

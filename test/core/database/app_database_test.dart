@@ -44,12 +44,12 @@ void main() {
     await database.close();
   });
 
-  test('banco novo cria o schema v2 completo', () async {
+  test('banco novo cria o schema v3 completo', () async {
     final rows = await database.customSelect(
       "SELECT name FROM sqlite_master WHERE type = 'table'",
     ).get();
 
-    expect(database.schemaVersion, 2);
+    expect(database.schemaVersion, 3);
     expect(
       rows.map((row) => row.read<String>('name')),
       containsAll(<String>[
@@ -58,6 +58,7 @@ void main() {
         'products',
         'dashboard_snapshots',
         'sync_collections',
+        'sync_locks',
       ]),
     );
   });
@@ -156,7 +157,7 @@ void main() {
     expect(stored?.totalReceived, 42);
   });
 
-  test('migração v1 para v2 preserva linha pendente da sync_outbox', () async {
+  test('migração v1 para v3 preserva linha pendente da sync_outbox', () async {
     final directory = await Directory.systemTemp.createTemp('arara-v1-to-v2-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
     final legacy = sqlite3.open(file.path);
@@ -164,7 +165,7 @@ void main() {
       ..execute('CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)')
       ..execute("INSERT INTO sync_outbox (id, status) VALUES ('sale-pending', 'pending')")
       ..execute('PRAGMA user_version = 1')
-      ..dispose();
+      ..close();
 
     final upgraded = AppDatabase(NativeDatabase(file));
     try {
@@ -178,7 +179,7 @@ void main() {
 
       expect(pending.id, 'sale-pending');
       expect(pending.status, 'pending');
-      expect(version.read<int>('user_version'), 2);
+      expect(version.read<int>('user_version'), 3);
       expect(
         tables.map((row) => row.read<String>('name')),
         containsAll(<String>[
@@ -187,8 +188,35 @@ void main() {
           'products',
           'dashboard_snapshots',
           'sync_collections',
+          'sync_locks',
         ]),
       );
+    } finally {
+      await upgraded.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('migração v2 para v3 preserva 009A e adiciona sync_locks', () async {
+    final directory = await Directory.systemTemp.createTemp('arara-v2-to-v3-');
+    final file = File('${directory.path}${Platform.pathSeparator}context.db');
+    final legacy = sqlite3.open(file.path);
+    legacy
+      ..execute('CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)')
+      ..execute("INSERT INTO sync_outbox VALUES ('sale-pending', 'pending')")
+      ..execute('CREATE TABLE sync_collections (collection TEXT NOT NULL PRIMARY KEY, mode TEXT NOT NULL, cursor TEXT, checkpoint TEXT, target_checkpoint TEXT, revision TEXT, last_success_at INTEGER, is_bootstrapped INTEGER NOT NULL, total_received INTEGER NOT NULL, last_error TEXT)')
+      ..execute("INSERT INTO sync_collections VALUES ('products', 'delta', 'opaque', NULL, NULL, NULL, NULL, 1, 8, NULL)")
+      ..execute('PRAGMA user_version = 2')
+      ..close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    try {
+      expect((await upgraded.select(upgraded.syncOutbox).getSingle()).id, 'sale-pending');
+      expect((await upgraded.readSyncCollection('products'))?.cursor, 'opaque');
+      final locks = await upgraded.customSelect(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sync_locks'",
+      ).get();
+      expect(locks, hasLength(1));
     } finally {
       await upgraded.close();
       await directory.delete(recursive: true);

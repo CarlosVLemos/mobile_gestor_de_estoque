@@ -154,6 +154,25 @@ void main() {
       expect(factory.activeContext, isNull);
     },
   );
+
+  test('falha no stop preserva banco e contexto para retry recuperável', () async {
+    final root = await Directory.systemTemp.createTemp('context-stop-failure');
+    addTearDown(() => root.delete(recursive: true));
+    final factory = _factory(root);
+    const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
+    await factory.open(context);
+    final service = DataPurgeService(
+      factory,
+      _FailingSyncLifecycle(),
+      ContextCacheCleaner(temporaryDirectory: () async => root),
+      () {},
+    );
+
+    await expectLater(service.purge(), throwsStateError);
+    expect(factory.activeDatabase, isNotNull);
+    expect(factory.activeContext, context);
+    await factory.closeActive();
+  });
 }
 
 DatabaseFactory _factory(Directory root) => DatabaseFactory(
@@ -181,4 +200,9 @@ class _BlockingSyncLifecycle implements SyncLifecycle {
   }
 
   void release() => _release.complete();
+}
+
+class _FailingSyncLifecycle implements SyncLifecycle {
+  @override
+  Future<void> stop(LocalContext context) => Future<void>.error(StateError('timeout'));
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/database/data_purge_service.dart';
 import '../core/database/database_factory.dart';
+import '../core/sync/context_sync_lifecycle.dart';
 import '../core/sync/sync_lifecycle.dart';
 import '../features/catalog/presentation/controllers/catalog_controller.dart';
 import '../features/dashboard/presentation/controllers/dashboard_controller.dart';
@@ -20,9 +21,14 @@ final databaseFactoryProvider = Provider<DatabaseFactory>((ref) {
   return factory;
 });
 
-final syncLifecycleProvider = Provider<SyncLifecycle>((ref) {
-  return const NoopSyncLifecycle();
-});
+final contextSyncLifecycleProvider = Provider<ContextSyncLifecycle>(
+  (ref) => ContextSyncLifecycle(),
+);
+
+/// 008B's teardown boundary, backed by engines registered for each context.
+final syncLifecycleProvider = Provider<SyncLifecycle>(
+  (ref) => ref.watch(contextSyncLifecycleProvider),
+);
 
 final contextStateInvalidatorProvider = Provider<ContextStateInvalidator>((
   ref,
