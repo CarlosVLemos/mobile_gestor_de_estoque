@@ -222,4 +222,11 @@ void main() {
       await directory.delete(recursive: true);
     }
   });
+
+  test('future migration without an explicit path fails closed', () async {
+    await expectLater(
+      database.migration.onUpgrade(Migrator(database), 3, 4),
+      throwsA(isA<StateError>()),
+    );
+  });
 }

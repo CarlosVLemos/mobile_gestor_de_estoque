@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/core/database/app_database.dart';
@@ -23,6 +25,29 @@ void main() {
     expect(await secondStore.tryAcquire(), isNull);
     await first!.release();
     expect(await secondStore.tryAcquire(), isNotNull);
+  });
+
+  test('independent SQLite connections compete for the same sync lock', () async {
+    final directory = await Directory.systemTemp.createTemp('sync-lock-connections');
+    final file = File('${directory.path}${Platform.pathSeparator}context.db');
+    final firstDatabase = AppDatabase(NativeDatabase(file));
+    final secondDatabase = AppDatabase(NativeDatabase(file));
+    try {
+      final firstStore = DriftSyncLeaseStore(database: firstDatabase, now: () => now);
+      final secondStore = DriftSyncLeaseStore(database: secondDatabase, now: () => now);
+      final first = await firstStore.tryAcquire();
+      expect(first, isNotNull);
+      expect(await secondStore.tryAcquire(), isNull);
+
+      await first!.release();
+      final second = await secondStore.tryAcquire();
+      expect(second, isNotNull);
+      await second!.release();
+    } finally {
+      await firstDatabase.close();
+      await secondDatabase.close();
+      await directory.delete(recursive: true);
+    }
   });
 
   test('takes over only at expiry and old owner cannot renew or release', () async {

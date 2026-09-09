@@ -60,6 +60,9 @@ class _Lease implements SyncLease {
   int releases = 0;
   bool lost = false;
   bool failRelease = false;
+  int? blockRenewalNumber;
+  Completer<void>? renewGate;
+  Completer<void>? renewalBlocked;
 
   void _check() {
     if (lost) throw const SyncLeaseLost();
@@ -68,6 +71,10 @@ class _Lease implements SyncLease {
   @override
   Future<void> renew() async {
     renewals++;
+    if (renewals == blockRenewalNumber) {
+      renewalBlocked?.complete();
+      await renewGate?.future;
+    }
     _check();
   }
 
@@ -164,6 +171,53 @@ void main() {
     expect(lease.renewals, greaterThan(1));
     collection.fetchGate!.complete();
     expect(await running, SyncOutcome.succeeded);
+  });
+
+  test('persistent lease busy does not emit failure or throttle resume', () async {
+    final store = _LeaseStore(lease)..busy = true;
+    engine = SyncEngine(
+      context: context,
+      collections: [collection],
+      lock: lock,
+      leaseStore: store,
+    );
+
+    expect(await engine.sync(), SyncOutcome.busy);
+    expect(engine.state.status, SyncStatus.idle);
+
+    store.busy = false;
+    expect(await engine.sync(trigger: SyncTrigger.resumed), SyncOutcome.succeeded);
+  });
+
+  test('stop waits for an in-flight heartbeat before releasing lease', () async {
+    collection.fetchGate = Completer<void>();
+    lease
+      ..blockRenewalNumber = 2
+      ..renewGate = Completer<void>()
+      ..renewalBlocked = Completer<void>();
+    engine = SyncEngine(
+      context: context,
+      collections: [collection],
+      lock: lock,
+      leaseStore: _LeaseStore(lease),
+      heartbeatInterval: const Duration(milliseconds: 1),
+      stopTimeout: const Duration(milliseconds: 5),
+    );
+
+    final running = engine.sync();
+    await lease.renewalBlocked!.future;
+    final stopping = engine.stop(context);
+    collection.fetchGate!.complete();
+
+    await expectLater(stopping, throwsA(isA<SyncStopTimeoutException>()));
+    expect(lease.releases, 0);
+    expect(engine.isStopping, isTrue);
+
+    lease.renewGate!.complete();
+    expect(await running, SyncOutcome.cancelled);
+    await engine.stop(context);
+    expect(lease.releases, 1);
+    expect(engine.isStopped, isTrue);
   });
 
   test('stop blocks new runs, cancels active work, and waits for safe point', () async {

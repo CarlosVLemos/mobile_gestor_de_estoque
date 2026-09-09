@@ -42,20 +42,21 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      if (from == 1 && to >= 2) {
+      if (from == 1 && to == 3) {
         // 008B's sync_outbox is deliberately absent from this migration: the
         // v1 table and all of its rows must remain untouched.
         await migrator.createTable(categoriesTable);
         await migrator.createTable(productsTable);
         await migrator.createTable(dashboardSnapshotsTable);
         await migrator.createTable(syncCollectionsTable);
-      }
-
-      if (from <= 2 && to >= 3) {
         await migrator.createTable(syncLocksTable);
+        return;
       }
 
-      if (from < to) return;
+      if (from == 2 && to == 3) {
+        await migrator.createTable(syncLocksTable);
+        return;
+      }
 
       throw StateError('Migração de schema $from para $to não implementada.');
     },

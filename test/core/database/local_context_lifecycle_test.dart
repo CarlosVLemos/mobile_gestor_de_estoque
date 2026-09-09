@@ -6,7 +6,12 @@ import 'package:gestor_de_estoque/core/database/app_database.dart';
 import 'package:gestor_de_estoque/core/database/data_purge_service.dart';
 import 'package:gestor_de_estoque/core/database/database_factory.dart';
 import 'package:gestor_de_estoque/core/database/local_context.dart';
+import 'package:gestor_de_estoque/core/sync/context_sync_lifecycle.dart';
+import 'package:gestor_de_estoque/core/sync/sync_collection.dart';
+import 'package:gestor_de_estoque/core/sync/sync_engine.dart';
+import 'package:gestor_de_estoque/core/sync/sync_lease.dart';
 import 'package:gestor_de_estoque/core/sync/sync_lifecycle.dart';
+import 'package:gestor_de_estoque/core/sync/sync_lock.dart';
 
 void main() {
   test(
@@ -173,6 +178,43 @@ void main() {
     expect(factory.activeContext, context);
     await factory.closeActive();
   });
+
+  test('purge waits for a registered engine before closing the active database', () async {
+    final root = await Directory.systemTemp.createTemp('context-engine-purge');
+    addTearDown(() => root.delete(recursive: true));
+    final factory = _factory(root);
+    const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
+    await factory.open(context);
+    final collection = _EngineCollection();
+    final engine = SyncEngine(
+      context: context,
+      collections: [collection],
+      lock: SyncLock(),
+      leaseStore: _EngineLeaseStore(),
+    );
+    final lifecycle = ContextSyncLifecycle()..register(engine);
+    final service = DataPurgeService(
+      factory,
+      lifecycle,
+      ContextCacheCleaner(temporaryDirectory: () async => root),
+      () {},
+    );
+
+    final running = engine.sync();
+    await Future<void>.delayed(Duration.zero);
+    final purging = service.purge();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(collection.requestCancelled, isTrue);
+    expect(factory.activeDatabase, isNotNull);
+    collection.fetchGate.complete();
+
+    await running;
+    await purging;
+    expect(engine.isStopped, isTrue);
+    expect(factory.activeDatabase, isNull);
+    expect(factory.activeContext, isNull);
+  });
 }
 
 DatabaseFactory _factory(Directory root) => DatabaseFactory(
@@ -205,4 +247,55 @@ class _BlockingSyncLifecycle implements SyncLifecycle {
 class _FailingSyncLifecycle implements SyncLifecycle {
   @override
   Future<void> stop(LocalContext context) => Future<void>.error(StateError('timeout'));
+}
+
+class _EngineCollection implements SyncCollection, CancellableSyncCollection {
+  final fetchGate = Completer<void>();
+  bool requestCancelled = false;
+
+  @override
+  String get name => 'products';
+
+  @override
+  Future<SyncCheckpoint> readCheckpoint() async => const SyncCheckpoint();
+
+  @override
+  Future<SyncPage> fetchPage(SyncCheckpoint checkpoint) async {
+    await fetchGate.future;
+    return const _EnginePage();
+  }
+
+  @override
+  Future<void> commitPage(SyncPage page) async {}
+
+  @override
+  void cancelPendingRequest() => requestCancelled = true;
+}
+
+class _EnginePage implements SyncPage {
+  const _EnginePage();
+
+  @override
+  SyncCheckpoint get checkpoint => const SyncCheckpoint();
+
+  @override
+  bool get hasMore => false;
+}
+
+class _EngineLeaseStore implements SyncLeaseStore {
+  final _EngineLease _lease = _EngineLease();
+
+  @override
+  Future<SyncLease?> tryAcquire() async => _lease;
+}
+
+class _EngineLease implements SyncLease {
+  @override
+  Future<void> renew() async {}
+
+  @override
+  Future<void> protect(Future<void> Function() write) => write();
+
+  @override
+  Future<void> release() async {}
 }

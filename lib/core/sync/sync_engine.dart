@@ -88,26 +88,32 @@ class SyncEngine implements SyncLifecycle {
     _cancelled = false;
     _ownershipLost = false;
     SyncLease? lease;
-    Timer? heartbeat;
+    _HeartbeatWorker? heartbeat;
     var pages = 0;
     var activeCollection = <String>{};
     var outcome = SyncOutcome.failed;
     SyncFailureKind? failure;
     try {
       lease = await _leaseStore.tryAcquire();
-      if (lease == null) return SyncOutcome.busy;
+      if (lease == null) {
+        outcome = SyncOutcome.busy;
+        return outcome;
+      }
       _emit(const SyncState(status: SyncStatus.syncing));
-      heartbeat = Timer.periodic(heartbeatInterval, (_) async {
-        try {
-          await lease!.renew();
-        } on SyncLeaseLost {
-          _ownershipLost = true;
-          _cancelled = true;
-        } catch (_) {
-          _ownershipLost = true;
-          _cancelled = true;
-        }
-      });
+      heartbeat = _HeartbeatWorker(
+        interval: heartbeatInterval,
+        onTick: () async {
+          try {
+            await lease!.renew();
+          } on SyncLeaseLost {
+            _ownershipLost = true;
+            _cancelled = true;
+          } catch (_) {
+            _ownershipLost = true;
+            _cancelled = true;
+          }
+        },
+      );
       for (final collection in _collections) {
         if (_cancelled) break;
         final completed = await _runCollection(collection, lease, pages);
@@ -123,24 +129,27 @@ class SyncEngine implements SyncLifecycle {
       failure = SyncFailureKind.local;
       outcome = _cancelled ? SyncOutcome.cancelled : SyncOutcome.failed;
     } finally {
-      heartbeat?.cancel();
+      heartbeat?.stop();
+      await heartbeat?.done;
       try {
         await lease?.release();
       } catch (_) {
         outcome = _cancelled ? SyncOutcome.cancelled : SyncOutcome.failed;
         failure ??= SyncFailureKind.local;
       }
-      _lastFinishedAt = _now();
-      _emit(SyncState(
-        status: switch (outcome) {
-          SyncOutcome.succeeded => SyncStatus.succeeded,
-          SyncOutcome.cancelled => SyncStatus.cancelled,
-          _ => SyncStatus.failed,
-        },
-        completedPages: pages,
-        failureKind: failure,
-        completedCollections: Set.unmodifiable(activeCollection),
-      ));
+      if (outcome != SyncOutcome.busy) {
+        _lastFinishedAt = _now();
+        _emit(SyncState(
+          status: switch (outcome) {
+            SyncOutcome.succeeded => SyncStatus.succeeded,
+            SyncOutcome.cancelled => SyncStatus.cancelled,
+            _ => SyncStatus.failed,
+          },
+          completedPages: pages,
+          failureKind: failure,
+          completedCollections: Set.unmodifiable(activeCollection),
+        ));
+      }
     }
     return outcome;
   }
@@ -209,4 +218,30 @@ class _CollectionResult {
   const _CollectionResult(this.pages, this.finished);
   final int pages;
   final bool finished;
+}
+
+class _HeartbeatWorker {
+  _HeartbeatWorker({required this.interval, required this.onTick}) {
+    done = _run();
+  }
+
+  final Duration interval;
+  final Future<void> Function() onTick;
+  final _stopSignal = Completer<void>();
+  late final Future<void> done;
+
+  void stop() {
+    if (!_stopSignal.isCompleted) _stopSignal.complete();
+  }
+
+  Future<void> _run() async {
+    while (!_stopSignal.isCompleted) {
+      await Future.any<void>([
+        Future<void>.delayed(interval),
+        _stopSignal.future,
+      ]);
+      if (_stopSignal.isCompleted) return;
+      await onTick();
+    }
+  }
 }
