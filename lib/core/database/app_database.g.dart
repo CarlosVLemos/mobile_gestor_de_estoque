@@ -18,6 +18,66 @@ class $SyncOutboxTable extends SyncOutbox
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _clientRequestIdMeta = const VerificationMeta(
+    'clientRequestId',
+  );
+  @override
+  late final GeneratedColumn<String> clientRequestId = GeneratedColumn<String>(
+    'client_request_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _operationTypeMeta = const VerificationMeta(
+    'operationType',
+  );
+  @override
+  late final GeneratedColumn<String> operationType = GeneratedColumn<String>(
+    'operation_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('legacy_unknown'),
+  );
+  static const VerificationMeta _localOperationIdMeta = const VerificationMeta(
+    'localOperationId',
+  );
+  @override
+  late final GeneratedColumn<String> localOperationId = GeneratedColumn<String>(
+    'local_operation_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _payloadVersionMeta = const VerificationMeta(
+    'payloadVersion',
+  );
+  @override
+  late final GeneratedColumn<int> payloadVersion = GeneratedColumn<int>(
+    'payload_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -27,8 +87,140 @@ class $SyncOutboxTable extends SyncOutbox
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, status];
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _nextAttemptAtMeta = const VerificationMeta(
+    'nextAttemptAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> nextAttemptAt =
+      GeneratedColumn<DateTime>(
+        'next_attempt_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remoteIntentIdMeta = const VerificationMeta(
+    'remoteIntentId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteIntentId = GeneratedColumn<String>(
+    'remote_intent_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _remoteSaleIdMeta = const VerificationMeta(
+    'remoteSaleId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteSaleId = GeneratedColumn<String>(
+    'remote_sale_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proposalJsonMeta = const VerificationMeta(
+    'proposalJson',
+  );
+  @override
+  late final GeneratedColumn<String> proposalJson = GeneratedColumn<String>(
+    'proposal_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proposalRevisionMeta = const VerificationMeta(
+    'proposalRevision',
+  );
+  @override
+  late final GeneratedColumn<int> proposalRevision = GeneratedColumn<int>(
+    'proposal_revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _confirmationTokenMeta = const VerificationMeta(
+    'confirmationToken',
+  );
+  @override
+  late final GeneratedColumn<String> confirmationToken =
+      GeneratedColumn<String>(
+        'confirmation_token',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientRequestId,
+    operationType,
+    localOperationId,
+    payloadJson,
+    payloadVersion,
+    status,
+    attempts,
+    nextAttemptAt,
+    lastError,
+    remoteIntentId,
+    remoteSaleId,
+    proposalJson,
+    proposalRevision,
+    confirmationToken,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -46,6 +238,51 @@ class $SyncOutboxTable extends SyncOutbox
     } else if (isInserting) {
       context.missing(_idMeta);
     }
+    if (data.containsKey('client_request_id')) {
+      context.handle(
+        _clientRequestIdMeta,
+        clientRequestId.isAcceptableOrUnknown(
+          data['client_request_id']!,
+          _clientRequestIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('operation_type')) {
+      context.handle(
+        _operationTypeMeta,
+        operationType.isAcceptableOrUnknown(
+          data['operation_type']!,
+          _operationTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('local_operation_id')) {
+      context.handle(
+        _localOperationIdMeta,
+        localOperationId.isAcceptableOrUnknown(
+          data['local_operation_id']!,
+          _localOperationIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('payload_version')) {
+      context.handle(
+        _payloadVersionMeta,
+        payloadVersion.isAcceptableOrUnknown(
+          data['payload_version']!,
+          _payloadVersionMeta,
+        ),
+      );
+    }
     if (data.containsKey('status')) {
       context.handle(
         _statusMeta,
@@ -53,6 +290,84 @@ class $SyncOutboxTable extends SyncOutbox
       );
     } else if (isInserting) {
       context.missing(_statusMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('next_attempt_at')) {
+      context.handle(
+        _nextAttemptAtMeta,
+        nextAttemptAt.isAcceptableOrUnknown(
+          data['next_attempt_at']!,
+          _nextAttemptAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('remote_intent_id')) {
+      context.handle(
+        _remoteIntentIdMeta,
+        remoteIntentId.isAcceptableOrUnknown(
+          data['remote_intent_id']!,
+          _remoteIntentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('remote_sale_id')) {
+      context.handle(
+        _remoteSaleIdMeta,
+        remoteSaleId.isAcceptableOrUnknown(
+          data['remote_sale_id']!,
+          _remoteSaleIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('proposal_json')) {
+      context.handle(
+        _proposalJsonMeta,
+        proposalJson.isAcceptableOrUnknown(
+          data['proposal_json']!,
+          _proposalJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('proposal_revision')) {
+      context.handle(
+        _proposalRevisionMeta,
+        proposalRevision.isAcceptableOrUnknown(
+          data['proposal_revision']!,
+          _proposalRevisionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('confirmation_token')) {
+      context.handle(
+        _confirmationTokenMeta,
+        confirmationToken.isAcceptableOrUnknown(
+          data['confirmation_token']!,
+          _confirmationTokenMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
     }
     return context;
   }
@@ -67,10 +382,70 @@ class $SyncOutboxTable extends SyncOutbox
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      clientRequestId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_request_id'],
+      ),
+      operationType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_type'],
+      )!,
+      localOperationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_operation_id'],
+      ),
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
+      payloadVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}payload_version'],
+      )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}status'],
       )!,
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      nextAttemptAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}next_attempt_at'],
+      ),
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      remoteIntentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_intent_id'],
+      ),
+      remoteSaleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_sale_id'],
+      ),
+      proposalJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}proposal_json'],
+      ),
+      proposalRevision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}proposal_revision'],
+      )!,
+      confirmationToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}confirmation_token'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      ),
     );
   }
 
@@ -82,18 +457,124 @@ class $SyncOutboxTable extends SyncOutbox
 
 class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
   final String id;
+  final String? clientRequestId;
+  final String operationType;
+  final String? localOperationId;
+  final String payloadJson;
+  final int payloadVersion;
   final String status;
-  const SyncOutboxData({required this.id, required this.status});
+  final int attempts;
+  final DateTime? nextAttemptAt;
+  final String? lastError;
+  final String? remoteIntentId;
+  final String? remoteSaleId;
+  final String? proposalJson;
+  final int proposalRevision;
+  final String? confirmationToken;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  const SyncOutboxData({
+    required this.id,
+    this.clientRequestId,
+    required this.operationType,
+    this.localOperationId,
+    required this.payloadJson,
+    required this.payloadVersion,
+    required this.status,
+    required this.attempts,
+    this.nextAttemptAt,
+    this.lastError,
+    this.remoteIntentId,
+    this.remoteSaleId,
+    this.proposalJson,
+    required this.proposalRevision,
+    this.confirmationToken,
+    this.createdAt,
+    this.updatedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || clientRequestId != null) {
+      map['client_request_id'] = Variable<String>(clientRequestId);
+    }
+    map['operation_type'] = Variable<String>(operationType);
+    if (!nullToAbsent || localOperationId != null) {
+      map['local_operation_id'] = Variable<String>(localOperationId);
+    }
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['payload_version'] = Variable<int>(payloadVersion);
     map['status'] = Variable<String>(status);
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || nextAttemptAt != null) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt);
+    }
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    if (!nullToAbsent || remoteIntentId != null) {
+      map['remote_intent_id'] = Variable<String>(remoteIntentId);
+    }
+    if (!nullToAbsent || remoteSaleId != null) {
+      map['remote_sale_id'] = Variable<String>(remoteSaleId);
+    }
+    if (!nullToAbsent || proposalJson != null) {
+      map['proposal_json'] = Variable<String>(proposalJson);
+    }
+    map['proposal_revision'] = Variable<int>(proposalRevision);
+    if (!nullToAbsent || confirmationToken != null) {
+      map['confirmation_token'] = Variable<String>(confirmationToken);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
     return map;
   }
 
   SyncOutboxCompanion toCompanion(bool nullToAbsent) {
-    return SyncOutboxCompanion(id: Value(id), status: Value(status));
+    return SyncOutboxCompanion(
+      id: Value(id),
+      clientRequestId: clientRequestId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clientRequestId),
+      operationType: Value(operationType),
+      localOperationId: localOperationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localOperationId),
+      payloadJson: Value(payloadJson),
+      payloadVersion: Value(payloadVersion),
+      status: Value(status),
+      attempts: Value(attempts),
+      nextAttemptAt: nextAttemptAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nextAttemptAt),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      remoteIntentId: remoteIntentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteIntentId),
+      remoteSaleId: remoteSaleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteSaleId),
+      proposalJson: proposalJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proposalJson),
+      proposalRevision: Value(proposalRevision),
+      confirmationToken: confirmationToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(confirmationToken),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
   }
 
   factory SyncOutboxData.fromJson(
@@ -103,7 +584,24 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SyncOutboxData(
       id: serializer.fromJson<String>(json['id']),
+      clientRequestId: serializer.fromJson<String?>(json['clientRequestId']),
+      operationType: serializer.fromJson<String>(json['operationType']),
+      localOperationId: serializer.fromJson<String?>(json['localOperationId']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      payloadVersion: serializer.fromJson<int>(json['payloadVersion']),
       status: serializer.fromJson<String>(json['status']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      nextAttemptAt: serializer.fromJson<DateTime?>(json['nextAttemptAt']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      remoteIntentId: serializer.fromJson<String?>(json['remoteIntentId']),
+      remoteSaleId: serializer.fromJson<String?>(json['remoteSaleId']),
+      proposalJson: serializer.fromJson<String?>(json['proposalJson']),
+      proposalRevision: serializer.fromJson<int>(json['proposalRevision']),
+      confirmationToken: serializer.fromJson<String?>(
+        json['confirmationToken'],
+      ),
+      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
   }
   @override
@@ -111,16 +609,113 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'clientRequestId': serializer.toJson<String?>(clientRequestId),
+      'operationType': serializer.toJson<String>(operationType),
+      'localOperationId': serializer.toJson<String?>(localOperationId),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'payloadVersion': serializer.toJson<int>(payloadVersion),
       'status': serializer.toJson<String>(status),
+      'attempts': serializer.toJson<int>(attempts),
+      'nextAttemptAt': serializer.toJson<DateTime?>(nextAttemptAt),
+      'lastError': serializer.toJson<String?>(lastError),
+      'remoteIntentId': serializer.toJson<String?>(remoteIntentId),
+      'remoteSaleId': serializer.toJson<String?>(remoteSaleId),
+      'proposalJson': serializer.toJson<String?>(proposalJson),
+      'proposalRevision': serializer.toJson<int>(proposalRevision),
+      'confirmationToken': serializer.toJson<String?>(confirmationToken),
+      'createdAt': serializer.toJson<DateTime?>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
   }
 
-  SyncOutboxData copyWith({String? id, String? status}) =>
-      SyncOutboxData(id: id ?? this.id, status: status ?? this.status);
+  SyncOutboxData copyWith({
+    String? id,
+    Value<String?> clientRequestId = const Value.absent(),
+    String? operationType,
+    Value<String?> localOperationId = const Value.absent(),
+    String? payloadJson,
+    int? payloadVersion,
+    String? status,
+    int? attempts,
+    Value<DateTime?> nextAttemptAt = const Value.absent(),
+    Value<String?> lastError = const Value.absent(),
+    Value<String?> remoteIntentId = const Value.absent(),
+    Value<String?> remoteSaleId = const Value.absent(),
+    Value<String?> proposalJson = const Value.absent(),
+    int? proposalRevision,
+    Value<String?> confirmationToken = const Value.absent(),
+    Value<DateTime?> createdAt = const Value.absent(),
+    Value<DateTime?> updatedAt = const Value.absent(),
+  }) => SyncOutboxData(
+    id: id ?? this.id,
+    clientRequestId: clientRequestId.present
+        ? clientRequestId.value
+        : this.clientRequestId,
+    operationType: operationType ?? this.operationType,
+    localOperationId: localOperationId.present
+        ? localOperationId.value
+        : this.localOperationId,
+    payloadJson: payloadJson ?? this.payloadJson,
+    payloadVersion: payloadVersion ?? this.payloadVersion,
+    status: status ?? this.status,
+    attempts: attempts ?? this.attempts,
+    nextAttemptAt: nextAttemptAt.present
+        ? nextAttemptAt.value
+        : this.nextAttemptAt,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    remoteIntentId: remoteIntentId.present
+        ? remoteIntentId.value
+        : this.remoteIntentId,
+    remoteSaleId: remoteSaleId.present ? remoteSaleId.value : this.remoteSaleId,
+    proposalJson: proposalJson.present ? proposalJson.value : this.proposalJson,
+    proposalRevision: proposalRevision ?? this.proposalRevision,
+    confirmationToken: confirmationToken.present
+        ? confirmationToken.value
+        : this.confirmationToken,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
   SyncOutboxData copyWithCompanion(SyncOutboxCompanion data) {
     return SyncOutboxData(
       id: data.id.present ? data.id.value : this.id,
+      clientRequestId: data.clientRequestId.present
+          ? data.clientRequestId.value
+          : this.clientRequestId,
+      operationType: data.operationType.present
+          ? data.operationType.value
+          : this.operationType,
+      localOperationId: data.localOperationId.present
+          ? data.localOperationId.value
+          : this.localOperationId,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
+      payloadVersion: data.payloadVersion.present
+          ? data.payloadVersion.value
+          : this.payloadVersion,
       status: data.status.present ? data.status.value : this.status,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      nextAttemptAt: data.nextAttemptAt.present
+          ? data.nextAttemptAt.value
+          : this.nextAttemptAt,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      remoteIntentId: data.remoteIntentId.present
+          ? data.remoteIntentId.value
+          : this.remoteIntentId,
+      remoteSaleId: data.remoteSaleId.present
+          ? data.remoteSaleId.value
+          : this.remoteSaleId,
+      proposalJson: data.proposalJson.present
+          ? data.proposalJson.value
+          : this.proposalJson,
+      proposalRevision: data.proposalRevision.present
+          ? data.proposalRevision.value
+          : this.proposalRevision,
+      confirmationToken: data.confirmationToken.present
+          ? data.confirmationToken.value
+          : this.confirmationToken,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -128,56 +723,209 @@ class SyncOutboxData extends DataClass implements Insertable<SyncOutboxData> {
   String toString() {
     return (StringBuffer('SyncOutboxData(')
           ..write('id: $id, ')
-          ..write('status: $status')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('operationType: $operationType, ')
+          ..write('localOperationId: $localOperationId, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('payloadVersion: $payloadVersion, ')
+          ..write('status: $status, ')
+          ..write('attempts: $attempts, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('lastError: $lastError, ')
+          ..write('remoteIntentId: $remoteIntentId, ')
+          ..write('remoteSaleId: $remoteSaleId, ')
+          ..write('proposalJson: $proposalJson, ')
+          ..write('proposalRevision: $proposalRevision, ')
+          ..write('confirmationToken: $confirmationToken, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, status);
+  int get hashCode => Object.hash(
+    id,
+    clientRequestId,
+    operationType,
+    localOperationId,
+    payloadJson,
+    payloadVersion,
+    status,
+    attempts,
+    nextAttemptAt,
+    lastError,
+    remoteIntentId,
+    remoteSaleId,
+    proposalJson,
+    proposalRevision,
+    confirmationToken,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SyncOutboxData &&
           other.id == this.id &&
-          other.status == this.status);
+          other.clientRequestId == this.clientRequestId &&
+          other.operationType == this.operationType &&
+          other.localOperationId == this.localOperationId &&
+          other.payloadJson == this.payloadJson &&
+          other.payloadVersion == this.payloadVersion &&
+          other.status == this.status &&
+          other.attempts == this.attempts &&
+          other.nextAttemptAt == this.nextAttemptAt &&
+          other.lastError == this.lastError &&
+          other.remoteIntentId == this.remoteIntentId &&
+          other.remoteSaleId == this.remoteSaleId &&
+          other.proposalJson == this.proposalJson &&
+          other.proposalRevision == this.proposalRevision &&
+          other.confirmationToken == this.confirmationToken &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
   final Value<String> id;
+  final Value<String?> clientRequestId;
+  final Value<String> operationType;
+  final Value<String?> localOperationId;
+  final Value<String> payloadJson;
+  final Value<int> payloadVersion;
   final Value<String> status;
+  final Value<int> attempts;
+  final Value<DateTime?> nextAttemptAt;
+  final Value<String?> lastError;
+  final Value<String?> remoteIntentId;
+  final Value<String?> remoteSaleId;
+  final Value<String?> proposalJson;
+  final Value<int> proposalRevision;
+  final Value<String?> confirmationToken;
+  final Value<DateTime?> createdAt;
+  final Value<DateTime?> updatedAt;
   final Value<int> rowid;
   const SyncOutboxCompanion({
     this.id = const Value.absent(),
+    this.clientRequestId = const Value.absent(),
+    this.operationType = const Value.absent(),
+    this.localOperationId = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.payloadVersion = const Value.absent(),
     this.status = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.remoteIntentId = const Value.absent(),
+    this.remoteSaleId = const Value.absent(),
+    this.proposalJson = const Value.absent(),
+    this.proposalRevision = const Value.absent(),
+    this.confirmationToken = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SyncOutboxCompanion.insert({
     required String id,
+    this.clientRequestId = const Value.absent(),
+    this.operationType = const Value.absent(),
+    this.localOperationId = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.payloadVersion = const Value.absent(),
     required String status,
+    this.attempts = const Value.absent(),
+    this.nextAttemptAt = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.remoteIntentId = const Value.absent(),
+    this.remoteSaleId = const Value.absent(),
+    this.proposalJson = const Value.absent(),
+    this.proposalRevision = const Value.absent(),
+    this.confirmationToken = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        status = Value(status);
   static Insertable<SyncOutboxData> custom({
     Expression<String>? id,
+    Expression<String>? clientRequestId,
+    Expression<String>? operationType,
+    Expression<String>? localOperationId,
+    Expression<String>? payloadJson,
+    Expression<int>? payloadVersion,
     Expression<String>? status,
+    Expression<int>? attempts,
+    Expression<DateTime>? nextAttemptAt,
+    Expression<String>? lastError,
+    Expression<String>? remoteIntentId,
+    Expression<String>? remoteSaleId,
+    Expression<String>? proposalJson,
+    Expression<int>? proposalRevision,
+    Expression<String>? confirmationToken,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (clientRequestId != null) 'client_request_id': clientRequestId,
+      if (operationType != null) 'operation_type': operationType,
+      if (localOperationId != null) 'local_operation_id': localOperationId,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (payloadVersion != null) 'payload_version': payloadVersion,
       if (status != null) 'status': status,
+      if (attempts != null) 'attempts': attempts,
+      if (nextAttemptAt != null) 'next_attempt_at': nextAttemptAt,
+      if (lastError != null) 'last_error': lastError,
+      if (remoteIntentId != null) 'remote_intent_id': remoteIntentId,
+      if (remoteSaleId != null) 'remote_sale_id': remoteSaleId,
+      if (proposalJson != null) 'proposal_json': proposalJson,
+      if (proposalRevision != null) 'proposal_revision': proposalRevision,
+      if (confirmationToken != null) 'confirmation_token': confirmationToken,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   SyncOutboxCompanion copyWith({
     Value<String>? id,
+    Value<String?>? clientRequestId,
+    Value<String>? operationType,
+    Value<String?>? localOperationId,
+    Value<String>? payloadJson,
+    Value<int>? payloadVersion,
     Value<String>? status,
+    Value<int>? attempts,
+    Value<DateTime?>? nextAttemptAt,
+    Value<String?>? lastError,
+    Value<String?>? remoteIntentId,
+    Value<String?>? remoteSaleId,
+    Value<String?>? proposalJson,
+    Value<int>? proposalRevision,
+    Value<String?>? confirmationToken,
+    Value<DateTime?>? createdAt,
+    Value<DateTime?>? updatedAt,
     Value<int>? rowid,
   }) {
     return SyncOutboxCompanion(
       id: id ?? this.id,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
+      operationType: operationType ?? this.operationType,
+      localOperationId: localOperationId ?? this.localOperationId,
+      payloadJson: payloadJson ?? this.payloadJson,
+      payloadVersion: payloadVersion ?? this.payloadVersion,
       status: status ?? this.status,
+      attempts: attempts ?? this.attempts,
+      nextAttemptAt: nextAttemptAt ?? this.nextAttemptAt,
+      lastError: lastError ?? this.lastError,
+      remoteIntentId: remoteIntentId ?? this.remoteIntentId,
+      remoteSaleId: remoteSaleId ?? this.remoteSaleId,
+      proposalJson: proposalJson ?? this.proposalJson,
+      proposalRevision: proposalRevision ?? this.proposalRevision,
+      confirmationToken: confirmationToken ?? this.confirmationToken,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -188,8 +936,53 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
+    if (clientRequestId.present) {
+      map['client_request_id'] = Variable<String>(clientRequestId.value);
+    }
+    if (operationType.present) {
+      map['operation_type'] = Variable<String>(operationType.value);
+    }
+    if (localOperationId.present) {
+      map['local_operation_id'] = Variable<String>(localOperationId.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (payloadVersion.present) {
+      map['payload_version'] = Variable<int>(payloadVersion.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (nextAttemptAt.present) {
+      map['next_attempt_at'] = Variable<DateTime>(nextAttemptAt.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (remoteIntentId.present) {
+      map['remote_intent_id'] = Variable<String>(remoteIntentId.value);
+    }
+    if (remoteSaleId.present) {
+      map['remote_sale_id'] = Variable<String>(remoteSaleId.value);
+    }
+    if (proposalJson.present) {
+      map['proposal_json'] = Variable<String>(proposalJson.value);
+    }
+    if (proposalRevision.present) {
+      map['proposal_revision'] = Variable<int>(proposalRevision.value);
+    }
+    if (confirmationToken.present) {
+      map['confirmation_token'] = Variable<String>(confirmationToken.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -201,7 +994,22 @@ class SyncOutboxCompanion extends UpdateCompanion<SyncOutboxData> {
   String toString() {
     return (StringBuffer('SyncOutboxCompanion(')
           ..write('id: $id, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('operationType: $operationType, ')
+          ..write('localOperationId: $localOperationId, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('payloadVersion: $payloadVersion, ')
           ..write('status: $status, ')
+          ..write('attempts: $attempts, ')
+          ..write('nextAttemptAt: $nextAttemptAt, ')
+          ..write('lastError: $lastError, ')
+          ..write('remoteIntentId: $remoteIntentId, ')
+          ..write('remoteSaleId: $remoteSaleId, ')
+          ..write('proposalJson: $proposalJson, ')
+          ..write('proposalRevision: $proposalRevision, ')
+          ..write('confirmationToken: $confirmationToken, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2756,6 +3564,1002 @@ class SyncLocksTableCompanion extends UpdateCompanion<StoredSyncLock> {
   }
 }
 
+class $LocalSalesTableTable extends LocalSalesTable
+    with TableInfo<$LocalSalesTableTable, StoredLocalSale> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalSalesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientRequestIdMeta = const VerificationMeta(
+    'clientRequestId',
+  );
+  @override
+  late final GeneratedColumn<String> clientRequestId = GeneratedColumn<String>(
+    'client_request_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientNameMeta = const VerificationMeta(
+    'clientName',
+  );
+  @override
+  late final GeneratedColumn<String> clientName = GeneratedColumn<String>(
+    'client_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _soldAtMeta = const VerificationMeta('soldAt');
+  @override
+  late final GeneratedColumn<DateTime> soldAt = GeneratedColumn<DateTime>(
+    'sold_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _timezoneMeta = const VerificationMeta(
+    'timezone',
+  );
+  @override
+  late final GeneratedColumn<String> timezone = GeneratedColumn<String>(
+    'timezone',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientRequestId,
+    clientId,
+    clientName,
+    soldAt,
+    timezone,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_sales';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredLocalSale> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('client_request_id')) {
+      context.handle(
+        _clientRequestIdMeta,
+        clientRequestId.isAcceptableOrUnknown(
+          data['client_request_id']!,
+          _clientRequestIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_clientRequestIdMeta);
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('client_name')) {
+      context.handle(
+        _clientNameMeta,
+        clientName.isAcceptableOrUnknown(data['client_name']!, _clientNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientNameMeta);
+    }
+    if (data.containsKey('sold_at')) {
+      context.handle(
+        _soldAtMeta,
+        soldAt.isAcceptableOrUnknown(data['sold_at']!, _soldAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_soldAtMeta);
+    }
+    if (data.containsKey('timezone')) {
+      context.handle(
+        _timezoneMeta,
+        timezone.isAcceptableOrUnknown(data['timezone']!, _timezoneMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timezoneMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoredLocalSale map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredLocalSale(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      clientRequestId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_request_id'],
+      )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      )!,
+      clientName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_name'],
+      )!,
+      soldAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sold_at'],
+      )!,
+      timezone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}timezone'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LocalSalesTableTable createAlias(String alias) {
+    return $LocalSalesTableTable(attachedDatabase, alias);
+  }
+}
+
+class StoredLocalSale extends DataClass implements Insertable<StoredLocalSale> {
+  final String id;
+  final String clientRequestId;
+  final String clientId;
+  final String clientName;
+  final DateTime soldAt;
+  final String timezone;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const StoredLocalSale({
+    required this.id,
+    required this.clientRequestId,
+    required this.clientId,
+    required this.clientName,
+    required this.soldAt,
+    required this.timezone,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['client_request_id'] = Variable<String>(clientRequestId);
+    map['client_id'] = Variable<String>(clientId);
+    map['client_name'] = Variable<String>(clientName);
+    map['sold_at'] = Variable<DateTime>(soldAt);
+    map['timezone'] = Variable<String>(timezone);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  LocalSalesTableCompanion toCompanion(bool nullToAbsent) {
+    return LocalSalesTableCompanion(
+      id: Value(id),
+      clientRequestId: Value(clientRequestId),
+      clientId: Value(clientId),
+      clientName: Value(clientName),
+      soldAt: Value(soldAt),
+      timezone: Value(timezone),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory StoredLocalSale.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredLocalSale(
+      id: serializer.fromJson<String>(json['id']),
+      clientRequestId: serializer.fromJson<String>(json['clientRequestId']),
+      clientId: serializer.fromJson<String>(json['clientId']),
+      clientName: serializer.fromJson<String>(json['clientName']),
+      soldAt: serializer.fromJson<DateTime>(json['soldAt']),
+      timezone: serializer.fromJson<String>(json['timezone']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'clientRequestId': serializer.toJson<String>(clientRequestId),
+      'clientId': serializer.toJson<String>(clientId),
+      'clientName': serializer.toJson<String>(clientName),
+      'soldAt': serializer.toJson<DateTime>(soldAt),
+      'timezone': serializer.toJson<String>(timezone),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  StoredLocalSale copyWith({
+    String? id,
+    String? clientRequestId,
+    String? clientId,
+    String? clientName,
+    DateTime? soldAt,
+    String? timezone,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => StoredLocalSale(
+    id: id ?? this.id,
+    clientRequestId: clientRequestId ?? this.clientRequestId,
+    clientId: clientId ?? this.clientId,
+    clientName: clientName ?? this.clientName,
+    soldAt: soldAt ?? this.soldAt,
+    timezone: timezone ?? this.timezone,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  StoredLocalSale copyWithCompanion(LocalSalesTableCompanion data) {
+    return StoredLocalSale(
+      id: data.id.present ? data.id.value : this.id,
+      clientRequestId: data.clientRequestId.present
+          ? data.clientRequestId.value
+          : this.clientRequestId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      clientName: data.clientName.present
+          ? data.clientName.value
+          : this.clientName,
+      soldAt: data.soldAt.present ? data.soldAt.value : this.soldAt,
+      timezone: data.timezone.present ? data.timezone.value : this.timezone,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredLocalSale(')
+          ..write('id: $id, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('clientId: $clientId, ')
+          ..write('clientName: $clientName, ')
+          ..write('soldAt: $soldAt, ')
+          ..write('timezone: $timezone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    clientRequestId,
+    clientId,
+    clientName,
+    soldAt,
+    timezone,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredLocalSale &&
+          other.id == this.id &&
+          other.clientRequestId == this.clientRequestId &&
+          other.clientId == this.clientId &&
+          other.clientName == this.clientName &&
+          other.soldAt == this.soldAt &&
+          other.timezone == this.timezone &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class LocalSalesTableCompanion extends UpdateCompanion<StoredLocalSale> {
+  final Value<String> id;
+  final Value<String> clientRequestId;
+  final Value<String> clientId;
+  final Value<String> clientName;
+  final Value<DateTime> soldAt;
+  final Value<String> timezone;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const LocalSalesTableCompanion({
+    this.id = const Value.absent(),
+    this.clientRequestId = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.clientName = const Value.absent(),
+    this.soldAt = const Value.absent(),
+    this.timezone = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalSalesTableCompanion.insert({
+    required String id,
+    required String clientRequestId,
+    required String clientId,
+    required String clientName,
+    required DateTime soldAt,
+    required String timezone,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       clientRequestId = Value(clientRequestId),
+       clientId = Value(clientId),
+       clientName = Value(clientName),
+       soldAt = Value(soldAt),
+       timezone = Value(timezone),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<StoredLocalSale> custom({
+    Expression<String>? id,
+    Expression<String>? clientRequestId,
+    Expression<String>? clientId,
+    Expression<String>? clientName,
+    Expression<DateTime>? soldAt,
+    Expression<String>? timezone,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientRequestId != null) 'client_request_id': clientRequestId,
+      if (clientId != null) 'client_id': clientId,
+      if (clientName != null) 'client_name': clientName,
+      if (soldAt != null) 'sold_at': soldAt,
+      if (timezone != null) 'timezone': timezone,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalSalesTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? clientRequestId,
+    Value<String>? clientId,
+    Value<String>? clientName,
+    Value<DateTime>? soldAt,
+    Value<String>? timezone,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return LocalSalesTableCompanion(
+      id: id ?? this.id,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
+      clientId: clientId ?? this.clientId,
+      clientName: clientName ?? this.clientName,
+      soldAt: soldAt ?? this.soldAt,
+      timezone: timezone ?? this.timezone,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (clientRequestId.present) {
+      map['client_request_id'] = Variable<String>(clientRequestId.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (clientName.present) {
+      map['client_name'] = Variable<String>(clientName.value);
+    }
+    if (soldAt.present) {
+      map['sold_at'] = Variable<DateTime>(soldAt.value);
+    }
+    if (timezone.present) {
+      map['timezone'] = Variable<String>(timezone.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalSalesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('clientId: $clientId, ')
+          ..write('clientName: $clientName, ')
+          ..write('soldAt: $soldAt, ')
+          ..write('timezone: $timezone, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LocalSaleItemsTableTable extends LocalSaleItemsTable
+    with TableInfo<$LocalSaleItemsTableTable, StoredLocalSaleItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalSaleItemsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _saleIdMeta = const VerificationMeta('saleId');
+  @override
+  late final GeneratedColumn<String> saleId = GeneratedColumn<String>(
+    'sale_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_sales (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _productIdMeta = const VerificationMeta(
+    'productId',
+  );
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+    'product_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _productNameMeta = const VerificationMeta(
+    'productName',
+  );
+  @override
+  late final GeneratedColumn<String> productName = GeneratedColumn<String>(
+    'product_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _productSkuMeta = const VerificationMeta(
+    'productSku',
+  );
+  @override
+  late final GeneratedColumn<String> productSku = GeneratedColumn<String>(
+    'product_sku',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _historicalUnitPriceMeta =
+      const VerificationMeta('historicalUnitPrice');
+  @override
+  late final GeneratedColumn<double> historicalUnitPrice =
+      GeneratedColumn<double>(
+        'historical_unit_price',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    saleId,
+    productId,
+    productName,
+    productSku,
+    quantity,
+    historicalUnitPrice,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_sale_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredLocalSaleItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('sale_id')) {
+      context.handle(
+        _saleIdMeta,
+        saleId.isAcceptableOrUnknown(data['sale_id']!, _saleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_saleIdMeta);
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(
+        _productIdMeta,
+        productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('product_name')) {
+      context.handle(
+        _productNameMeta,
+        productName.isAcceptableOrUnknown(
+          data['product_name']!,
+          _productNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_productNameMeta);
+    }
+    if (data.containsKey('product_sku')) {
+      context.handle(
+        _productSkuMeta,
+        productSku.isAcceptableOrUnknown(data['product_sku']!, _productSkuMeta),
+      );
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('historical_unit_price')) {
+      context.handle(
+        _historicalUnitPriceMeta,
+        historicalUnitPrice.isAcceptableOrUnknown(
+          data['historical_unit_price']!,
+          _historicalUnitPriceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoredLocalSaleItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredLocalSaleItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      saleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sale_id'],
+      )!,
+      productId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_id'],
+      )!,
+      productName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_name'],
+      )!,
+      productSku: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}product_sku'],
+      ),
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}quantity'],
+      )!,
+      historicalUnitPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}historical_unit_price'],
+      ),
+    );
+  }
+
+  @override
+  $LocalSaleItemsTableTable createAlias(String alias) {
+    return $LocalSaleItemsTableTable(attachedDatabase, alias);
+  }
+}
+
+class StoredLocalSaleItem extends DataClass
+    implements Insertable<StoredLocalSaleItem> {
+  final int id;
+  final String saleId;
+  final String productId;
+  final String productName;
+  final String? productSku;
+  final int quantity;
+  final double? historicalUnitPrice;
+  const StoredLocalSaleItem({
+    required this.id,
+    required this.saleId,
+    required this.productId,
+    required this.productName,
+    this.productSku,
+    required this.quantity,
+    this.historicalUnitPrice,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['sale_id'] = Variable<String>(saleId);
+    map['product_id'] = Variable<String>(productId);
+    map['product_name'] = Variable<String>(productName);
+    if (!nullToAbsent || productSku != null) {
+      map['product_sku'] = Variable<String>(productSku);
+    }
+    map['quantity'] = Variable<int>(quantity);
+    if (!nullToAbsent || historicalUnitPrice != null) {
+      map['historical_unit_price'] = Variable<double>(historicalUnitPrice);
+    }
+    return map;
+  }
+
+  LocalSaleItemsTableCompanion toCompanion(bool nullToAbsent) {
+    return LocalSaleItemsTableCompanion(
+      id: Value(id),
+      saleId: Value(saleId),
+      productId: Value(productId),
+      productName: Value(productName),
+      productSku: productSku == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productSku),
+      quantity: Value(quantity),
+      historicalUnitPrice: historicalUnitPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(historicalUnitPrice),
+    );
+  }
+
+  factory StoredLocalSaleItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredLocalSaleItem(
+      id: serializer.fromJson<int>(json['id']),
+      saleId: serializer.fromJson<String>(json['saleId']),
+      productId: serializer.fromJson<String>(json['productId']),
+      productName: serializer.fromJson<String>(json['productName']),
+      productSku: serializer.fromJson<String?>(json['productSku']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      historicalUnitPrice: serializer.fromJson<double?>(
+        json['historicalUnitPrice'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'saleId': serializer.toJson<String>(saleId),
+      'productId': serializer.toJson<String>(productId),
+      'productName': serializer.toJson<String>(productName),
+      'productSku': serializer.toJson<String?>(productSku),
+      'quantity': serializer.toJson<int>(quantity),
+      'historicalUnitPrice': serializer.toJson<double?>(historicalUnitPrice),
+    };
+  }
+
+  StoredLocalSaleItem copyWith({
+    int? id,
+    String? saleId,
+    String? productId,
+    String? productName,
+    Value<String?> productSku = const Value.absent(),
+    int? quantity,
+    Value<double?> historicalUnitPrice = const Value.absent(),
+  }) => StoredLocalSaleItem(
+    id: id ?? this.id,
+    saleId: saleId ?? this.saleId,
+    productId: productId ?? this.productId,
+    productName: productName ?? this.productName,
+    productSku: productSku.present ? productSku.value : this.productSku,
+    quantity: quantity ?? this.quantity,
+    historicalUnitPrice: historicalUnitPrice.present
+        ? historicalUnitPrice.value
+        : this.historicalUnitPrice,
+  );
+  StoredLocalSaleItem copyWithCompanion(LocalSaleItemsTableCompanion data) {
+    return StoredLocalSaleItem(
+      id: data.id.present ? data.id.value : this.id,
+      saleId: data.saleId.present ? data.saleId.value : this.saleId,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      productName: data.productName.present
+          ? data.productName.value
+          : this.productName,
+      productSku: data.productSku.present
+          ? data.productSku.value
+          : this.productSku,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      historicalUnitPrice: data.historicalUnitPrice.present
+          ? data.historicalUnitPrice.value
+          : this.historicalUnitPrice,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredLocalSaleItem(')
+          ..write('id: $id, ')
+          ..write('saleId: $saleId, ')
+          ..write('productId: $productId, ')
+          ..write('productName: $productName, ')
+          ..write('productSku: $productSku, ')
+          ..write('quantity: $quantity, ')
+          ..write('historicalUnitPrice: $historicalUnitPrice')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    saleId,
+    productId,
+    productName,
+    productSku,
+    quantity,
+    historicalUnitPrice,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredLocalSaleItem &&
+          other.id == this.id &&
+          other.saleId == this.saleId &&
+          other.productId == this.productId &&
+          other.productName == this.productName &&
+          other.productSku == this.productSku &&
+          other.quantity == this.quantity &&
+          other.historicalUnitPrice == this.historicalUnitPrice);
+}
+
+class LocalSaleItemsTableCompanion
+    extends UpdateCompanion<StoredLocalSaleItem> {
+  final Value<int> id;
+  final Value<String> saleId;
+  final Value<String> productId;
+  final Value<String> productName;
+  final Value<String?> productSku;
+  final Value<int> quantity;
+  final Value<double?> historicalUnitPrice;
+  const LocalSaleItemsTableCompanion({
+    this.id = const Value.absent(),
+    this.saleId = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.productName = const Value.absent(),
+    this.productSku = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.historicalUnitPrice = const Value.absent(),
+  });
+  LocalSaleItemsTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String saleId,
+    required String productId,
+    required String productName,
+    this.productSku = const Value.absent(),
+    required int quantity,
+    this.historicalUnitPrice = const Value.absent(),
+  }) : saleId = Value(saleId),
+       productId = Value(productId),
+       productName = Value(productName),
+       quantity = Value(quantity);
+  static Insertable<StoredLocalSaleItem> custom({
+    Expression<int>? id,
+    Expression<String>? saleId,
+    Expression<String>? productId,
+    Expression<String>? productName,
+    Expression<String>? productSku,
+    Expression<int>? quantity,
+    Expression<double>? historicalUnitPrice,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (saleId != null) 'sale_id': saleId,
+      if (productId != null) 'product_id': productId,
+      if (productName != null) 'product_name': productName,
+      if (productSku != null) 'product_sku': productSku,
+      if (quantity != null) 'quantity': quantity,
+      if (historicalUnitPrice != null)
+        'historical_unit_price': historicalUnitPrice,
+    });
+  }
+
+  LocalSaleItemsTableCompanion copyWith({
+    Value<int>? id,
+    Value<String>? saleId,
+    Value<String>? productId,
+    Value<String>? productName,
+    Value<String?>? productSku,
+    Value<int>? quantity,
+    Value<double?>? historicalUnitPrice,
+  }) {
+    return LocalSaleItemsTableCompanion(
+      id: id ?? this.id,
+      saleId: saleId ?? this.saleId,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      productSku: productSku ?? this.productSku,
+      quantity: quantity ?? this.quantity,
+      historicalUnitPrice: historicalUnitPrice ?? this.historicalUnitPrice,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (saleId.present) {
+      map['sale_id'] = Variable<String>(saleId.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (productName.present) {
+      map['product_name'] = Variable<String>(productName.value);
+    }
+    if (productSku.present) {
+      map['product_sku'] = Variable<String>(productSku.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (historicalUnitPrice.present) {
+      map['historical_unit_price'] = Variable<double>(
+        historicalUnitPrice.value,
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalSaleItemsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('saleId: $saleId, ')
+          ..write('productId: $productId, ')
+          ..write('productName: $productName, ')
+          ..write('productSku: $productSku, ')
+          ..write('quantity: $quantity, ')
+          ..write('historicalUnitPrice: $historicalUnitPrice')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2769,6 +4573,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SyncCollectionsTableTable syncCollectionsTable =
       $SyncCollectionsTableTable(this);
   late final $SyncLocksTableTable syncLocksTable = $SyncLocksTableTable(this);
+  late final $LocalSalesTableTable localSalesTable = $LocalSalesTableTable(
+    this,
+  );
+  late final $LocalSaleItemsTableTable localSaleItemsTable =
+      $LocalSaleItemsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2780,6 +4589,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dashboardSnapshotsTable,
     syncCollectionsTable,
     syncLocksTable,
+    localSalesTable,
+    localSaleItemsTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2790,19 +4601,56 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('products', kind: UpdateKind.update)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_sales',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('local_sale_items', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
 typedef $$SyncOutboxTableCreateCompanionBuilder =
     SyncOutboxCompanion Function({
       required String id,
+      Value<String?> clientRequestId,
+      Value<String> operationType,
+      Value<String?> localOperationId,
+      Value<String> payloadJson,
+      Value<int> payloadVersion,
       required String status,
+      Value<int> attempts,
+      Value<DateTime?> nextAttemptAt,
+      Value<String?> lastError,
+      Value<String?> remoteIntentId,
+      Value<String?> remoteSaleId,
+      Value<String?> proposalJson,
+      Value<int> proposalRevision,
+      Value<String?> confirmationToken,
+      Value<DateTime?> createdAt,
+      Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
 typedef $$SyncOutboxTableUpdateCompanionBuilder =
     SyncOutboxCompanion Function({
       Value<String> id,
+      Value<String?> clientRequestId,
+      Value<String> operationType,
+      Value<String?> localOperationId,
+      Value<String> payloadJson,
+      Value<int> payloadVersion,
       Value<String> status,
+      Value<int> attempts,
+      Value<DateTime?> nextAttemptAt,
+      Value<String?> lastError,
+      Value<String?> remoteIntentId,
+      Value<String?> remoteSaleId,
+      Value<String?> proposalJson,
+      Value<int> proposalRevision,
+      Value<String?> confirmationToken,
+      Value<DateTime?> createdAt,
+      Value<DateTime?> updatedAt,
       Value<int> rowid,
     });
 
@@ -2820,8 +4668,83 @@ class $$SyncOutboxTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get clientRequestId => $composableBuilder(
+    column: $table.clientRequestId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localOperationId => $composableBuilder(
+    column: $table.localOperationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get payloadVersion => $composableBuilder(
+    column: $table.payloadVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteIntentId => $composableBuilder(
+    column: $table.remoteIntentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteSaleId => $composableBuilder(
+    column: $table.remoteSaleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get proposalJson => $composableBuilder(
+    column: $table.proposalJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get proposalRevision => $composableBuilder(
+    column: $table.proposalRevision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get confirmationToken => $composableBuilder(
+    column: $table.confirmationToken,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2840,8 +4763,83 @@ class $$SyncOutboxTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get clientRequestId => $composableBuilder(
+    column: $table.clientRequestId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localOperationId => $composableBuilder(
+    column: $table.localOperationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get payloadVersion => $composableBuilder(
+    column: $table.payloadVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteIntentId => $composableBuilder(
+    column: $table.remoteIntentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteSaleId => $composableBuilder(
+    column: $table.remoteSaleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get proposalJson => $composableBuilder(
+    column: $table.proposalJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get proposalRevision => $composableBuilder(
+    column: $table.proposalRevision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get confirmationToken => $composableBuilder(
+    column: $table.confirmationToken,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2858,8 +4856,75 @@ class $$SyncOutboxTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get clientRequestId => $composableBuilder(
+    column: $table.clientRequestId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get operationType => $composableBuilder(
+    column: $table.operationType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localOperationId => $composableBuilder(
+    column: $table.localOperationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get payloadVersion => $composableBuilder(
+    column: $table.payloadVersion,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteIntentId => $composableBuilder(
+    column: $table.remoteIntentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get remoteSaleId => $composableBuilder(
+    column: $table.remoteSaleId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get proposalJson => $composableBuilder(
+    column: $table.proposalJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get proposalRevision => $composableBuilder(
+    column: $table.proposalRevision,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get confirmationToken => $composableBuilder(
+    column: $table.confirmationToken,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$SyncOutboxTableTableManager
@@ -2894,17 +4959,81 @@ class $$SyncOutboxTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> clientRequestId = const Value.absent(),
+                Value<String> operationType = const Value.absent(),
+                Value<String?> localOperationId = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<int> payloadVersion = const Value.absent(),
                 Value<String> status = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<DateTime?> nextAttemptAt = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<String?> remoteIntentId = const Value.absent(),
+                Value<String?> remoteSaleId = const Value.absent(),
+                Value<String?> proposalJson = const Value.absent(),
+                Value<int> proposalRevision = const Value.absent(),
+                Value<String?> confirmationToken = const Value.absent(),
+                Value<DateTime?> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => SyncOutboxCompanion(id: id, status: status, rowid: rowid),
+              }) => SyncOutboxCompanion(
+                id: id,
+                clientRequestId: clientRequestId,
+                operationType: operationType,
+                localOperationId: localOperationId,
+                payloadJson: payloadJson,
+                payloadVersion: payloadVersion,
+                status: status,
+                attempts: attempts,
+                nextAttemptAt: nextAttemptAt,
+                lastError: lastError,
+                remoteIntentId: remoteIntentId,
+                remoteSaleId: remoteSaleId,
+                proposalJson: proposalJson,
+                proposalRevision: proposalRevision,
+                confirmationToken: confirmationToken,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> clientRequestId = const Value.absent(),
+                Value<String> operationType = const Value.absent(),
+                Value<String?> localOperationId = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<int> payloadVersion = const Value.absent(),
                 required String status,
+                Value<int> attempts = const Value.absent(),
+                Value<DateTime?> nextAttemptAt = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<String?> remoteIntentId = const Value.absent(),
+                Value<String?> remoteSaleId = const Value.absent(),
+                Value<String?> proposalJson = const Value.absent(),
+                Value<int> proposalRevision = const Value.absent(),
+                Value<String?> confirmationToken = const Value.absent(),
+                Value<DateTime?> createdAt = const Value.absent(),
+                Value<DateTime?> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SyncOutboxCompanion.insert(
                 id: id,
+                clientRequestId: clientRequestId,
+                operationType: operationType,
+                localOperationId: localOperationId,
+                payloadJson: payloadJson,
+                payloadVersion: payloadVersion,
                 status: status,
+                attempts: attempts,
+                nextAttemptAt: nextAttemptAt,
+                lastError: lastError,
+                remoteIntentId: remoteIntentId,
+                remoteSaleId: remoteSaleId,
+                proposalJson: proposalJson,
+                proposalRevision: proposalRevision,
+                confirmationToken: confirmationToken,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -4516,6 +6645,761 @@ typedef $$SyncLocksTableTableProcessedTableManager =
       StoredSyncLock,
       PrefetchHooks Function()
     >;
+typedef $$LocalSalesTableTableCreateCompanionBuilder =
+    LocalSalesTableCompanion Function({
+      required String id,
+      required String clientRequestId,
+      required String clientId,
+      required String clientName,
+      required DateTime soldAt,
+      required String timezone,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$LocalSalesTableTableUpdateCompanionBuilder =
+    LocalSalesTableCompanion Function({
+      Value<String> id,
+      Value<String> clientRequestId,
+      Value<String> clientId,
+      Value<String> clientName,
+      Value<DateTime> soldAt,
+      Value<String> timezone,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$LocalSalesTableTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $LocalSalesTableTable, StoredLocalSale> {
+  $$LocalSalesTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<
+    $LocalSaleItemsTableTable,
+    List<StoredLocalSaleItem>
+  >
+  _localSaleItemsTableRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.localSaleItemsTable,
+        aliasName: 'local_sales__id__local_sale_items__sale_id',
+      );
+
+  $$LocalSaleItemsTableTableProcessedTableManager get localSaleItemsTableRefs {
+    final manager = $$LocalSaleItemsTableTableTableManager(
+      $_db,
+      $_db.localSaleItemsTable,
+    ).filter((f) => f.saleId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _localSaleItemsTableRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$LocalSalesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalSalesTableTable> {
+  $$LocalSalesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientRequestId => $composableBuilder(
+    column: $table.clientRequestId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientName => $composableBuilder(
+    column: $table.clientName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get soldAt => $composableBuilder(
+    column: $table.soldAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get timezone => $composableBuilder(
+    column: $table.timezone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> localSaleItemsTableRefs(
+    Expression<bool> Function($$LocalSaleItemsTableTableFilterComposer f) f,
+  ) {
+    final $$LocalSaleItemsTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.localSaleItemsTable,
+      getReferencedColumn: (t) => t.saleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalSaleItemsTableTableFilterComposer(
+            $db: $db,
+            $table: $db.localSaleItemsTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$LocalSalesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalSalesTableTable> {
+  $$LocalSalesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientRequestId => $composableBuilder(
+    column: $table.clientRequestId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientName => $composableBuilder(
+    column: $table.clientName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get soldAt => $composableBuilder(
+    column: $table.soldAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get timezone => $composableBuilder(
+    column: $table.timezone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocalSalesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalSalesTableTable> {
+  $$LocalSalesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get clientRequestId => $composableBuilder(
+    column: $table.clientRequestId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+
+  GeneratedColumn<String> get clientName => $composableBuilder(
+    column: $table.clientName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get soldAt =>
+      $composableBuilder(column: $table.soldAt, builder: (column) => column);
+
+  GeneratedColumn<String> get timezone =>
+      $composableBuilder(column: $table.timezone, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> localSaleItemsTableRefs<T extends Object>(
+    Expression<T> Function($$LocalSaleItemsTableTableAnnotationComposer a) f,
+  ) {
+    final $$LocalSaleItemsTableTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.localSaleItemsTable,
+          getReferencedColumn: (t) => t.saleId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LocalSaleItemsTableTableAnnotationComposer(
+                $db: $db,
+                $table: $db.localSaleItemsTable,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$LocalSalesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalSalesTableTable,
+          StoredLocalSale,
+          $$LocalSalesTableTableFilterComposer,
+          $$LocalSalesTableTableOrderingComposer,
+          $$LocalSalesTableTableAnnotationComposer,
+          $$LocalSalesTableTableCreateCompanionBuilder,
+          $$LocalSalesTableTableUpdateCompanionBuilder,
+          (StoredLocalSale, $$LocalSalesTableTableReferences),
+          StoredLocalSale,
+          PrefetchHooks Function({bool localSaleItemsTableRefs})
+        > {
+  $$LocalSalesTableTableTableManager(
+    _$AppDatabase db,
+    $LocalSalesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalSalesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalSalesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalSalesTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> clientRequestId = const Value.absent(),
+                Value<String> clientId = const Value.absent(),
+                Value<String> clientName = const Value.absent(),
+                Value<DateTime> soldAt = const Value.absent(),
+                Value<String> timezone = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalSalesTableCompanion(
+                id: id,
+                clientRequestId: clientRequestId,
+                clientId: clientId,
+                clientName: clientName,
+                soldAt: soldAt,
+                timezone: timezone,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String clientRequestId,
+                required String clientId,
+                required String clientName,
+                required DateTime soldAt,
+                required String timezone,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => LocalSalesTableCompanion.insert(
+                id: id,
+                clientRequestId: clientRequestId,
+                clientId: clientId,
+                clientName: clientName,
+                soldAt: soldAt,
+                timezone: timezone,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$LocalSalesTableTable, StoredLocalSale>(table),
+                  $$LocalSalesTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({localSaleItemsTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (localSaleItemsTableRefs) db.localSaleItemsTable,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (localSaleItemsTableRefs)
+                    await $_getPrefetchedData<
+                      StoredLocalSale,
+                      $LocalSalesTableTable,
+                      StoredLocalSaleItem
+                    >(
+                      currentTable: table,
+                      referencedTable: $$LocalSalesTableTableReferences
+                          ._localSaleItemsTableRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$LocalSalesTableTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).localSaleItemsTableRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.saleId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LocalSalesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalSalesTableTable,
+      StoredLocalSale,
+      $$LocalSalesTableTableFilterComposer,
+      $$LocalSalesTableTableOrderingComposer,
+      $$LocalSalesTableTableAnnotationComposer,
+      $$LocalSalesTableTableCreateCompanionBuilder,
+      $$LocalSalesTableTableUpdateCompanionBuilder,
+      (StoredLocalSale, $$LocalSalesTableTableReferences),
+      StoredLocalSale,
+      PrefetchHooks Function({bool localSaleItemsTableRefs})
+    >;
+typedef $$LocalSaleItemsTableTableCreateCompanionBuilder =
+    LocalSaleItemsTableCompanion Function({
+      Value<int> id,
+      required String saleId,
+      required String productId,
+      required String productName,
+      Value<String?> productSku,
+      required int quantity,
+      Value<double?> historicalUnitPrice,
+    });
+typedef $$LocalSaleItemsTableTableUpdateCompanionBuilder =
+    LocalSaleItemsTableCompanion Function({
+      Value<int> id,
+      Value<String> saleId,
+      Value<String> productId,
+      Value<String> productName,
+      Value<String?> productSku,
+      Value<int> quantity,
+      Value<double?> historicalUnitPrice,
+    });
+
+final class $$LocalSaleItemsTableTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LocalSaleItemsTableTable,
+          StoredLocalSaleItem
+        > {
+  $$LocalSaleItemsTableTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalSalesTableTable _saleIdTable(_$AppDatabase db) => db
+      .localSalesTable
+      .createAlias('local_sale_items__sale_id__local_sales__id');
+
+  $$LocalSalesTableTableProcessedTableManager get saleId {
+    final $_column = $_itemColumn<String>('sale_id')!;
+
+    final manager = $$LocalSalesTableTableTableManager(
+      $_db,
+      $_db.localSalesTable,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_saleIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LocalSaleItemsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalSaleItemsTableTable> {
+  $$LocalSaleItemsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productId => $composableBuilder(
+    column: $table.productId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productName => $composableBuilder(
+    column: $table.productName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get productSku => $composableBuilder(
+    column: $table.productSku,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get historicalUnitPrice => $composableBuilder(
+    column: $table.historicalUnitPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalSalesTableTableFilterComposer get saleId {
+    final $$LocalSalesTableTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.saleId,
+      referencedTable: $db.localSalesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalSalesTableTableFilterComposer(
+            $db: $db,
+            $table: $db.localSalesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalSaleItemsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalSaleItemsTableTable> {
+  $$LocalSaleItemsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productId => $composableBuilder(
+    column: $table.productId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productName => $composableBuilder(
+    column: $table.productName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get productSku => $composableBuilder(
+    column: $table.productSku,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get historicalUnitPrice => $composableBuilder(
+    column: $table.historicalUnitPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalSalesTableTableOrderingComposer get saleId {
+    final $$LocalSalesTableTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.saleId,
+      referencedTable: $db.localSalesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalSalesTableTableOrderingComposer(
+            $db: $db,
+            $table: $db.localSalesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalSaleItemsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalSaleItemsTableTable> {
+  $$LocalSaleItemsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get productId =>
+      $composableBuilder(column: $table.productId, builder: (column) => column);
+
+  GeneratedColumn<String> get productName => $composableBuilder(
+    column: $table.productName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get productSku => $composableBuilder(
+    column: $table.productSku,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<double> get historicalUnitPrice => $composableBuilder(
+    column: $table.historicalUnitPrice,
+    builder: (column) => column,
+  );
+
+  $$LocalSalesTableTableAnnotationComposer get saleId {
+    final $$LocalSalesTableTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.saleId,
+      referencedTable: $db.localSalesTable,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalSalesTableTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localSalesTable,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LocalSaleItemsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalSaleItemsTableTable,
+          StoredLocalSaleItem,
+          $$LocalSaleItemsTableTableFilterComposer,
+          $$LocalSaleItemsTableTableOrderingComposer,
+          $$LocalSaleItemsTableTableAnnotationComposer,
+          $$LocalSaleItemsTableTableCreateCompanionBuilder,
+          $$LocalSaleItemsTableTableUpdateCompanionBuilder,
+          (StoredLocalSaleItem, $$LocalSaleItemsTableTableReferences),
+          StoredLocalSaleItem,
+          PrefetchHooks Function({bool saleId})
+        > {
+  $$LocalSaleItemsTableTableTableManager(
+    _$AppDatabase db,
+    $LocalSaleItemsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalSaleItemsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalSaleItemsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LocalSaleItemsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> saleId = const Value.absent(),
+                Value<String> productId = const Value.absent(),
+                Value<String> productName = const Value.absent(),
+                Value<String?> productSku = const Value.absent(),
+                Value<int> quantity = const Value.absent(),
+                Value<double?> historicalUnitPrice = const Value.absent(),
+              }) => LocalSaleItemsTableCompanion(
+                id: id,
+                saleId: saleId,
+                productId: productId,
+                productName: productName,
+                productSku: productSku,
+                quantity: quantity,
+                historicalUnitPrice: historicalUnitPrice,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String saleId,
+                required String productId,
+                required String productName,
+                Value<String?> productSku = const Value.absent(),
+                required int quantity,
+                Value<double?> historicalUnitPrice = const Value.absent(),
+              }) => LocalSaleItemsTableCompanion.insert(
+                id: id,
+                saleId: saleId,
+                productId: productId,
+                productName: productName,
+                productSku: productSku,
+                quantity: quantity,
+                historicalUnitPrice: historicalUnitPrice,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$LocalSaleItemsTableTable, StoredLocalSaleItem>(
+                    table,
+                  ),
+                  $$LocalSaleItemsTableTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({saleId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (saleId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.saleId,
+                                referencedTable:
+                                    $$LocalSaleItemsTableTableReferences
+                                        ._saleIdTable(db),
+                                referencedColumn:
+                                    $$LocalSaleItemsTableTableReferences
+                                        ._saleIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LocalSaleItemsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalSaleItemsTableTable,
+      StoredLocalSaleItem,
+      $$LocalSaleItemsTableTableFilterComposer,
+      $$LocalSaleItemsTableTableOrderingComposer,
+      $$LocalSaleItemsTableTableAnnotationComposer,
+      $$LocalSaleItemsTableTableCreateCompanionBuilder,
+      $$LocalSaleItemsTableTableUpdateCompanionBuilder,
+      (StoredLocalSaleItem, $$LocalSaleItemsTableTableReferences),
+      StoredLocalSaleItem,
+      PrefetchHooks Function({bool saleId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4535,4 +7419,8 @@ class $AppDatabaseManager {
       $$SyncCollectionsTableTableTableManager(_db, _db.syncCollectionsTable);
   $$SyncLocksTableTableTableManager get syncLocksTable =>
       $$SyncLocksTableTableTableManager(_db, _db.syncLocksTable);
+  $$LocalSalesTableTableTableManager get localSalesTable =>
+      $$LocalSalesTableTableTableManager(_db, _db.localSalesTable);
+  $$LocalSaleItemsTableTableTableManager get localSaleItemsTable =>
+      $$LocalSaleItemsTableTableTableManager(_db, _db.localSaleItemsTable);
 }

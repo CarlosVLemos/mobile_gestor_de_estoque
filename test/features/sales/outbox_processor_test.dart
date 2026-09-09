@@ -105,9 +105,15 @@ void main() {
   });
 
   test('403 bloqueia a operação e interrompe a rodada', () async {
-    final store = _Store()..eligible.addAll([item('1'), item('2')]);
+    final blocked = item(
+      '1',
+      operation: SaleOutboxOperation.confirmIntent,
+      intentId: 'intent-1',
+      token: 'token-1',
+    );
+    final store = _Store()..eligible.addAll([blocked, item('2')]);
     final gateway = _Gateway()
-      ..createOutcomes.add(const SaleIntentOutcome(
+      ..confirmOutcomes.add(const SaleIntentOutcome(
         kind: SaleIntentOutcomeKind.blocked,
         code: 'forbidden',
       ));
@@ -119,8 +125,43 @@ void main() {
 
     await processor.drain(protect: protect);
 
-    expect(gateway.created, ['request-1']);
-    expect(store.permanent, ['1']);
+    expect(gateway.confirmed, ['intent-1:token-1']);
+    expect(store.blocked, ['1']);
+    expect(store.lastClaimed?.operation, SaleOutboxOperation.confirmIntent);
+    expect(store.lastClaimed?.confirmationToken, 'token-1');
+    expect(store.eligible.single.id, '2');
+  });
+
+  test('cancelamento de lifecycle devolve o claim sem attempts ou backoff', () async {
+    final original = item(
+      '1',
+      attempts: 2,
+      operation: SaleOutboxOperation.confirmIntent,
+      intentId: 'intent-1',
+      token: 'token-1',
+    );
+    final store = _Store()..eligible.add(original);
+    final gateway = _Gateway()
+      ..confirmOutcomes.add(const SaleIntentOutcome(
+        kind: SaleIntentOutcomeKind.interrupted,
+        code: 'request_cancelled',
+      ));
+    final processor = OutboxProcessor(
+      store: store,
+      gateway: gateway,
+      clock: () => now,
+    );
+
+    await processor.drain(protect: protect);
+
+    expect(store.pending, ['1']);
+    expect(store.pendingErrors.single, isNull);
+    expect(store.retryAttempts, isNull);
+    expect(store.retryAt, isNull);
+    expect(store.lastClaimed?.id, original.id);
+    expect(store.lastClaimed?.operation, original.operation);
+    expect(store.lastClaimed?.payload, same(original.payload));
+    expect(store.lastClaimed?.attempts, 2);
   });
 
   test('aceite só enfileira confirmação e exige revisão atual', () async {
@@ -162,15 +203,35 @@ class _Store implements SaleOutboxStore {
   DateTime? retryAt;
   int requiresAcceptance = 0;
   final permanent = <String>[];
+  final blocked = <String>[];
+  final pending = <String>[];
+  final pendingErrors = <String?>[];
   OutboxSale? claimed;
+  OutboxSale? lastClaimed;
   int? claimedRevision;
 
   @override
   Future<void> recoverOrphanedSyncing(DateTime now) async => recovered = true;
 
   @override
-  Future<OutboxSale?> claimNextEligible(DateTime now) async =>
-      eligible.isEmpty ? null : eligible.removeAt(0);
+  Future<OutboxSale?> claimNextEligible(DateTime now) async {
+    if (eligible.isEmpty) return null;
+    final item = eligible.removeAt(0);
+    syncing.add(item.id);
+    return lastClaimed = OutboxSale(
+      id: item.id,
+      localSaleId: item.localSaleId,
+      clientRequestId: item.clientRequestId,
+      payload: item.payload,
+      status: SaleSyncStatus.syncing,
+      attempts: item.attempts,
+      operation: item.operation,
+      nextAttemptAt: item.nextAttemptAt,
+      remoteIntentId: item.remoteIntentId,
+      confirmationToken: item.confirmationToken,
+      proposalRevision: item.proposalRevision,
+    );
+  }
 
   @override
   Future<OutboxSale?> read(String id) async => claimed;
@@ -191,9 +252,12 @@ class _Store implements SaleOutboxStore {
   @override
   Future<void> markPending(
     String id, {
-    required String error,
+    String? error,
     required DateTime now,
-  }) async {}
+  }) async {
+    pending.add(id);
+    pendingErrors.add(error);
+  }
 
   @override
   Future<void> markConfirmed(
@@ -221,6 +285,13 @@ class _Store implements SaleOutboxStore {
     required String error,
     required DateTime now,
   }) async => permanent.add(id);
+
+  @override
+  Future<void> markBlocked(
+    String id, {
+    required String error,
+    required DateTime now,
+  }) async => blocked.add(id);
 
   @override
   Future<void> markCancelled(String id, DateTime now) async {}

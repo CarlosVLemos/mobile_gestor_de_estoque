@@ -52,7 +52,8 @@ class OutboxProcessor implements OutboxDrainer {
         if (generation != _cancelGeneration ||
             outcome.kind == SaleIntentOutcomeKind.unauthorized ||
             outcome.kind == SaleIntentOutcomeKind.retryableFailure ||
-            outcome.kind == SaleIntentOutcomeKind.blocked) {
+            outcome.kind == SaleIntentOutcomeKind.blocked ||
+            outcome.kind == SaleIntentOutcomeKind.interrupted) {
           return;
         }
       }
@@ -125,12 +126,19 @@ class OutboxProcessor implements OutboxDrainer {
           now: now,
         ));
       case SaleIntentOutcomeKind.permanentFailure:
-      case SaleIntentOutcomeKind.blocked:
         await write(() => _store.markPermanent(
           item.id,
           error: outcome.code ?? 'permanent_failure',
           now: now,
         ));
+      case SaleIntentOutcomeKind.blocked:
+        await write(() => _store.markBlocked(
+          item.id,
+          error: outcome.code ?? 'forbidden',
+          now: now,
+        ));
+      case SaleIntentOutcomeKind.interrupted:
+        await write(() => _store.markPending(item.id, now: now));
       case SaleIntentOutcomeKind.unauthorized:
         await write(() => _store.markPending(
           item.id,

@@ -21,7 +21,7 @@ abstract interface class SaleOutboxStore {
   Future<void> markSyncing(String id, DateTime now);
   Future<void> markPending(
     String id, {
-    required String error,
+    String? error,
     required DateTime now,
   });
   Future<void> markConfirmed(
@@ -38,6 +38,11 @@ abstract interface class SaleOutboxStore {
     required DateTime now,
   });
   Future<void> markPermanent(
+    String id, {
+    required String error,
+    required DateTime now,
+  });
+  Future<void> markBlocked(
     String id, {
     required String error,
     required DateTime now,

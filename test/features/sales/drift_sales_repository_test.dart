@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
@@ -162,13 +164,17 @@ void main() {
       now: now,
     );
 
-    expect((await repository.claimNextEligible(now))?.id, 'newer');
-    expect(
-      (await repository.claimNextEligible(
-        now.add(const Duration(minutes: 1)),
-      ))?.id,
-      'older',
+    final newer = await repository.claimNextEligible(now);
+    expect(newer?.id, 'newer');
+    expect(newer?.status, SaleSyncStatus.syncing);
+    expect((await repository.read('newer'))?.status, SaleSyncStatus.syncing);
+
+    final older = await repository.claimNextEligible(
+      now.add(const Duration(minutes: 1)),
     );
+    expect(older?.id, 'older');
+    expect(older?.status, SaleSyncStatus.syncing);
+    expect((await repository.read('older'))?.status, SaleSyncStatus.syncing);
   });
 
   test('payload corrompido vira permanente e não bloqueia o próximo', () async {
@@ -240,6 +246,75 @@ void main() {
     expect(terminal?.confirmationToken, isNull);
   });
 
+  test('403 bloqueia sem apagar token, identidade, payload ou operação', () async {
+    const id = '11111111-2222-4333-8444-555555555555';
+    await repository.register(
+      localSaleId: id,
+      clientRequestId: id,
+      draft: draft(),
+      createdAt: now,
+    );
+    await repository.markRequiresAcceptance(
+      id,
+      remoteIntentId: 'intent-1',
+      proposalJson: '{"version":1}',
+      confirmationToken: 'secret',
+      now: now,
+    );
+    await repository.queueForConfirmation(
+      id,
+      expectedProposalRevision: 1,
+      now: now,
+    );
+    final before = await repository.claimNextEligible(now);
+
+    await repository.markBlocked(id, error: 'forbidden', now: now);
+    final blocked = await repository.read(id);
+
+    expect(blocked?.status, SaleSyncStatus.failedPermanent);
+    expect(blocked?.clientRequestId, before?.clientRequestId);
+    expect(blocked?.payload.clientId, before?.payload.clientId);
+    expect(blocked?.payload.soldAt, before?.payload.soldAt);
+    expect(
+      blocked?.payload.items.single.productId,
+      before?.payload.items.single.productId,
+    );
+    expect(blocked?.operation, SaleOutboxOperation.confirmIntent);
+    expect(blocked?.remoteIntentId, 'intent-1');
+    expect(blocked?.confirmationToken, 'secret');
+    expect(blocked?.attempts, 0);
+    final persisted = await (database.select(database.syncOutbox)
+          ..where((row) => row.id.equals(id)))
+        .getSingle();
+    expect(persisted.proposalJson, '{"version":1}');
+  });
+
+  test('cancelamento controlado devolve para pending sem alterar a operação', () async {
+    const id = '11111111-2222-4333-8444-555555555555';
+    await repository.register(
+      localSaleId: id,
+      clientRequestId: id,
+      draft: draft(),
+      createdAt: now,
+    );
+    final claimed = await repository.claimNextEligible(now);
+
+    await repository.markPending(id, now: now);
+    final resumed = await repository.read(id);
+
+    expect(resumed?.status, SaleSyncStatus.pending);
+    expect(resumed?.attempts, claimed?.attempts);
+    expect(resumed?.nextAttemptAt, isNull);
+    expect(resumed?.clientRequestId, claimed?.clientRequestId);
+    expect(resumed?.payload.clientId, claimed?.payload.clientId);
+    expect(resumed?.payload.soldAt, claimed?.payload.soldAt);
+    expect(resumed?.operation, claimed?.operation);
+    final persisted = await (database.select(database.syncOutbox)
+          ..where((row) => row.id.equals(id)))
+        .getSingle();
+    expect(persisted.lastError, isNull);
+  });
+
   test('restart recupera syncing com a mesma identidade, payload e operação', () async {
     final directory = await Directory.systemTemp.createTemp('sale-restart-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
@@ -274,4 +349,3 @@ void main() {
     }
   });
 }
-import 'dart:io';

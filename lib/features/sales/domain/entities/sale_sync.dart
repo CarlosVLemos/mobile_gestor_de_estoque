@@ -119,6 +119,7 @@ enum SaleIntentOutcomeKind {
   retryableFailure,
   permanentFailure,
   blocked,
+  interrupted,
   unauthorized,
 }
 

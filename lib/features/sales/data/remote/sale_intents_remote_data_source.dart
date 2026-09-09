@@ -72,8 +72,11 @@ class SaleIntentsRemoteDataSource implements SaleIntentGateway {
       return _retryable(error.message);
     } on ConnectionTimeoutException catch (error) {
       return _retryable(error.message);
-    } on RequestCancelledException catch (error) {
-      return _retryable(error.message);
+    } on RequestCancelledException {
+      return const SaleIntentOutcome(
+        kind: SaleIntentOutcomeKind.interrupted,
+        code: 'request_cancelled',
+      );
     } on RateLimitException catch (error) {
       return _retryable(error.message, code: 'rate_limited');
     } on ServerException catch (error) {
@@ -96,6 +99,24 @@ class SaleIntentsRemoteDataSource implements SaleIntentGateway {
         kind: SaleIntentOutcomeKind.confirmed,
         code: code,
       );
+    }
+    if (statusCode == 200 && code == 'idempotent_replay') {
+      final intent = body['intent'];
+      if (intent is Map<String, dynamic> &&
+          _string(intent['state']) == 'confirmed') {
+        final intentId = _remoteId(intent['id']);
+        if (intentId != null) {
+          final sale = body['sale'];
+          return SaleIntentOutcome(
+            kind: SaleIntentOutcomeKind.confirmed,
+            code: code,
+            remoteIntentId: intentId,
+            remoteSaleId: sale is Map<String, dynamic>
+                ? _remoteId(sale['id'])
+                : null,
+          );
+        }
+      }
     }
     return const SaleIntentOutcome(
       kind: SaleIntentOutcomeKind.permanentFailure,
@@ -168,3 +189,9 @@ Map<String, dynamic> _payload(SaleIntentPayload payload) => {
 String? _string(Object? value) => value is String && value.isNotEmpty
     ? value
     : null;
+
+String? _remoteId(Object? value) => switch (value) {
+  final int id => id.toString(),
+  final String id when id.isNotEmpty => id,
+  _ => null,
+};

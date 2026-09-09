@@ -221,7 +221,7 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
   @override
   Future<void> markPending(
     String id, {
-    required String error,
+    String? error,
     required DateTime now,
   }) => _update(
     id,
@@ -286,6 +286,21 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
       lastError: Value(error),
       nextAttemptAt: const Value(null),
       confirmationToken: const Value(null),
+      updatedAt: Value(now),
+    ),
+  );
+
+  @override
+  Future<void> markBlocked(
+    String id, {
+    required String error,
+    required DateTime now,
+  }) => _update(
+    id,
+    SyncOutboxCompanion(
+      status: const Value('failed_permanent'),
+      lastError: Value(error),
+      nextAttemptAt: const Value(null),
       updatedAt: Value(now),
     ),
   );

@@ -70,6 +70,72 @@ void main() {
     expect(outcome.kind, SaleIntentOutcomeKind.requiresAcceptance);
   });
 
+  test('200 replay só confirma com intent confirmado e extrai IDs', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      handler.resolve(Response(
+        requestOptions: options,
+        statusCode: 200,
+        data: {
+          'code': 'idempotent_replay',
+          'intent': {'id': 91, 'state': 'confirmed'},
+          'sale': {'id': 37},
+        },
+      ));
+    }));
+
+    final outcome = await SaleIntentsRemoteDataSource(
+      ApiClient(dio),
+      accessToken: 'token',
+    ).createIntent(payload());
+
+    expect(outcome.kind, SaleIntentOutcomeKind.confirmed);
+    expect(outcome.remoteIntentId, '91');
+    expect(outcome.remoteSaleId, '37');
+  });
+
+  test('200 replay genérico não é tratado como confirmado', () async {
+    for (final intent in <Map<String, dynamic>>[
+      {'id': 91, 'state': 'requires_confirmation'},
+      {'state': 'confirmed'},
+    ]) {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+      dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+        handler.resolve(Response(
+          requestOptions: options,
+          statusCode: 200,
+          data: {'code': 'idempotent_replay', 'intent': intent},
+        ));
+      }));
+
+      final outcome = await SaleIntentsRemoteDataSource(
+        ApiClient(dio),
+        accessToken: 'token',
+      ).createIntent(payload());
+
+      expect(outcome.kind, SaleIntentOutcomeKind.permanentFailure);
+      expect(outcome.code, 'unexpected_sale_intent_response');
+    }
+  });
+
+  test('cancelamento controlado não é falha de transporte', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      handler.reject(DioException(
+        requestOptions: options,
+        type: DioExceptionType.cancel,
+      ));
+    }));
+
+    final outcome = await SaleIntentsRemoteDataSource(
+      ApiClient(dio),
+      accessToken: 'token',
+    ).createIntent(payload());
+
+    expect(outcome.kind, SaleIntentOutcomeKind.interrupted);
+    expect(outcome.code, 'request_cancelled');
+  });
+
   test('409 insufficient_stock e 410 são permanentes', () async {
     for (final scenario in <(int, String)>[
       (409, 'insufficient_stock'),
