@@ -1,29 +1,159 @@
 import 'dart:convert';
+
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/dashboard_overview.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 
 class DriftDashboardRepository implements ReactiveDashboardRepository {
   DriftDashboardRepository(this._database, this.scopeKey);
-  final AppDatabase _database; final String scopeKey;
-  @override Future<DashboardLoadResult> load() => watch().first;
-  @override Stream<DashboardLoadResult> watch() => _database.watchDashboardSnapshot(scopeKey).map((snapshot) {
-    if (snapshot == null) return const DashboardLoadResult.empty('O painel ainda não foi sincronizado neste dispositivo.');
-    try { return DashboardLoadResult.ready(_decode(snapshot)); } on FormatException { return const DashboardLoadResult.failure('O snapshot local do painel é inválido.'); }
-  });
+
+  final AppDatabase _database;
+  final String scopeKey;
+
+  @override
+  Future<DashboardLoadResult> load() => watch().first;
+
+  @override
+  Stream<DashboardLoadResult> watch() =>
+      _database.watchDashboardSnapshot(scopeKey).map((snapshot) {
+        if (snapshot == null) {
+          return const DashboardLoadResult.empty(
+            'O painel ainda não foi sincronizado neste dispositivo.',
+          );
+        }
+        try {
+          return DashboardLoadResult.ready(_decode(snapshot));
+        } on FormatException {
+          return const DashboardLoadResult.failure(
+            'O snapshot local do painel é inválido.',
+          );
+        }
+      });
 
   DashboardOverview _decode(StoredDashboardSnapshot row) {
-    final data = jsonDecode(row.payloadJson); if (data is! Map<String, dynamic>) throw const FormatException();
-    final kpis = _items(data['kpis']).map((value) { final item = _map(value); return DashboardKpi(label: _text(item['label']), value: item['value']?.toString(), subtitle: item['subtitle']?.toString(), isCurrency: item['is_currency'] == true, isRestricted: item['is_restricted'] == true, isHighlighted: item['is_highlighted'] == true); }).toList();
-    final alerts = _items(data['low_stock_alerts']).map((value) { final item = _map(value); return DashboardStockAlert(productName: _text(item['product_name']), stockLabel: _text(item['stock_label']), toneLabel: _text(item['tone_label'])); }).toList();
-    final movements = _items(data['recent_movements']).map((value) { final item = _map(value); return DashboardMovement(productName: _text(item['product_name']), movementLabel: _text(item['movement_label']), quantityLabel: _text(item['quantity_label']), occurredAtLabel: _text(item['occurred_at_label'])); }).toList();
-    final stock = _items(data['stock_level_chart']).map((value) { final item = _map(value); return DashboardStockLevelPoint(label: _text(item['label']), value: _integer(item['value']), toneLabel: _text(item['tone_label'])); }).toList();
-    final goal = _map(data['operational_goal_chart']);
-    return DashboardOverview(kpis: kpis, lowStockAlerts: alerts, recentMovements: movements, stockLevelChart: stock, operationalGoalChart: DashboardOperationalGoalChart(periodLabel: _text(goal['period_label']), targetLabel: _text(goal['target_label']), currentLabel: _text(goal['current_label']), progress: _number(goal['progress'])), canViewFinancial: row.canViewFinancial, webDashboardUrl: row.webDashboardUrl, updatedAtLabel: row.generatedAt.toLocal().toString());
+    final data = _map(jsonDecode(row.payloadJson));
+    final canViewFinancial = row.canViewFinancial;
+    return DashboardOverview(
+      kpis: _decodeKpis(_map(data['kpis']), canViewFinancial),
+      lowStockAlerts: _decodeAlerts(data['low_stock_alert']),
+      recentMovements: _decodeMovements(data['recent_movements']),
+      stockLevelChart: _decodeStockLevels(data['stock_level_chart']),
+      operationalGoalChart: _decodeGoal(data['operational_goal_chart']),
+      canViewFinancial: canViewFinancial,
+      webDashboardUrl: row.webDashboardUrl,
+      updatedAtLabel: row.generatedAt.toLocal().toString(),
+    );
   }
 }
-Map<String, dynamic> _map(Object? value) => value is Map<String, dynamic> ? value : throw const FormatException();
-List<dynamic> _items(Object? value) => value is List ? value : const [];
-String _text(Object? value) => value is String ? value : throw const FormatException();
-int _integer(Object? value) => value is int ? value : throw const FormatException();
-double _number(Object? value) => value is num && value.isFinite ? value.toDouble() : throw const FormatException();
+
+List<DashboardKpi> _decodeKpis(
+  Map<String, dynamic> values,
+  bool canViewFinancial,
+) => [
+  for (final entry in values.entries)
+    DashboardKpi(
+      label: _label(entry.key),
+      value: _metricValue(entry.value),
+      isCurrency: _isFinancialMetric(entry.key),
+      isRestricted: _isFinancialMetric(entry.key) && !canViewFinancial,
+    ),
+];
+
+List<DashboardStockAlert> _decodeAlerts(Object? source) => [
+  for (final item in _records(source))
+    DashboardStockAlert(
+      productName: _firstText(item, const ['product_name', 'name', 'product']),
+      stockLabel: _firstText(item, const ['stock_label', 'stock_quantity', 'quantity']),
+      toneLabel: _firstText(item, const ['tone_label', 'status', 'severity']),
+    ),
+];
+
+List<DashboardMovement> _decodeMovements(Object? source) => [
+  for (final item in _records(source))
+    DashboardMovement(
+      productName: _firstText(item, const ['product_name', 'product', 'name']),
+      movementLabel: _firstText(item, const ['movement_label', 'type', 'description']),
+      quantityLabel: _firstText(item, const ['quantity_label', 'quantity']),
+      occurredAtLabel: _firstText(item, const ['occurred_at', 'created_at', 'date']),
+    ),
+];
+
+List<DashboardStockLevelPoint> _decodeStockLevels(Object? source) => [
+  for (final item in _records(source))
+    DashboardStockLevelPoint(
+      label: _firstText(item, const ['category', 'label']),
+      value: _integer(item['total_quantity'] ?? item['value']),
+      toneLabel: _firstText(item, const ['tone_label', 'status']),
+    ),
+];
+
+DashboardOperationalGoalChart _decodeGoal(Object? source) {
+  final chart = _map(source);
+  if (chart['configured'] != true) {
+    return const DashboardOperationalGoalChart(
+      periodLabel: 'Meta não configurada',
+      targetLabel: '—',
+      currentLabel: '—',
+      progress: 0,
+    );
+  }
+  final summary = _map(chart['summary']);
+  return DashboardOperationalGoalChart(
+    periodLabel: _firstText(summary, const ['period', 'label', 'goal_month']),
+    targetLabel: _firstText(summary, const ['target_label', 'target', 'goal']),
+    currentLabel: _firstText(summary, const ['current_label', 'current', 'achieved']),
+    progress: _number(summary['progress'] ?? summary['percentage']),
+  );
+}
+
+List<Map<String, dynamic>> _records(Object? source) {
+  if (source is List) return source.map(_map).toList(growable: false);
+  final map = _map(source);
+  final data = map['data'];
+  if (data is List) return data.map(_map).toList(growable: false);
+  return map.isEmpty ? const [] : [map];
+}
+
+Map<String, dynamic> _map(Object? value) =>
+    value is Map<String, dynamic> ? value : const {};
+
+String? _metricValue(Object? value) {
+  if (value == null) return null;
+  if (value is Map<String, dynamic>) {
+    final nested = value['value'] ?? value['formatted'] ?? value['total'];
+    return nested?.toString();
+  }
+  return value.toString();
+}
+
+String _firstText(Map<String, dynamic> value, List<String> keys) {
+  for (final key in keys) {
+    final candidate = value[key];
+    if (candidate is String && candidate.isNotEmpty) return candidate;
+    if (candidate is num) return candidate.toString();
+    if (candidate is Map<String, dynamic>) {
+      final name = candidate['name'];
+      if (name is String && name.isNotEmpty) return name;
+    }
+  }
+  return '—';
+}
+
+String _label(String value) => value
+    .split('_')
+    .where((part) => part.isNotEmpty)
+    .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+    .join(' ');
+
+bool _isFinancialMetric(String key) =>
+    key.contains('revenue') || key.contains('financial') || key.contains('sales');
+
+int _integer(Object? value) => value is int
+    ? value
+    : value is num
+    ? value.toInt()
+    : 0;
+
+double _number(Object? value) => value is num && value.isFinite
+    ? value.toDouble()
+    : 0;

@@ -115,12 +115,36 @@ class AuthController extends Notifier<AuthState> {
                 LocalContext(userId: value.userId, tenantId: value.tenantId),
               );
           ref.invalidate(operationalDatabaseProvider);
+          if (value.mustChangePassword) {
+            ref.read(activeSyncContextProvider.notifier).state = null;
+            ref.read(activeAccessTokenProvider.notifier).state = null;
+            ref.read(operationalReadAccessProvider.notifier).state = null;
+            state = AuthState(
+              status: AuthStatus.passwordChangeRequired,
+              session: value,
+            );
+            return;
+          }
+          final token = await ref.read(secureTokenStorageProvider).read();
+          if (token == null || token.isEmpty) {
+            throw StateError('Token ausente para o contexto autenticado.');
+          }
+          final context = LocalContext(
+            userId: value.userId,
+            tenantId: value.tenantId,
+          );
+          ref.read(activeAccessTokenProvider.notifier).state = token;
+          ref.read(operationalReadAccessProvider.notifier).state =
+              OperationalReadAccess(
+                hasCatalogFeature: value.features.contains('catalog'),
+                canViewProducts: value.permissions['products_view'] == true,
+              );
+          ref.read(activeSyncContextProvider.notifier).state = context;
+          ref.invalidate(contextSyncEngineProvider);
           final engine = ref.read(contextSyncEngineProvider);
           if (engine != null) unawaited(engine.sync(trigger: SyncTrigger.startup));
           state = AuthState(
-            status: value.mustChangePassword
-                ? AuthStatus.passwordChangeRequired
-                : AuthStatus.authenticated,
+            status: AuthStatus.authenticated,
             session: value,
           );
         } catch (_) {

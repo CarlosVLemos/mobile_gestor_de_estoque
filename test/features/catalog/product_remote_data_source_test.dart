@@ -13,7 +13,10 @@ void main() {
       handler.resolve(Response(requestOptions: options, data: _validPage));
     }));
 
-    await ProductRemoteDataSource(ApiClient(dio)).fetch(
+    await ProductRemoteDataSource(
+      ApiClient(dio),
+      readAccessToken: () => 'test-token',
+    ).fetch(
       cursor: 'eyJ0ZW5hbnQiOiJ4In0+/=',
       checkpoint: '2026-09-09T10:00:00.000Z',
     );
@@ -23,6 +26,7 @@ void main() {
     expect(request.queryParameters['checkpoint'], '2026-09-09T10:00:00.000Z');
     expect(request.queryParameters['per_page'], 50);
     expect(request.queryParameters.containsKey('page'), isFalse);
+    expect(request.headers['Authorization'], 'Bearer test-token');
   });
 
   test('maps an invalid products envelope to invalidData', () async {
@@ -31,7 +35,10 @@ void main() {
       handler.resolve(Response(requestOptions: options, data: {'data': []}));
     }));
     await expectLater(
-      ProductRemoteDataSource(ApiClient(dio)).fetch(),
+      ProductRemoteDataSource(
+        ApiClient(dio),
+        readAccessToken: () => 'test-token',
+      ).fetch(),
       throwsA(isA<SyncException>().having((value) => value.kind, 'kind', SyncFailureKind.invalidData)),
     );
   });

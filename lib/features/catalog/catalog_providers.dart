@@ -7,8 +7,13 @@ import 'domain/repositories/catalog_repository.dart';
 
 final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {
   final database = ref.watch(operationalDatabaseProvider);
+  final access = ref.watch(operationalReadAccessProvider);
   if (database == null) throw StateError('Banco local não aberto.');
-  return DriftCatalogRepository(database);
+  return DriftCatalogRepository(
+    database,
+    hasCatalogFeature: access?.hasCatalogFeature == true,
+    canViewProducts: access?.canViewProducts == true,
+  );
 });
 
 final loadCatalogUseCaseProvider = Provider<LoadCatalogUseCase>((ref) {

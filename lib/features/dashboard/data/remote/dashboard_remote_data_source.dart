@@ -13,10 +13,23 @@ class RemoteDashboardSnapshot {
   String get payloadJson => jsonEncode(data);
 }
 class DashboardRemoteDataSource {
-  DashboardRemoteDataSource(this._api); final ApiClient _api; CancelToken? _pending;
+  DashboardRemoteDataSource(this._api, {String? Function()? readAccessToken}) : _readAccessToken = readAccessToken;
+  final ApiClient _api;
+  final String? Function()? _readAccessToken;
+  CancelToken? _pending;
   Future<RemoteDashboardSnapshot> fetch({required String groupBy, required String goalMonth, required int page}) async {
     final token = CancelToken(); _pending = token;
-    try { final response = await _api.get<Map<String, dynamic>>('/api/mobile/dashboard', queryParameters: {'group_by': groupBy, 'goal_month': goalMonth, 'page': page}, cancelToken: token); if (response.data == null) throw const FormatException('Resposta do painel vazia.'); return RemoteDashboardSnapshot(response.data!); } on Object catch (error) { throw syncExceptionFrom(error); } finally { if (identical(_pending, token)) _pending = null; }
+    try {
+      final accessToken = _readAccessToken?.call();
+      if (accessToken == null || accessToken.isEmpty) throw const UnauthorizedException();
+      final response = await _api.get<Map<String, dynamic>>('/api/mobile/dashboard', queryParameters: {'group_by': groupBy, 'goal_month': goalMonth, 'page': page}, options: Options(headers: {'Authorization': 'Bearer $accessToken'}), cancelToken: token);
+      if (response.data == null) throw const FormatException('Resposta do painel vazia.');
+      return RemoteDashboardSnapshot(response.data!);
+    } on Object catch (error) {
+      throw syncExceptionFrom(error);
+    } finally {
+      if (identical(_pending, token)) _pending = null;
+    }
   }
   void cancelPendingRequest() => _pending?.cancel('sync stopped');
 }

@@ -11,9 +11,13 @@ void main() {
       request = options;
       handler.resolve(Response(requestOptions: options, data: _response));
     }));
-    final result = await DashboardRemoteDataSource(ApiClient(dio)).fetch(groupBy: 'week', goalMonth: '2026-09', page: 2);
+    final result = await DashboardRemoteDataSource(
+      ApiClient(dio),
+      readAccessToken: () => 'test-token',
+    ).fetch(groupBy: 'week', goalMonth: '2026-09', page: 2);
     expect(request.path, '/api/mobile/dashboard');
     expect(request.queryParameters, {'group_by': 'week', 'goal_month': '2026-09', 'page': 2});
+    expect(request.headers['Authorization'], 'Bearer test-token');
     expect(result.revision, 'rev-1');
     expect(result.canViewFinancial, isFalse);
   });

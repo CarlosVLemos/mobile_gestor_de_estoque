@@ -56,19 +56,25 @@ class RemoteProductPage {
 }
 
 class ProductRemoteDataSource {
-  ProductRemoteDataSource(this._api);
+  ProductRemoteDataSource(this._api, {String? Function()? readAccessToken})
+    : _readAccessToken = readAccessToken;
   final ApiClient _api;
+  final String? Function()? _readAccessToken;
   CancelToken? _pending;
 
   Future<RemoteProductPage> fetch({String? cursor, String? checkpoint}) async {
     final token = CancelToken();
     _pending = token;
     try {
+      final accessToken = _readAccessToken?.call();
+      if (accessToken == null || accessToken.isEmpty) {
+        throw const UnauthorizedException();
+      }
       final response = await _api.get<Map<String, dynamic>>('/api/mobile/products', queryParameters: {
         'per_page': 50,
         'cursor': ?cursor,
         'checkpoint': ?checkpoint,
-      }, cancelToken: token);
+      }, options: Options(headers: {'Authorization': 'Bearer $accessToken'}), cancelToken: token);
       final body = response.data;
       if (body == null) throw const FormatException('Resposta de produtos vazia.');
       return RemoteProductPage(body);

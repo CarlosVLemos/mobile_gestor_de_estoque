@@ -8,6 +8,8 @@ import 'sync_lifecycle.dart';
 class ContextSyncLifecycle implements SyncLifecycle {
   final Map<LocalContext, SyncEngine> _engines = {};
 
+  SyncEngine? engineFor(LocalContext context) => _engines[context];
+
   void register(SyncEngine engine) {
     final current = _engines[engine.context];
     if (current != null && !identical(current, engine)) {

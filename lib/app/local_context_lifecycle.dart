@@ -8,6 +8,7 @@ import '../core/sync/sync_collection.dart';
 import '../core/sync/sync_engine.dart';
 import '../core/sync/sync_lock.dart';
 import '../core/database/app_database.dart';
+import '../core/database/local_context.dart';
 import '../core/database/drift_sync_lease_store.dart';
 import '../core/network/api_client.dart';
 import '../features/catalog/data/remote/product_remote_data_source.dart';
@@ -35,6 +36,22 @@ final contextSyncLifecycleProvider = Provider<ContextSyncLifecycle>(
   (ref) => ContextSyncLifecycle(),
 );
 
+class OperationalReadAccess {
+  const OperationalReadAccess({
+    required this.hasCatalogFeature,
+    required this.canViewProducts,
+  });
+
+  final bool hasCatalogFeature;
+  final bool canViewProducts;
+}
+
+final activeSyncContextProvider = StateProvider<LocalContext?>((ref) => null);
+final activeAccessTokenProvider = StateProvider<String?>((ref) => null);
+final operationalReadAccessProvider = StateProvider<OperationalReadAccess?>(
+  (ref) => null,
+);
+
 /// The current database exists only after authentication opened its scoped
 /// context. Feature repositories and collections never fall back to fixtures.
 final operationalDatabaseProvider = Provider<AppDatabase?>((ref) => ref.watch(databaseFactoryProvider).activeDatabase);
@@ -42,7 +59,12 @@ final operationalDatabaseProvider = Provider<AppDatabase?>((ref) => ref.watch(da
 final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
   final database = ref.watch(operationalDatabaseProvider);
   final context = ref.watch(databaseFactoryProvider).activeContext;
-  if (database == null || context == null) return null;
+  final activeContext = ref.watch(activeSyncContextProvider);
+  if (database == null || context == null || context != activeContext) return null;
+  final lifecycle = ref.watch(contextSyncLifecycleProvider);
+  final current = lifecycle.engineFor(context);
+  if (current != null) return current;
+  final access = ref.watch(operationalReadAccessProvider);
   final now = DateTime.now();
   final goalMonth = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
   final scopeKey = 'day:$goalMonth:1';
@@ -50,13 +72,28 @@ final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
   final engine = SyncEngine(
     context: context,
     collections: <SyncCollection>[
-      ProductSyncCollection(database: database, remote: ProductRemoteDataSource(api)),
-      DashboardSyncCollection(database: database, remote: DashboardRemoteDataSource(api), scopeKey: scopeKey, goalMonth: goalMonth),
+      if (access?.hasCatalogFeature == true && access?.canViewProducts == true)
+        ProductSyncCollection(
+          database: database,
+          remote: ProductRemoteDataSource(
+            api,
+            readAccessToken: () => ref.read(activeAccessTokenProvider),
+          ),
+        ),
+      DashboardSyncCollection(
+        database: database,
+        remote: DashboardRemoteDataSource(
+          api,
+          readAccessToken: () => ref.read(activeAccessTokenProvider),
+        ),
+        scopeKey: scopeKey,
+        goalMonth: goalMonth,
+      ),
     ],
     lock: SyncLock(),
     leaseStore: DriftSyncLeaseStore(database: database),
   );
-  ref.watch(contextSyncLifecycleProvider).register(engine);
+  lifecycle.register(engine);
   return engine;
 });
 
@@ -77,6 +114,9 @@ final contextStateInvalidatorProvider = Provider<ContextStateInvalidator>((
     ref.invalidate(shellDisplayNameControllerProvider);
     ref.invalidate(contextSyncEngineProvider);
     ref.invalidate(operationalDatabaseProvider);
+    ref.read(activeSyncContextProvider.notifier).state = null;
+    ref.read(activeAccessTokenProvider.notifier).state = null;
+    ref.read(operationalReadAccessProvider.notifier).state = null;
   };
 });
 

@@ -7,14 +7,31 @@ import '../../domain/repositories/catalog_repository.dart';
 import '../../domain/value_objects/catalog_query.dart';
 
 class DriftCatalogRepository implements ReactiveCatalogRepository {
-  DriftCatalogRepository(this._database);
+  DriftCatalogRepository(
+    this._database, {
+    required this.hasCatalogFeature,
+    required this.canViewProducts,
+  });
   final AppDatabase _database;
+  final bool hasCatalogFeature;
+  final bool canViewProducts;
 
   @override
   Future<CatalogLoadResult> load(CatalogQuery query) => watch(query).first;
 
   @override
   Stream<CatalogLoadResult> watch(CatalogQuery query) {
+    if (!hasCatalogFeature || !canViewProducts) {
+      return Stream.value(
+        CatalogLoadResult.restricted(
+          message: 'O catálogo não está disponível para este acesso.',
+          kind: hasCatalogFeature
+              ? CatalogRestrictionKind.permission
+              : CatalogRestrictionKind.featureDisabled,
+          categories: const ['Todos'],
+        ),
+      );
+    }
     return _database.customSelect(
       'SELECT p.*, c.name AS category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.deleted_at IS NULL ORDER BY p.name COLLATE NOCASE, p.id',
       readsFrom: {_database.productsTable, _database.categoriesTable},

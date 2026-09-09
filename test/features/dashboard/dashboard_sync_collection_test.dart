@@ -57,11 +57,11 @@ final _response = _responseWithRevision('r-1');
 Map<String, dynamic> _responseWithRevision(String revision) => {
   'data': {
     'can_view_financial': false,
-    'kpis': [{'label': 'Receita', 'value': null}],
-    'low_stock_alerts': const [],
-    'recent_movements': const [],
+    'kpis': {'monthly_revenue': null},
+    'low_stock_alert': const [],
+    'recent_movements': {'data': const [], 'meta': const {}},
     'stock_level_chart': const [],
-    'operational_goal_chart': {'period_label': 'Setembro', 'target_label': 'Restrito', 'current_label': 'Restrito', 'progress': 0},
+    'operational_goal_chart': {'configured': false, 'summary': const {}, 'series': const []},
   },
   'web_dashboard_url': 'https://example.test/dashboard',
   'meta': {'revision': revision, 'generated_at': '2026-09-09T12:00:00Z', 'period': '2026-09', 'reference_date': '2026-09-09'},
