@@ -44,7 +44,11 @@ class DriftDashboardRepository implements ReactiveDashboardRepository {
       lowStockAlerts: _decodeAlerts(data['low_stock_alert']),
       recentMovements: _decodeMovements(data['recent_movements']),
       stockLevelChart: _decodeStockLevels(data['stock_level_chart']),
-      operationalGoalChart: _decodeGoal(data['operational_goal_chart']),
+      operationalGoalChart: _decodeGoal(
+        data['operational_goal_chart'],
+        canViewFinancial: canViewFinancial,
+        periodLabel: row.period,
+      ),
       canViewFinancial: canViewFinancial,
       webDashboardUrl: row.webDashboardUrl,
       updatedAtLabel: row.generatedAt.toLocal().toString(),
@@ -95,11 +99,15 @@ List<DashboardStockLevelPoint> _decodeStockLevels(Object? source) => [
     ),
 ];
 
-DashboardOperationalGoalChart _decodeGoal(Object? source) {
+DashboardOperationalGoalChart _decodeGoal(
+  Object? source, {
+  required bool canViewFinancial,
+  required String periodLabel,
+}) {
   final chart = _map(source);
-  if (chart['configured'] != true) {
-    return const DashboardOperationalGoalChart(
-      periodLabel: 'Meta não configurada',
+  if (!canViewFinancial || chart['configured'] != true) {
+    return DashboardOperationalGoalChart(
+      periodLabel: periodLabel,
       targetLabel: '—',
       currentLabel: '—',
       progress: 0,
@@ -107,7 +115,7 @@ DashboardOperationalGoalChart _decodeGoal(Object? source) {
   }
   final summary = _map(chart['summary']);
   return DashboardOperationalGoalChart(
-    periodLabel: _firstText(chart, const ['period']),
+    periodLabel: periodLabel,
     targetLabel: _moneyFromCents(summary['target_cents']),
     currentLabel: _moneyFromCents(summary['actual_accumulated_cents']),
     progress: (_number(summary['progress_percent']) / 100)
@@ -158,11 +166,9 @@ String _label(String value) => value
 
 bool _isFinancialMetric(String key) =>
     key.endsWith('_cents') ||
-    key.contains('revenue') ||
-    key.contains('financial') ||
-    key.contains('sales') ||
-    key.contains('sold') ||
-    key.contains('ticket');
+    key.startsWith('revenue') ||
+    key.startsWith('average_ticket') ||
+    key.startsWith('sold_amount');
 
 int _integer(Object? value) => value is int
     ? value

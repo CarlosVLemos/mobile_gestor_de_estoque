@@ -54,10 +54,18 @@ void main() {
   test('configured goal converts cents and percent before reaching the repository', () async {
     final response = _responseWithRevision('r-goal');
     (response['data'] as Map<String, dynamic>)
-      ..['kpis'] = {'sold_this_month_cents': 18420}
+      ..['can_view_financial'] = true
+      ..['kpis'] = {
+        'sold_this_month_cents': 18420,
+        'sales_count_today': 5,
+      }
       ..['operational_goal_chart'] = {
         'configured': true,
-        'period': '2026-09',
+        'period': {
+          'start_date': '2026-09-01',
+          'end_date': '2026-09-30',
+          'granularity': 'day',
+        },
         'summary': {
           'target_cents': 24000,
           'actual_accumulated_cents': 18420,
@@ -69,9 +77,39 @@ void main() {
     final collection = DashboardSyncCollection(database: database, remote: _Remote(response), scopeKey: 'day:2026-09:1', goalMonth: '2026-09');
     await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
     final result = await DriftDashboardRepository(database, 'day:2026-09:1', canViewFinancialMetrics: true).load();
-    expect(result.overview!.kpis.single.value, '184.2');
+    expect(
+      result.overview!.kpis
+          .singleWhere((kpi) => kpi.label == 'Sold This Month Cents')
+          .value,
+      '184.2',
+    );
+    expect(result.overview!.operationalGoalChart.periodLabel, '2026-09');
     expect(result.overview!.operationalGoalChart.progress, 0.7675);
     expect(result.overview!.operationalGoalChart.targetLabel, 'R\$ 240.00');
+
+    final restricted = await DriftDashboardRepository(
+      database,
+      'day:2026-09:1',
+      canViewFinancialMetrics: false,
+    ).load();
+    final overview = restricted.overview!;
+    expect(overview.canViewFinancial, isFalse);
+    expect(
+      overview.kpis
+          .singleWhere((kpi) => kpi.label == 'Sold This Month Cents')
+          .value,
+      isNull,
+    );
+    expect(
+      overview.kpis
+          .singleWhere((kpi) => kpi.label == 'Sales Count Today')
+          .value,
+      '5',
+    );
+    expect(overview.operationalGoalChart.targetLabel, '—');
+    expect(overview.operationalGoalChart.currentLabel, '—');
+    expect(overview.operationalGoalChart.progress, 0);
+    expect(overview.operationalGoalChart.periodLabel, '2026-09');
   });
 }
 class _Remote extends DashboardRemoteDataSource {
