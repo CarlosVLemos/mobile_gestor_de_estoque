@@ -210,6 +210,14 @@ Dados locais podem continuar visíveis durante refresh ou falha. `price = null` 
 
 Nenhum agente executa testes, análise, formatação, build ou processo persistente sem autorização explícita do usuário no contexto atual.
 
+## Lembrete — fase de telas/UI
+
+A 009C pode permanecer fechada; os itens abaixo são **acabamento de apresentação** e devem ser tratados quando entrarmos na fase de telas, sem reabrir o core salvo se surgir uma incompatibilidade real de contrato:
+
+- substituir labels genéricos/técnicos do dashboard por textos de UI adequados ao usuário;
+- definir os tons visuais dos alertas de baixo estoque e das barras/gráficos de nível de estoque, hoje dependentes de fallback quando o backend não fornece `tone/status`;
+- formatar datas/horários do dashboard para exibição amigável em vez de apresentar diretamente `DateTime.toString()`.
+
 ## Observação final
 
 Este arquivo resume o estado para navegação rápida. Em conflito, prevalecem as fontes canônicas definidas em `AGENTS.md`, especialmente decisões aceitas em `para mobile/06-registro-decisoes.md` e contratos `FROZEN` das specs.
