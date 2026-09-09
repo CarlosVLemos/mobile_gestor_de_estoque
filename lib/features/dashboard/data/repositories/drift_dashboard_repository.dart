@@ -5,10 +5,15 @@ import '../../domain/entities/dashboard_overview.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 
 class DriftDashboardRepository implements ReactiveDashboardRepository {
-  DriftDashboardRepository(this._database, this.scopeKey);
+  DriftDashboardRepository(
+    this._database,
+    this.scopeKey, {
+    required this.canViewFinancialMetrics,
+  });
 
   final AppDatabase _database;
   final String scopeKey;
+  final bool canViewFinancialMetrics;
 
   @override
   Future<DashboardLoadResult> load() => watch().first;
@@ -32,7 +37,8 @@ class DriftDashboardRepository implements ReactiveDashboardRepository {
 
   DashboardOverview _decode(StoredDashboardSnapshot row) {
     final data = _map(jsonDecode(row.payloadJson));
-    final canViewFinancial = row.canViewFinancial;
+    final canViewFinancial =
+        canViewFinancialMetrics && row.canViewFinancial;
     return DashboardOverview(
       kpis: _decodeKpis(_map(data['kpis']), canViewFinancial),
       lowStockAlerts: _decodeAlerts(data['low_stock_alert']),
@@ -53,7 +59,9 @@ List<DashboardKpi> _decodeKpis(
   for (final entry in values.entries)
     DashboardKpi(
       label: _label(entry.key),
-      value: _metricValue(entry.value),
+      value: _isFinancialMetric(entry.key) && !canViewFinancial
+          ? null
+          : _metricValue(entry.value, isCents: entry.key.endsWith('_cents')),
       isCurrency: _isFinancialMetric(entry.key),
       isRestricted: _isFinancialMetric(entry.key) && !canViewFinancial,
     ),
@@ -99,10 +107,12 @@ DashboardOperationalGoalChart _decodeGoal(Object? source) {
   }
   final summary = _map(chart['summary']);
   return DashboardOperationalGoalChart(
-    periodLabel: _firstText(summary, const ['period', 'label', 'goal_month']),
-    targetLabel: _firstText(summary, const ['target_label', 'target', 'goal']),
-    currentLabel: _firstText(summary, const ['current_label', 'current', 'achieved']),
-    progress: _number(summary['progress'] ?? summary['percentage']),
+    periodLabel: _firstText(chart, const ['period']),
+    targetLabel: _moneyFromCents(summary['target_cents']),
+    currentLabel: _moneyFromCents(summary['actual_accumulated_cents']),
+    progress: (_number(summary['progress_percent']) / 100)
+        .clamp(0.0, 1.0)
+        .toDouble(),
   );
 }
 
@@ -117,12 +127,13 @@ List<Map<String, dynamic>> _records(Object? source) {
 Map<String, dynamic> _map(Object? value) =>
     value is Map<String, dynamic> ? value : const {};
 
-String? _metricValue(Object? value) {
+String? _metricValue(Object? value, {required bool isCents}) {
   if (value == null) return null;
   if (value is Map<String, dynamic>) {
     final nested = value['value'] ?? value['formatted'] ?? value['total'];
-    return nested?.toString();
+    return _metricValue(nested, isCents: isCents);
   }
+  if (isCents && value is num) return (value / 100).toString();
   return value.toString();
 }
 
@@ -146,7 +157,12 @@ String _label(String value) => value
     .join(' ');
 
 bool _isFinancialMetric(String key) =>
-    key.contains('revenue') || key.contains('financial') || key.contains('sales');
+    key.endsWith('_cents') ||
+    key.contains('revenue') ||
+    key.contains('financial') ||
+    key.contains('sales') ||
+    key.contains('sold') ||
+    key.contains('ticket');
 
 int _integer(Object? value) => value is int
     ? value
@@ -157,3 +173,7 @@ int _integer(Object? value) => value is int
 double _number(Object? value) => value is num && value.isFinite
     ? value.toDouble()
     : 0;
+
+String _moneyFromCents(Object? value) => value is num
+    ? 'R$ ${(value / 100).toStringAsFixed(2)}'
+    : '—';

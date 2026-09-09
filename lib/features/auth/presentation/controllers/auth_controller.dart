@@ -138,6 +138,8 @@ class AuthController extends Notifier<AuthState> {
               OperationalReadAccess(
                 hasCatalogFeature: value.features.contains('catalog'),
                 canViewProducts: value.permissions['products_view'] == true,
+                canViewFinancialMetrics:
+                    value.permissions['view_financial_metrics'] == true,
               );
           ref.read(activeSyncContextProvider.notifier).state = context;
           ref.invalidate(contextSyncEngineProvider);

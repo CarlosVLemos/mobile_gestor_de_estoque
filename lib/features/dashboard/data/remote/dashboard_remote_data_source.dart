@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/sync/sync_error_mapper.dart';
 
@@ -13,15 +14,14 @@ class RemoteDashboardSnapshot {
   String get payloadJson => jsonEncode(data);
 }
 class DashboardRemoteDataSource {
-  DashboardRemoteDataSource(this._api, {String? Function()? readAccessToken}) : _readAccessToken = readAccessToken;
+  DashboardRemoteDataSource(this._api, {required this.accessToken});
   final ApiClient _api;
-  final String? Function()? _readAccessToken;
+  final String accessToken;
   CancelToken? _pending;
   Future<RemoteDashboardSnapshot> fetch({required String groupBy, required String goalMonth, required int page}) async {
     final token = CancelToken(); _pending = token;
     try {
-      final accessToken = _readAccessToken?.call();
-      if (accessToken == null || accessToken.isEmpty) throw const UnauthorizedException();
+      if (accessToken.isEmpty) throw const UnauthorizedException();
       final response = await _api.get<Map<String, dynamic>>('/api/mobile/dashboard', queryParameters: {'group_by': groupBy, 'goal_month': goalMonth, 'page': page}, options: Options(headers: {'Authorization': 'Bearer $accessToken'}), cancelToken: token);
       if (response.data == null) throw const FormatException('Resposta do painel vazia.');
       return RemoteDashboardSnapshot(response.data!);

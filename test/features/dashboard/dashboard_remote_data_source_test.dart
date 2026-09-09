@@ -13,7 +13,7 @@ void main() {
     }));
     final result = await DashboardRemoteDataSource(
       ApiClient(dio),
-      readAccessToken: () => 'test-token',
+      accessToken: 'test-token',
     ).fetch(groupBy: 'week', goalMonth: '2026-09', page: 2);
     expect(request.path, '/api/mobile/dashboard');
     expect(request.queryParameters, {'group_by': 'week', 'goal_month': '2026-09', 'page': 2});

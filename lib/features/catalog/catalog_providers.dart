@@ -13,6 +13,7 @@ final catalogRepositoryProvider = Provider<CatalogRepository>((ref) {
     database,
     hasCatalogFeature: access?.hasCatalogFeature == true,
     canViewProducts: access?.canViewProducts == true,
+    canViewFinancialMetrics: access?.canViewFinancialMetrics == true,
   );
 });
 

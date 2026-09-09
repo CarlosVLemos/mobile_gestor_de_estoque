@@ -11,10 +11,12 @@ class DriftCatalogRepository implements ReactiveCatalogRepository {
     this._database, {
     required this.hasCatalogFeature,
     required this.canViewProducts,
+    required this.canViewFinancialMetrics,
   });
   final AppDatabase _database;
   final bool hasCatalogFeature;
   final bool canViewProducts;
+  final bool canViewFinancialMetrics;
 
   @override
   Future<CatalogLoadResult> load(CatalogQuery query) => watch(query).first;
@@ -46,6 +48,6 @@ class DriftCatalogRepository implements ReactiveCatalogRepository {
   }
 
   CatalogProduct _product(QueryRow row) => CatalogProduct(
-    id: row.read<String>('id'), name: row.read<String>('name'), sku: row.read<String>('sku'), brand: row.readNullable<String>('brand'), price: row.readNullable<double>('price'), stockQuantity: row.read<int>('stock_quantity'), stockStatus: CatalogStockStatus.values.byName(row.read<String>('stock_status')), isAvailableForSale: row.read<bool>('is_available_for_sale'), updatedAtLabel: row.readNullable<DateTime>('remote_updated_at') == null ? '' : AppDateFormatter.short(row.read<DateTime>('remote_updated_at').toLocal()), imageUrl: row.readNullable<String>('image_url'), categoryName: row.readNullable<String>('category_name'),
+    id: row.read<String>('id'), name: row.read<String>('name'), sku: row.read<String>('sku'), brand: row.readNullable<String>('brand'), price: canViewFinancialMetrics ? row.readNullable<double>('price') : null, stockQuantity: row.read<int>('stock_quantity'), stockStatus: CatalogStockStatus.values.byName(row.read<String>('stock_status')), isAvailableForSale: row.read<bool>('is_available_for_sale'), updatedAtLabel: row.readNullable<DateTime>('remote_updated_at') == null ? '' : AppDateFormatter.short(row.read<DateTime>('remote_updated_at').toLocal()), imageUrl: row.readNullable<String>('image_url'), categoryName: row.readNullable<String>('category_name'),
   );
 }

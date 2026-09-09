@@ -15,7 +15,7 @@ void main() {
 
     await ProductRemoteDataSource(
       ApiClient(dio),
-      readAccessToken: () => 'test-token',
+      accessToken: 'test-token',
     ).fetch(
       cursor: 'eyJ0ZW5hbnQiOiJ4In0+/=',
       checkpoint: '2026-09-09T10:00:00.000Z',
@@ -37,7 +37,7 @@ void main() {
     await expectLater(
       ProductRemoteDataSource(
         ApiClient(dio),
-        readAccessToken: () => 'test-token',
+        accessToken: 'test-token',
       ).fetch(),
       throwsA(isA<SyncException>().having((value) => value.kind, 'kind', SyncFailureKind.invalidData)),
     );

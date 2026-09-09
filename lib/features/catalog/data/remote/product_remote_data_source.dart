@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/sync/sync_error_mapper.dart';
 
@@ -56,18 +57,16 @@ class RemoteProductPage {
 }
 
 class ProductRemoteDataSource {
-  ProductRemoteDataSource(this._api, {String? Function()? readAccessToken})
-    : _readAccessToken = readAccessToken;
+  ProductRemoteDataSource(this._api, {required this.accessToken});
   final ApiClient _api;
-  final String? Function()? _readAccessToken;
+  final String accessToken;
   CancelToken? _pending;
 
   Future<RemoteProductPage> fetch({String? cursor, String? checkpoint}) async {
     final token = CancelToken();
     _pending = token;
     try {
-      final accessToken = _readAccessToken?.call();
-      if (accessToken == null || accessToken.isEmpty) {
+      if (accessToken.isEmpty) {
         throw const UnauthorizedException();
       }
       final response = await _api.get<Map<String, dynamic>>('/api/mobile/products', queryParameters: {

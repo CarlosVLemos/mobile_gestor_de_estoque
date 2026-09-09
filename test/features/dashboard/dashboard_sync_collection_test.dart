@@ -30,7 +30,11 @@ void main() {
     await next.commitPage(await next.fetchPage(const SyncCheckpoint()));
     expect((await database.watchDashboardSnapshot('day:2026-09:1').first)!.revision, 'r-2');
     expect(
-      (await DriftDashboardRepository(database, 'day:2026-09:1').load()).status,
+      (await DriftDashboardRepository(
+        database,
+        'day:2026-09:1',
+        canViewFinancialMetrics: false,
+      ).load()).status,
       DashboardLoadStatus.ready,
     );
   });
@@ -46,9 +50,33 @@ void main() {
     await expectLater(replacement.commitPage(await replacement.fetchPage(const SyncCheckpoint())), throwsA(isA<Object>()));
     expect((await database.watchDashboardSnapshot('day:2026-09:1').first)!.revision, 'r-1');
   });
+
+  test('configured goal converts cents and percent before reaching the repository', () async {
+    final response = _responseWithRevision('r-goal');
+    (response['data'] as Map<String, dynamic>)
+      ..['kpis'] = {'sold_this_month_cents': 18420}
+      ..['operational_goal_chart'] = {
+        'configured': true,
+        'period': '2026-09',
+        'summary': {
+          'target_cents': 24000,
+          'actual_accumulated_cents': 18420,
+          'expected_accumulated_cents': 20000,
+          'progress_percent': 76.75,
+        },
+        'series': const [],
+      };
+    final collection = DashboardSyncCollection(database: database, remote: _Remote(response), scopeKey: 'day:2026-09:1', goalMonth: '2026-09');
+    await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
+    final result = await DriftDashboardRepository(database, 'day:2026-09:1', canViewFinancialMetrics: true).load();
+    expect(result.overview!.kpis.single.value, '184.2');
+    expect(result.overview!.operationalGoalChart.progress, 0.7675);
+    expect(result.overview!.operationalGoalChart.targetLabel, 'R\$ 240.00');
+  });
 }
 class _Remote extends DashboardRemoteDataSource {
-  _Remote(this.response) : super(ApiClient(Dio()));
+  _Remote(this.response)
+    : super(ApiClient(Dio()), accessToken: 'test-token');
   final Map<String, dynamic> response;
   @override Future<RemoteDashboardSnapshot> fetch({required String groupBy, required String goalMonth, required int page}) async => RemoteDashboardSnapshot(response);
 }

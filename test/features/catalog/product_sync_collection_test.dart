@@ -6,7 +6,9 @@ import 'package:gestor_de_estoque/core/database/drift_sync_checkpoint_store.dart
 import 'package:gestor_de_estoque/core/network/api_client.dart';
 import 'package:gestor_de_estoque/core/sync/sync_collection.dart';
 import 'package:gestor_de_estoque/features/catalog/data/remote/product_remote_data_source.dart';
+import 'package:gestor_de_estoque/features/catalog/data/repositories/drift_catalog_repository.dart';
 import 'package:gestor_de_estoque/features/catalog/data/sync/product_sync_collection.dart';
+import 'package:gestor_de_estoque/features/catalog/domain/value_objects/catalog_query.dart';
 
 void main() {
   late AppDatabase database;
@@ -86,10 +88,43 @@ void main() {
     expect(product.price, isNull);
     expect(product.brand, isNull);
   });
+
+  test('current financial permission masks a cached product price', () async {
+    final collection = ProductSyncCollection(
+      database: database,
+      remote: _Remote(_page(
+        hasMore: false,
+        products: [
+          {
+            'id': 'priced',
+            'name': 'Produto',
+            'sku': 'SKU-PRICE',
+            'brand': null,
+            'price': 100,
+            'stock_quantity': 1,
+            'stock_status': 'available',
+            'is_available_for_sale': true,
+            'image_url': null,
+            'updated_at': null,
+            'category': null,
+          },
+        ],
+      )),
+    );
+    await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
+    final repository = DriftCatalogRepository(
+      database,
+      hasCatalogFeature: true,
+      canViewProducts: true,
+      canViewFinancialMetrics: false,
+    );
+    final result = await repository.load(const CatalogQuery());
+    expect(result.items.single.price, isNull);
+  });
 }
 
 class _Remote extends ProductRemoteDataSource {
-  _Remote(this.page) : super(ApiClient(Dio()));
+  _Remote(this.page) : super(ApiClient(Dio()), accessToken: 'test-token');
   final Map<String, dynamic> page;
   @override Future<RemoteProductPage> fetch({String? cursor, String? checkpoint}) async => RemoteProductPage(page);
 }

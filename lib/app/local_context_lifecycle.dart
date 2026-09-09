@@ -40,10 +40,12 @@ class OperationalReadAccess {
   const OperationalReadAccess({
     required this.hasCatalogFeature,
     required this.canViewProducts,
+    required this.canViewFinancialMetrics,
   });
 
   final bool hasCatalogFeature;
   final bool canViewProducts;
+  final bool canViewFinancialMetrics;
 }
 
 final activeSyncContextProvider = StateProvider<LocalContext?>((ref) => null);
@@ -60,7 +62,14 @@ final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
   final database = ref.watch(operationalDatabaseProvider);
   final context = ref.watch(databaseFactoryProvider).activeContext;
   final activeContext = ref.watch(activeSyncContextProvider);
-  if (database == null || context == null || context != activeContext) return null;
+  final accessToken = ref.watch(activeAccessTokenProvider);
+  if (database == null ||
+      context == null ||
+      context != activeContext ||
+      accessToken == null ||
+      accessToken.isEmpty) {
+    return null;
+  }
   final lifecycle = ref.watch(contextSyncLifecycleProvider);
   final current = lifecycle.engineFor(context);
   if (current != null) return current;
@@ -77,14 +86,14 @@ final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
           database: database,
           remote: ProductRemoteDataSource(
             api,
-            readAccessToken: () => ref.read(activeAccessTokenProvider),
+            accessToken: accessToken,
           ),
         ),
       DashboardSyncCollection(
         database: database,
         remote: DashboardRemoteDataSource(
           api,
-          readAccessToken: () => ref.read(activeAccessTokenProvider),
+          accessToken: accessToken,
         ),
         scopeKey: scopeKey,
         goalMonth: goalMonth,

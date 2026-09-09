@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../app/local_context_lifecycle.dart';
 import '../../../../core/sync/sync_state.dart';
+import '../../../../core/sync/sync_exception.dart';
 import '../../catalog_providers.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../state/catalog_state.dart';
@@ -62,6 +63,12 @@ class CatalogController extends Notifier<CatalogState> {
       final loaded = await ref.read(loadCatalogUseCaseProvider).call(query);
       final result = outcome == SyncOutcome.succeeded || outcome == SyncOutcome.busy
           ? loaded
+          : engine?.state.failureKind == SyncFailureKind.forbidden
+          ? CatalogLoadResult.restricted(
+              message: 'Seu acesso ao catálogo foi revogado.',
+              kind: CatalogRestrictionKind.permission,
+              categories: const ['Todos'],
+            )
           : loaded.items.isEmpty
           ? CatalogLoadResult.failure(
               message: 'Não foi possível atualizar o catálogo.',
