@@ -163,3 +163,30 @@ class SaleRegistrationException implements Exception {
   @override
   String toString() => 'SaleRegistrationException($code): $message';
 }
+
+class PersistedSaleSummary {
+  const PersistedSaleSummary({
+    required this.localSaleId,
+    required this.clientRequestId,
+    required this.clientId,
+    required this.clientName,
+    required this.soldAt,
+    required this.createdAt,
+    required this.status,
+    required this.itemCount,
+    this.totalAmount,
+    this.lastError,
+  });
+
+  final String localSaleId;
+  final String clientRequestId;
+  final String clientId;
+  final String clientName;
+  final DateTime soldAt;
+  final DateTime createdAt;
+  final SaleSyncStatus status;
+  final int itemCount;
+  final double? totalAmount;
+  final String? lastError;
+}
+

@@ -349,6 +349,58 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
         .write(values);
   }
 
+  Stream<List<PersistedSaleSummary>> watchSalesSummary() {
+    final query = _database.select(_database.localSalesTable).join([
+      leftOuterJoin(
+        _database.syncOutbox,
+        _database.syncOutbox.id.equalsExp(_database.localSalesTable.id),
+      ),
+    ])
+      ..orderBy([
+        OrderingTerm.desc(_database.localSalesTable.createdAt),
+      ]);
+
+    return query.watch().asyncMap((rows) async {
+      final summaries = <PersistedSaleSummary>[];
+      for (final row in rows) {
+        final sale = row.readTable(_database.localSalesTable);
+        final outbox = row.readTableOrNull(_database.syncOutbox);
+
+        final items = await (_database.select(_database.localSaleItemsTable)
+              ..where((item) => item.saleId.equals(sale.id)))
+            .get();
+
+        double? total;
+        if (items.any((item) => item.historicalUnitPrice != null)) {
+          total = items.fold<double>(
+            0.0,
+            (sum, item) => sum + ((item.historicalUnitPrice ?? 0.0) * item.quantity),
+          );
+        }
+
+        final status = outbox != null
+            ? SaleSyncStatusValue.parse(outbox.status)
+            : SaleSyncStatus.pending;
+
+        summaries.add(
+          PersistedSaleSummary(
+            localSaleId: sale.id,
+            clientRequestId: sale.clientRequestId,
+            clientId: sale.clientId,
+            clientName: sale.clientName,
+            soldAt: sale.soldAt,
+            createdAt: sale.createdAt,
+            status: status,
+            itemCount: items.length,
+            totalAmount: total,
+            lastError: outbox?.lastError,
+          ),
+        );
+      }
+      return summaries;
+    });
+  }
+
   OutboxSale _outboxSale(SyncOutboxData row) {
     final payload = _decodePayload(row.payloadJson, row.payloadVersion);
     if (row.clientRequestId == null ||

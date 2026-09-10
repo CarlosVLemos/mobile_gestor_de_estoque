@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/config/app_mode.dart';
 import '../../../../app/local_context_lifecycle.dart';
 import '../../../../core/database/local_context.dart';
 import '../../../../core/network/session_invalidation_signal.dart';
@@ -28,6 +29,10 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> restore() async {
     state = const AuthState(status: AuthStatus.resolvingSession);
+    if (ref.read(appModeProvider).isDemo) {
+      await _applyDemoSession();
+      return;
+    }
     final result = await ref.read(restoreSessionUseCaseProvider).call();
     await _applySessionResult(result);
   }
@@ -83,6 +88,10 @@ class AuthController extends Notifier<AuthState> {
     }
 
     state = AuthState(status: AuthStatus.resolvingSession, session: session);
+    if (ref.read(appModeProvider).isDemo) {
+      await _transitionToUnauthenticated();
+      return const LogoutAttempt.completed();
+    }
     final result = await ref.read(logoutUseCaseProvider).call();
     switch (result) {
       case Success<void, AuthFailure>():
@@ -95,6 +104,62 @@ class AuthController extends Notifier<AuthState> {
           failure: error,
         );
         return LogoutAttempt.failed(error);
+    }
+  }
+
+  Future<void> _applyDemoSession() async {
+    const demoSession = UserSession(
+      userId: 'demo-user',
+      userName: 'Usuário Demo',
+      email: 'demo@araragastos.local',
+      tenantId: 'demo-tenant',
+      tenantName: 'Arara Gastos Demo',
+      tenantSlug: 'demo',
+      features: {'catalog', 'sales'},
+      permissions: {
+        'products_view': true,
+        'sales_create': true,
+        'view_financial_metrics': true,
+      },
+      revision: '1',
+      mustChangePassword: false,
+    );
+
+    try {
+      final context = LocalContext(
+        userId: demoSession.userId,
+        tenantId: demoSession.tenantId,
+      );
+      await ref.read(databaseFactoryProvider).open(context);
+      ref.invalidate(operationalDatabaseProvider);
+
+      ref.read(activeAccessTokenProvider.notifier).state = 'demo-token';
+      ref.read(operationalReadAccessProvider.notifier).state =
+          const OperationalReadAccess(
+            hasCatalogFeature: true,
+            canViewProducts: true,
+            canViewFinancialMetrics: true,
+            hasSalesFeature: true,
+            canCreateSales: true,
+          );
+      ref.read(activeSyncContextProvider.notifier).state = context;
+      ref.invalidate(contextSyncEngineProvider);
+      final engine = ref.read(contextSyncEngineProvider);
+      if (engine != null) {
+        unawaited(engine.sync(trigger: SyncTrigger.startup));
+      }
+      state = const AuthState(
+        status: AuthStatus.authenticated,
+        session: demoSession,
+      );
+    } catch (_) {
+      state = const AuthState(
+        status: AuthStatus.failure,
+        failure: AuthFailure(
+          AuthFailureKind.unknown,
+          'Não foi possível abrir o banco de demonstração.',
+        ),
+      );
     }
   }
 

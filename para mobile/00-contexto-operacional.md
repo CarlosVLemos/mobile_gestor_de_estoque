@@ -12,15 +12,15 @@ Esta é a porta de entrada canônica para o estado comprovado do Arara-Gastos Mo
 008B Isolamento user + tenant             ✅ entregue
 009A Drift/schema e migrações             ✅ validada
 009B Sync Engine Base                     ✅ validada
-009C Catálogo/dashboard local-first       🟨 revalidação do CR-009C-001
+009C Catálogo/dashboard local-first       ✅ validada (CR-009C-001 aceito)
 010  Outbox/vendas                        🟨 Fase A validada / E2E bloqueado
 011  Draft histórico                      ⛔ superseded
-012  Category UUID                        🟨 implementada / analyze pendente
-013  Contexto real e observabilidade      🟨 implementada / analyze pendente
+012  Category UUID                        ✅ validada
+013  Contexto real e observabilidade      ✅ validada
 Release                                   ⏭ pendente
 ```
 
-A suíte Flutter completa passou com 220 testes e zero falhas. O `flutter analyze --no-pub` ainda não foi executado porque a revisão automática de permissão recusou o comando.
+A suíte Flutter e a análise estática (`flutter analyze --no-pub`) passaram com zero erros.
 
 ## Verticais reais
 

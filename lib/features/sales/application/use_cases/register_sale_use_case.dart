@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_initializing_formals
 import '../../domain/entities/sale_sync.dart';
 import '../../domain/repositories/sales_repository.dart';
 

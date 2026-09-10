@@ -95,7 +95,7 @@ void main() {
     expect(container.read(pendingSalesProvider), isEmpty);
   });
 
-  test('cria rascunho determinístico, enfileira e limpa o formulário', () {
+  test('cria rascunho determinístico, enfileira e limpa o formulário', () async {
     final container = createContainer();
     final controller = container.read(salesControllerProvider.notifier);
     const client = SaleClientOption(
@@ -114,14 +114,17 @@ void main() {
     controller.selectClient(client);
     controller.addProduct(product);
     controller.incrementQuantity(product.id);
-    final sale = controller.registerSale();
+    final saleId = await controller.registerSale();
 
+    expect(saleId, '11111111-2222-4333-8444-555555555555');
+    final pendingList = container.read(pendingSalesProvider);
+    expect(pendingList, hasLength(1));
+    final sale = pendingList.single;
     expect(sale.clientRequestId, '11111111-2222-4333-8444-555555555555');
     expect(sale.createdAtLabel, '09:07');
     expect(sale.client, same(client));
     expect(sale.items, hasLength(1));
     expect(sale.items.single.quantity, 2);
-    expect(container.read(pendingSalesProvider), [same(sale)]);
 
     final state = container.read(salesControllerProvider);
     expect(state.selectedClient, isNull);
@@ -146,7 +149,7 @@ void main() {
     );
   });
 
-  test('estado e fila não permitem mutação externa', () {
+  test('estado e fila não permitem mutação externa', () async {
     final container = createContainer();
     final controller = container.read(salesControllerProvider.notifier);
     const client = SaleClientOption(
@@ -172,7 +175,8 @@ void main() {
       throwsUnsupportedError,
     );
 
-    final sale = controller.registerSale();
+    await controller.registerSale();
+    final sale = container.read(pendingSalesProvider).single;
     expect(() => sale.items.clear(), throwsUnsupportedError);
     expect(
       () => container.read(pendingSalesProvider).clear(),

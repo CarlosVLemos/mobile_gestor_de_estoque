@@ -9,6 +9,7 @@ import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
 import '../../../../shared/ui_states/view_status.dart';
+import '../../../../shared/widgets/demo_mode_banner.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/permission_list_tile.dart';
@@ -44,6 +45,8 @@ class OperationalContextPage extends ConsumerWidget {
       body: ListView(
         padding: AppSpacing.screenPadding,
         children: [
+          const DemoModeBanner(),
+          const SizedBox(height: AppSpacing.md),
           switch (state.status) {
             ViewStatus.loading => const Center(
               child: Padding(

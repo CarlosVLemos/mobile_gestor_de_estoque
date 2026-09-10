@@ -22,8 +22,12 @@ import '../../features/sales/application/outbox_processor.dart';
 import '../../features/sales/presentation/controllers/pending_sales_controller.dart';
 import '../../features/sales/presentation/controllers/sales_controller.dart';
 import '../../features/sales/sales_sync_composition.dart';
-import '../../features/settings/presentation/controllers/operational_context_controller.dart';
+import '../../core/config/app_mode.dart';
+import '../../features/sales/data/demo/demo_sale_intent_gateway.dart';
+import '../../features/sales/data/repositories/drift_sales_repository.dart';
+import '../demo/demo_seed_collection.dart';
 import '../shell/shell_profile.dart';
+import '../../features/settings/presentation/controllers/operational_context_controller.dart';
 
 final databaseFactoryProvider = Provider<DatabaseFactory>((ref) {
   final factory = DatabaseFactory();
@@ -70,9 +74,22 @@ final operationalDatabaseProvider = Provider<AppDatabase?>(
 /// Context-bound sales worker. It is shared by automatic draining and the
 /// future explicit acceptance UI, without capturing [Ref] inside the worker.
 final contextOutboxProcessorProvider = Provider<OutboxProcessor?>((ref) {
+  final appMode = ref.watch(appModeProvider);
   final database = ref.watch(operationalDatabaseProvider);
   final accessToken = ref.watch(activeAccessTokenProvider);
-  if (database == null || accessToken == null || accessToken.isEmpty) {
+  if (database == null) {
+    return null;
+  }
+  if (appMode.isDemo) {
+    final repository = DriftSalesRepository(database);
+    final processor = OutboxProcessor(
+      store: repository,
+      gateway: DemoSaleIntentGateway(),
+    );
+    ref.onDispose(processor.cancel);
+    return processor;
+  }
+  if (accessToken == null || accessToken.isEmpty) {
     return null;
   }
   final processor = buildSalesOutboxProcessor(
@@ -85,15 +102,17 @@ final contextOutboxProcessorProvider = Provider<OutboxProcessor?>((ref) {
 });
 
 final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
+  final appMode = ref.watch(appModeProvider);
   final database = ref.watch(operationalDatabaseProvider);
   final context = ref.watch(databaseFactoryProvider).activeContext;
   final activeContext = ref.watch(activeSyncContextProvider);
   final accessToken = ref.watch(activeAccessTokenProvider);
   if (database == null ||
       context == null ||
-      context != activeContext ||
-      accessToken == null ||
-      accessToken.isEmpty) {
+      context != activeContext) {
+    return null;
+  }
+  if (!appMode.isDemo && (accessToken == null || accessToken.isEmpty)) {
     return null;
   }
   final lifecycle = ref.watch(contextSyncLifecycleProvider);
@@ -104,23 +123,34 @@ final contextSyncEngineProvider = Provider<SyncEngine?>((ref) {
   final goalMonth =
       '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
   final scopeKey = 'day:$goalMonth:1';
-  final api = ref.watch(apiClientProvider);
-  final engine = SyncEngine(
-    context: context,
-    collections: <SyncCollection>[
-      if (access?.hasCatalogFeature == true &&
-          access?.canViewProducts == true)
+
+  final collections = <SyncCollection>[];
+  if (appMode.isDemo) {
+    collections.add(DemoSeedCollection(database: database));
+  } else {
+    final api = ref.watch(apiClientProvider);
+    if (access?.hasCatalogFeature == true &&
+        access?.canViewProducts == true) {
+      collections.add(
         ProductSyncCollection(
           database: database,
-          remote: ProductRemoteDataSource(api, accessToken: accessToken),
+          remote: ProductRemoteDataSource(api, accessToken: accessToken!),
         ),
+      );
+    }
+    collections.add(
       DashboardSyncCollection(
         database: database,
-        remote: DashboardRemoteDataSource(api, accessToken: accessToken),
+        remote: DashboardRemoteDataSource(api, accessToken: accessToken!),
         scopeKey: scopeKey,
         goalMonth: goalMonth,
       ),
-    ],
+    );
+  }
+
+  final engine = SyncEngine(
+    context: context,
+    collections: collections,
     lock: SyncLock(),
     leaseStore: DriftSyncLeaseStore(database: database),
     outboxDrainer: ref.watch(contextOutboxProcessorProvider),

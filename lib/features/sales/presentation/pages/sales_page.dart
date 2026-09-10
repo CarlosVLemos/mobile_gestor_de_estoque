@@ -8,12 +8,15 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
 import '../../../../shared/widgets/app_drawer.dart';
+import '../../../../shared/widgets/demo_mode_banner.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
 import '../../domain/entities/sale_reference_data.dart';
+import '../../domain/entities/sale_sync.dart';
+import '../../sales_providers.dart';
 import '../controllers/pending_sales_controller.dart';
 import '../controllers/sales_controller.dart';
 import '../state/sales_state.dart';
@@ -27,6 +30,7 @@ class SalesPage extends ConsumerWidget {
     final controller = ref.read(salesControllerProvider.notifier);
     final themeMode = ref.watch(appThemeModeProvider);
     final pendingSales = ref.watch(pendingSalesProvider);
+    final persistedSalesAsync = ref.watch(persistedSalesProvider);
     final shellProfile = ref.watch(shellProfileProvider);
     final permissions = shellProfile.permissions;
     final features = shellProfile.features;
@@ -58,6 +62,8 @@ class SalesPage extends ConsumerWidget {
       body: ListView(
         padding: AppSpacing.screenPadding,
         children: [
+          const DemoModeBanner(),
+          const SizedBox(height: AppSpacing.md),
           if (!features.contains('sales') || !canCreateSales)
             const RestrictedInfoCard(
               title: 'Vendas indisponíveis',
@@ -101,17 +107,42 @@ class SalesPage extends ConsumerWidget {
               canViewFinancial: canViewFinancial,
               pendingCount: pendingSales.length,
               onRegister: state.canRegister
-                  ? () {
-                      final pendingSale = controller.registerSale();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Rascunho ${pendingSale.clientRequestId.substring(0, 8)} mantido somente nesta sessão.',
-                          ),
-                        ),
-                      );
+                  ? () async {
+                      try {
+                        final localSaleId = await controller.registerSale();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Venda registrada localmente com sucesso (ID: ${localSaleId.length >= 8 ? localSaleId.substring(0, 8) : localSaleId}).',
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Erro ao registrar venda: ${e.toString()}',
+                              ),
+                            ),
+                          );
+                        }
+                      }
                     }
                   : null,
+            ),
+            const SizedBox(height: AppSpacing.sectionGap),
+            persistedSalesAsync.when(
+              data: (sales) => _PersistedSalesSection(
+                sales: sales,
+                canViewFinancial: canViewFinancial,
+              ),
+              loading: () => const SizedBox.shrink(),
+              error: (err, _) => Text(
+                'Não foi possível carregar o histórico: $err',
+              ),
             ),
           ],
         ],
@@ -124,6 +155,17 @@ class SalesPage extends ConsumerWidget {
     SalesState state,
     SalesController controller,
   ) async {
+    if (state.clients.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Nenhum cliente disponível. Em produção, aguardando endpoint remoto (BLOCKER-010-CLIENTS).',
+          ),
+        ),
+      );
+      return;
+    }
+
     final selected = await showModalBottomSheet<SaleClientOption>(
       context: context,
       builder: (context) {
@@ -390,13 +432,8 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               pendingCount == 0
-                  ? 'Nenhum rascunho foi criado nesta sessão.'
-                  : '$pendingCount rascunho${pendingCount > 1 ? 's' : ''} ainda não persistido${pendingCount > 1 ? 's' : ''}.',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const StatusBadge(
-              label: 'Não persistido',
-              tone: AppStatusTone.warning,
+                  ? 'Pronto para registrar a venda no banco local.'
+                  : '$pendingCount rascunho${pendingCount > 1 ? 's' : ''} registrado${pendingCount > 1 ? 's' : ''}.',
             ),
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
@@ -430,6 +467,127 @@ class _SummaryCard extends StatelessWidget {
       (sum, item) => sum + (item.subtotal ?? 0),
     );
     return 'Total ${AppCurrencyFormatter.format(total)}';
+  }
+}
+
+class _PersistedSalesSection extends StatelessWidget {
+  const _PersistedSalesSection({
+    required this.sales,
+    required this.canViewFinancial,
+  });
+
+  final List<PersistedSaleSummary> sales;
+  final bool canViewFinancial;
+
+  @override
+  Widget build(BuildContext context) {
+    if (sales.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader(title: 'Vendas Persistidas (Drift / Outbox)'),
+        const SizedBox(height: AppSpacing.md),
+        for (final sale in sales) ...[
+          DecoratedBox(
+            decoration: AppDecorations.card(context),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          sale.clientName,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ),
+                      _StatusBadgeForSale(status: sale.status),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${sale.itemCount} item(ns) • ${_formatTime(sale.createdAt)}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (canViewFinancial && sale.totalAmount != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Total: ${AppCurrencyFormatter.format(sale.totalAmount!)}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                  if (sale.lastError != null && sale.lastError!.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Erro: ${sale.lastError}',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+      ],
+    );
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+}
+
+class _StatusBadgeForSale extends StatelessWidget {
+  const _StatusBadgeForSale({required this.status});
+
+  final SaleSyncStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (status) {
+      SaleSyncStatus.pending => const StatusBadge(
+        label: 'Aguardando sincronização',
+        tone: AppStatusTone.warning,
+      ),
+      SaleSyncStatus.syncing => const StatusBadge(
+        label: 'Sincronizando...',
+        tone: AppStatusTone.warning,
+      ),
+      SaleSyncStatus.confirmed => const StatusBadge(
+        label: 'Confirmada',
+        tone: AppStatusTone.success,
+      ),
+      SaleSyncStatus.failedRetryable => const StatusBadge(
+        label: 'Erro temporário',
+        tone: AppStatusTone.warning,
+      ),
+      SaleSyncStatus.failedPermanent => const StatusBadge(
+        label: 'Falha permanente',
+        tone: AppStatusTone.error,
+      ),
+      SaleSyncStatus.requiresAcceptance => const StatusBadge(
+        label: 'Requer aceite',
+        tone: AppStatusTone.restricted,
+      ),
+      SaleSyncStatus.cancelled => const StatusBadge(
+        label: 'Cancelada',
+        tone: AppStatusTone.restricted,
+      ),
+    };
   }
 }
 

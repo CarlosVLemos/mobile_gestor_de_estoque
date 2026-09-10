@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:drift/native.dart';
-import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/core/database/app_database.dart';
 import 'package:gestor_de_estoque/features/sales/data/repositories/drift_sales_repository.dart';

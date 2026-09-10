@@ -1,10 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../sales_providers.dart';
-import '../../domain/entities/pending_sale.dart';
+import '../../../../app/composition/local_context_composition.dart';
+import '../../../../app/shell/shell_profile.dart';
+import '../../../../core/config/app_mode.dart';
+import '../../../../core/sync/sync_state.dart';
 import '../../domain/entities/sale_reference_data.dart';
+import '../../domain/entities/sale_sync.dart';
+import '../../sales_providers.dart';
 import '../state/sales_state.dart';
-import 'pending_sales_controller.dart';
 
 final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
   SalesController.new,
@@ -13,11 +18,31 @@ final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
 class SalesController extends Notifier<SalesState> {
   @override
   SalesState build() {
+    final appMode = ref.watch(appModeProvider);
     final seed = ref.watch(loadSalesDraftSeedUseCaseProvider).call();
 
+    final clients = appMode.isDemo
+        ? const [
+            SaleClientOption(
+              id: '201',
+              name: 'Mercado Central',
+              code: 'CLI-201',
+              city: 'São Paulo - SP',
+            ),
+            SaleClientOption(
+              id: '202',
+              name: 'Padaria Estrela',
+              code: 'CLI-202',
+              city: 'Campinas - SP',
+            ),
+          ]
+        : const <SaleClientOption>[];
+
+    final products = appMode.isDemo ? seed.products : seed.products;
+
     return SalesState(
-      clients: seed.clients,
-      products: seed.products,
+      clients: clients,
+      products: products,
       cartItems: const {},
     );
   }
@@ -77,7 +102,7 @@ class SalesController extends Notifier<SalesState> {
     state = state.copyWith(cartItems: nextItems);
   }
 
-  PendingSale registerSale() {
+  Future<String> registerSale() async {
     final client = state.selectedClient;
     if (client == null || state.cartItems.isEmpty) {
       throw StateError(
@@ -85,29 +110,48 @@ class SalesController extends Notifier<SalesState> {
       );
     }
 
-    final sale = PendingSale(
-      clientRequestId: ref.read(salesIdGeneratorProvider)(),
+    final shellProfile = ref.read(shellProfileProvider);
+    final useCase = ref.read(registerSaleUseCaseProvider);
+    if (useCase != null) {
+      final draft = SaleDraft(
+        clientId: client.id,
+        clientName: client.name,
+        items: [
+          for (final item in state.cartItems.values)
+            SaleDraftItem(
+              productId: item.productId,
+              productName: item.name,
+              productSku: item.sku,
+              quantity: item.quantity,
+              historicalUnitPrice: item.unitPrice,
+            ),
+        ],
+        soldAt: ref.read(salesClockProvider)(),
+        timezone: DateTime.now().timeZoneName,
+      );
+
+      final access = SaleAccess(
+        hasSalesFeature: shellProfile.features.contains('sales'),
+        canCreateSales: shellProfile.permissions['sales_create'] == true,
+      );
+
+      final localSaleId = await useCase.call(draft: draft, access: access);
+
+      final engine = ref.read(contextSyncEngineProvider);
+      if (engine != null) {
+        unawaited(engine.sync(trigger: SyncTrigger.manual));
+      }
+
+      state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
+      return localSaleId;
+    }
+
+    final pendingController = ref.read(pendingSalesProvider.notifier);
+    final saleId = pendingController.enqueueSale(
       client: client,
-      items: [
-        for (final item in state.cartItems.values)
-          PendingSaleItem(
-            productId: item.productId,
-            productName: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          ),
-      ],
-      createdAtLabel: _buildCreatedAtLabel(ref.read(salesClockProvider)()),
+      cartItems: state.cartItems,
     );
-
-    ref.read(pendingSalesProvider.notifier).enqueue(sale);
     state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
-    return sale;
-  }
-
-  String _buildCreatedAtLabel(DateTime now) {
-    final hour = now.hour.toString().padLeft(2, '0');
-    final minute = now.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return saleId;
   }
 }

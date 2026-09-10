@@ -2,8 +2,12 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/composition/local_context_composition.dart';
 import 'application/use_cases/load_sales_draft_seed_use_case.dart';
+import 'application/use_cases/register_sale_use_case.dart';
+import 'data/repositories/drift_sales_repository.dart';
 import 'data/repositories/fixture_sales_draft_repository.dart';
+import 'domain/entities/sale_sync.dart';
 import 'domain/repositories/sales_draft_repository.dart';
 
 final salesDraftRepositoryProvider = Provider<SalesDraftRepository>((ref) {
@@ -25,6 +29,30 @@ final salesIdGeneratorProvider = Provider<SalesIdGenerator>((ref) {
 
 final salesClockProvider = Provider<SalesClock>((ref) {
   return DateTime.now;
+});
+
+final driftSalesRepositoryProvider = Provider<DriftSalesRepository?>((ref) {
+  final database = ref.watch(operationalDatabaseProvider);
+  if (database == null) return null;
+  return DriftSalesRepository(database);
+});
+
+final registerSaleUseCaseProvider = Provider<RegisterSaleUseCase?>((ref) {
+  final repository = ref.watch(driftSalesRepositoryProvider);
+  if (repository == null) return null;
+  return RegisterSaleUseCase(
+    repository: repository,
+    idGenerator: ref.watch(salesIdGeneratorProvider),
+    clock: ref.watch(salesClockProvider),
+  );
+});
+
+final persistedSalesProvider = StreamProvider<List<PersistedSaleSummary>>((
+  ref,
+) {
+  final repository = ref.watch(driftSalesRepositoryProvider);
+  if (repository == null) return Stream.value(const []);
+  return repository.watchSalesSummary();
 });
 
 String _generateUuid() {

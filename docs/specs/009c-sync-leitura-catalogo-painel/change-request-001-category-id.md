@@ -1,6 +1,6 @@
 # Change Request 009C-001 — ID UUID de categoria
 
-Status: `APPROVED — IMPLEMENTED — STATIC ANALYSIS PENDING`
+Status: `ACCEPTED — VALIDATED`
 Data: 2026-09-09
 Spec afetada: `009C — Sync de leitura do catálogo e painel`
 Origem: auditoria forense pós-entrega
@@ -61,6 +61,6 @@ Após aprovação humana deste CR:
 - [x] Jarvis confirma escopo e paths na preparação documental de 2026-09-09.
 - [x] Maquiavel confirma o contrato remoto com base na auditoria forense concluída.
 - [x] Missão de estabilização autoriza o CR e o congelamento da Spec 012 em 2026-09-09.
-- [ ] Mefisto emite veredito final após `flutter analyze --no-pub`; testes focados e suíte completa já passaram.
+- [x] Mefisto emite veredito final: `flutter analyze --no-pub` passou com zero erros; suíte de testes aprovada.
 
 O contrato histórico da 009C foi preservado; esta mudança permanece rastreada exclusivamente por este CR e pela Spec 012.
