@@ -2,7 +2,7 @@
 
 ## Status
 
-`IMPLEMENTED` — 009A/009B foram entregues e a 009C foi integrada ao engine contextual.
+`REOPENED — CR-009C-001` — entrega original preservada; correção da Category UUID implementada e aguardando análise estática para revalidação final.
 
 ## Auditoria backend
 
@@ -22,4 +22,4 @@ Contrato remoto `FROZEN`; alterações posteriores exigem Change Request.
 
 ## Veredito
 
-Implementação concluída sem alterar backend, schema, SyncEngine ou outbox.
+Implementação original concluída. O adendo da Spec 012 não alterou backend, schema, SyncEngine ou outbox.

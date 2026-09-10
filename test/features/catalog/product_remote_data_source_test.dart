@@ -43,7 +43,7 @@ void main() {
     );
   });
 
-  test('accepts numeric product, category and tombstone IDs', () async {
+  test('accepts numeric product and tombstone IDs with a UUID category', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
     dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
       handler.resolve(Response(requestOptions: options, data: {
@@ -59,7 +59,10 @@ void main() {
             'is_available_for_sale': true,
             'image_url': null,
             'updated_at': null,
-            'category': {'id': 45, 'name': 'Categoria'},
+            'category': {
+              'id': '550e8400-e29b-41d4-a716-446655440000',
+              'name': 'Categoria',
+            },
           },
         ],
         'tombstones': [
@@ -79,8 +82,74 @@ void main() {
     ).fetch();
 
     expect(page.products.single.id, '123');
-    expect(page.products.single.category?.id, '45');
+    expect(
+      page.products.single.category?.id,
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
     expect(page.tombstones.single.id, '999');
+  });
+
+  test('accepts a product without category', () {
+    final page = RemoteProductPage(
+      _pageWith(
+        productId: 123,
+        category: null,
+        tombstoneId: 999,
+      ),
+    );
+
+    expect(page.products.single.id, '123');
+    expect(page.products.single.category, isNull);
+    expect(page.tombstones.single.id, '999');
+  });
+
+  test('rejects a UUID or arbitrary text as a product ID', () {
+    for (final invalidId in [
+      '550e8400-e29b-41d4-a716-446655440000',
+      'prod-1',
+    ]) {
+      expect(
+        () => RemoteProductPage(
+          _pageWith(
+            productId: invalidId,
+            category: null,
+            tombstoneId: 999,
+          ),
+        ),
+        throwsFormatException,
+      );
+    }
+  });
+
+  test('rejects a UUID or arbitrary text as a product tombstone ID', () {
+    for (final invalidId in [
+      '550e8400-e29b-41d4-a716-446655440000',
+      'prod-1',
+    ]) {
+      expect(
+        () => RemoteProductPage(
+          _pageWith(
+            productId: 123,
+            category: null,
+            tombstoneId: invalidId,
+          ),
+        ),
+        throwsFormatException,
+      );
+    }
+  });
+
+  test('rejects a non-UUID category ID', () {
+    expect(
+      () => RemoteProductPage(
+        _pageWith(
+          productId: 123,
+          category: {'id': 45, 'name': 'Categoria'},
+          tombstoneId: 999,
+        ),
+      ),
+      throwsFormatException,
+    );
   });
 }
 
@@ -88,4 +157,34 @@ final _validPage = {
   'data': const [],
   'tombstones': const [],
   'meta': {'next_cursor': null, 'has_more': false, 'target_checkpoint': '2026-09-09T12:00:00Z'},
+};
+
+Map<String, dynamic> _pageWith({
+  required Object productId,
+  required Map<String, dynamic>? category,
+  required Object tombstoneId,
+}) => {
+  'data': [
+    {
+      'id': productId,
+      'name': 'Produto',
+      'sku': 'SKU-123',
+      'brand': null,
+      'price': null,
+      'stock_quantity': 1,
+      'stock_status': 'available',
+      'is_available_for_sale': true,
+      'image_url': null,
+      'updated_at': null,
+      'category': category,
+    },
+  ],
+  'tombstones': [
+    {'id': tombstoneId, 'deleted_at': '2026-09-09T12:00:00Z'},
+  ],
+  'meta': {
+    'next_cursor': null,
+    'has_more': false,
+    'target_checkpoint': '2026-09-09T12:00:00Z',
+  },
 };

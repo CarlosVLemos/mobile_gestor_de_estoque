@@ -1,49 +1,48 @@
 # Contexto Rápido
 
-## Estado real agora
+## Estado comprovado em 9 de setembro de 2026
 
-- Flutter com Riverpod, go_router, Dio e arquitetura por feature/camada.
-- Shell operacional com Painel, Produtos, Vendas e Mais.
-- Spec 007 concluída: core de rede, redaction, erros tipados e `Result`.
-- Spec 008 concluída e mergeada na `dev`: autenticação Sanctum real, `flutter_secure_storage`, login, logout, `/me`, troca obrigatória de senha, restauração de sessão, `401` global e guards de rota.
-- `API_BASE_URL` é configurável por `--dart-define`.
-- Dashboard, catálogo, clientes e vendas ainda não formam o fluxo local-first real de produção.
+- Specs 007, 008, 008B, 009A e 009B entregues; 009A/009B revalidadas no gate de estabilização.
+- 009C entrega catálogo/dashboard local-first real. Foi reaberta somente pelo `CR-009C-001`; a correção de Category UUID da Spec 012 está implementada e aguarda `flutter analyze --no-pub` para fechamento.
+- Banco Drift está em schema v4, com migrações v1/v2/v3 → v4 e sem mudança de schema nesta estabilização.
+- Sync de foreground possui startup autenticado, refresh manual e `resumed` com cooldown. Connectivity/background ainda não estão ligados.
+- O núcleo da 010 possui venda local atômica, outbox, idempotência, retry, claim, replay estrito e lifecycle; seus testes estão verdes.
+- Settings usa a `UserSession` real e o estado de sync observa o engine contextual pela Spec 013. Falta análise estática para fechar a Spec.
+- Manifest Android principal declara `INTERNET`.
+- Suíte completa: 220 testes aprovados, zero falhas.
+- Spec 013D está `PAUSED`: o modo demonstração sem API foi especificado, mas não foi implementado nem incluído no commit de estabilização.
 
-## Próximos gaps estruturais
+## Bloqueios atuais
 
-- 008B: isolamento de contexto por usuário + tenant e lifecycle de recursos locais.
-- 009A: Drift/schema/migrações.
-- 009B: motor de sync incremental.
-- 009C: leituras reais de dashboard, catálogo e clientes.
-- 010: outbox + `sale-intents` + confirmação/reconciliação.
-- release: INTERNET/configuração de ambiente, VPS/HTTPS, APK e smoke E2E.
+- `BLOCKER-010-CLIENTS`: backend sem endpoint mobile auditado para listar/sincronizar clientes; não inventar `client_id`.
+- `BLOCKER-010-CONFIRMATION-RECOVERY`: protocolo de replay/consulta não permite recuperar com segurança o token de confirmação.
+- UI de vendas ainda usa draft fixture e pendências em memória; conectar ao core somente após o contrato de clientes.
+- Specs 009C/012/013 aguardam o gate `flutter analyze --no-pub`.
+- Runtime demo sem API continua bloqueado até a execução integral da Spec 013D.
 
-## Gap backend conhecido
+## Contrato de IDs do catálogo
 
-Venda real exige cliente válido do tenant. Antes de 009C/010, confirmar no backend um contrato mobile para listagem/sync de clientes; não usar fixture como ID remoto.
+```text
+Product.id inteiro              -> String numérica mobile
+Product tombstone.id inteiro    -> String numérica mobile
+Category.id UUID                -> String UUID mobile
+Category null                   -> null
+```
 
-## Contratos que envelheceram
-
-Não implemente 009A/009B/009C/010 literalmente sem nova auditoria. Já foram identificadas diferenças entre documentação antiga e backend real em tipos de IDs, cursor/checkpoint/tombstones e protocolo de `sale-intents`.
+Não relaxar genericamente IDs para qualquer String e não criar migração Drift para essa correção.
 
 ## Arquitetura obrigatória
 
 `Page -> Controller -> UseCase -> Repository -> DAO/API`
 
-- presentation: sem Dio/Drift;
-- application: sem Dio/Drift/JSON/widgets;
-- domain: sem Flutter/transporte/persistência;
-- pending local != confirmed remoto;
-- servidor soberano para autorização, estoque e confirmação.
+O servidor permanece soberano para autorização, estoque e confirmação. Estado local pendente nunca equivale a confirmação remota. Dados de user/tenant diferentes não compartilham contexto local.
 
-## Regras de produto sensíveis
+## Próximo caminho crítico
 
-- multi-tenant e isolamento local obrigatórios;
-- `price = null` pode ser restrição válida;
-- produto sem estoque continua visível quando o contrato permitir;
-- permissão visual não substitui autorização remota;
-- contrato planejado não é contrato implementado.
+1. concluir análise estática e fechar 009C/012/013;
+2. handoff backend para clientes e recuperação de confirmação;
+3. sincronizar clientes e conectar a UI de vendas ao núcleo persistente;
+4. UX de offline/connectivity e hardening;
+5. configuração de release e smoke E2E.
 
-## Bootstrap mínimo do agente
-
-Leia `AGENTS.md`, este arquivo e `.agents/task-routing.md`. Depois leia apenas a documentação indicada para a tarefa.
+Leia `AGENTS.md`, este arquivo, `.agents/task-routing.md` e somente a documentação indicada para a tarefa.

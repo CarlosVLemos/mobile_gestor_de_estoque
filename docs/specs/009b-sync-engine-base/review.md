@@ -2,7 +2,7 @@
 
 ## Status
 
-`BLOCKED`
+`DONE`
 
 ## O que foi corrigido
 
@@ -10,19 +10,17 @@ A spec antiga foi alinhada à 008B: `SyncLifecycle` já existe e será implement
 
 ## Dependência
 
-009A precisa estar implementada antes da escrita da 009B.
+009A foi implementada antes da 009B.
 
-## Blockers reais
+## Decisões implementadas
 
-1. política de timeout/falha de `SyncLifecycle.stop()` no logout/expiração;
-2. TTL/renovação/takeover do lock persistido.
-
-Nenhum valor foi inventado para fechar esses pontos.
+1. `SyncLifecycle.stop()` usa timeout seguro de 10 segundos e mantém o contexto recuperável quando não pode terminar;
+2. lock persistido usa TTL de 2 minutos, heartbeat de 30 segundos e takeover condicionado à expiração/ownership.
 
 ## Gate
 
-FECHADO. `contract.md` permanece DRAFT/BLOCKED até decisão explícita.
+ABERTO, executado e validado. `contract.md` está `FROZEN`.
 
 ## Veredito
 
-`BLOCKED` — escopo e arquitetura estão claros, mas os dois parâmetros de segurança acima precisam de decisão antes de implementação.
+`passed` — implementação e gatilhos de foreground cobertos; consulte `validation-result.md`.

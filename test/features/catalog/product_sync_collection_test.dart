@@ -34,7 +34,11 @@ void main() {
     expect((await database.select(database.productsTable).getSingle()).deletedAt, isNotNull);
     await collection.commitPage(await collection.fetchPage(const SyncCheckpoint()));
     expect((await database.select(database.productsTable).getSingle()).deletedAt, isNull);
-    expect((await database.select(database.categoriesTable).getSingle()).name, 'Categoria');
+    final category = await database.select(database.categoriesTable).getSingle();
+    final product = await database.select(database.productsTable).getSingle();
+    expect(category.id, '550e8400-e29b-41d4-a716-446655440000');
+    expect(category.name, 'Categoria');
+    expect(product.categoryId, category.id);
   });
 
   test('intermediate page persists the opaque cursor and stable target only after commit', () async {
@@ -130,7 +134,7 @@ class _Remote extends ProductRemoteDataSource {
 }
 
 Map<String, dynamic> _page({required bool hasMore, List<Map<String, dynamic>>? products, List<_Tombstone> tombstones = const []}) => {
-  'data': products ?? [{'id': '1', 'name': 'Produto', 'sku': 'SKU', 'brand': null, 'price': null, 'stock_quantity': 1, 'stock_status': 'available', 'is_available_for_sale': true, 'image_url': null, 'updated_at': null, 'category': {'id': '2', 'name': 'Categoria'}}],
+  'data': products ?? [{'id': 1, 'name': 'Produto', 'sku': 'SKU', 'brand': null, 'price': null, 'stock_quantity': 1, 'stock_status': 'available', 'is_available_for_sale': true, 'image_url': null, 'updated_at': null, 'category': {'id': '550e8400-e29b-41d4-a716-446655440000', 'name': 'Categoria'}}],
   'tombstones': [for (final tombstone in tombstones) {'id': tombstone.id, 'deleted_at': tombstone.deletedAt}],
   'meta': {'next_cursor': hasMore ? 'opaque+cursor' : null, 'has_more': hasMore, 'target_checkpoint': '2026-09-09T12:00:00Z'},
 };

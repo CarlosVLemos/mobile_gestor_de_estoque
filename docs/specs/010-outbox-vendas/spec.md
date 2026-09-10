@@ -2,7 +2,7 @@
 
 ## Status
 
-`IN PROGRESS` — Fase A. O contrato congelado está em `contract.md`.
+`BLOCKED` — Fase A implementada e validada; integração ponta a ponta depende do handoff backend de clientes e recuperação de confirmação. O contrato congelado está em `contract.md`.
 
 Esta fase evolui a `sync_outbox` existente. Idempotência usa
 `client_request_id` no payload; `X-Request-ID` não é requisito. O backend é

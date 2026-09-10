@@ -27,4 +27,4 @@
 - pull-to-refresh ignora cooldown;
 - foreground permanece caminho principal.
 
-Nenhuma execução de teste está registrada enquanto a spec estiver bloqueada.
+Execução registrada em `validation-result.md`: perfil focado do engine com 12 testes e suíte completa com 220 testes, ambos sem falhas.

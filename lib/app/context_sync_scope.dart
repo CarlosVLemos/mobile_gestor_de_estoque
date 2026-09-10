@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/sync/sync_engine.dart';
 import '../core/sync/sync_lifecycle_observer.dart';
+import '../core/sync/sync_providers.dart';
+import '../features/auth/presentation/controllers/auth_controller.dart';
+import '../features/settings/domain/entities/operational_context.dart';
+import '../features/settings/settings_providers.dart';
 import 'local_context_lifecycle.dart';
 
 /// Attaches only foreground lifecycle triggers to the engine for the active
@@ -22,6 +26,17 @@ class _ContextSyncScopeState extends ConsumerState<ContextSyncScope> {
   @override
   Widget build(BuildContext context) {
     final next = ref.watch(contextSyncEngineProvider);
+    final session = ref.watch(authControllerProvider).session;
+    final operationalContext = session == null
+        ? null
+        : OperationalContext(
+            userName: session.userName,
+            userEmail: session.email,
+            tenantName: session.tenantName,
+            tenantSlug: session.tenantSlug,
+            features: session.features,
+            permissions: session.permissions,
+          );
     if (!identical(next, _engine)) {
       _detach();
       _engine = next;
@@ -30,7 +45,15 @@ class _ContextSyncScopeState extends ConsumerState<ContextSyncScope> {
         WidgetsBinding.instance.addObserver(_observer!);
       }
     }
-    return widget.child;
+    return ProviderScope(
+      overrides: [
+        syncEngineProvider.overrideWithValue(next),
+        currentOperationalContextProvider.overrideWithValue(
+          operationalContext,
+        ),
+      ],
+      child: widget.child,
+    );
   }
 
   void _detach() {

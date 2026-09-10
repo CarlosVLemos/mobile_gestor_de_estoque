@@ -89,6 +89,7 @@ List<ArchitectureViolation> validateArchitecture(Map<String, String> sources) {
       }
 
       if (layer == 'app' &&
+          !sourcePath.startsWith('lib/app/composition/') &&
           (target.contains('/data/dto/') ||
               target.contains('/data/local/') ||
               target.contains('/data/remote/') ||

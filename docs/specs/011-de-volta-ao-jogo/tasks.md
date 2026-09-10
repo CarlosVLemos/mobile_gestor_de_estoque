@@ -1,5 +1,9 @@
 # Tasks — SDD-001
 
+Status: `SUPERSEDED`
+
+> As tarefas abaixo são preservadas como histórico. Não foram executadas sob a Spec 011; seu escopo foi absorvido pelas Specs 009A/009B/009C e 010, conforme [`supersession.md`](supersession.md).
+
 ## Regras operacionais
 - Nenhuma implementação começa antes de `contract.md` ficar `FROZEN`.
 - Mudança de escopo, schema, isolamento ou paths exige Change Request.

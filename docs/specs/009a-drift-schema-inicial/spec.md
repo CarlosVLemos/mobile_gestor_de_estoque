@@ -2,7 +2,7 @@
 
 ## Status
 
-`ready` — contrato local congelado após auditoria do backend `CarlosVLemos/gestor_de_estoque`, branch `dev`, commit `4ef4b3ee6374848ff903ce1f467daeff0975b005`.
+`done` — implementada na família de commits iniciada por `1a7ac67` e revalidada em 2026-09-09. O banco atual está em schema v4; a migração originalmente definida por esta Spec permanece coberta no caminho v1 → v4.
 
 ## Estado de partida
 

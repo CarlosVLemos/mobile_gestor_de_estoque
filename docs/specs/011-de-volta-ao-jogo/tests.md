@@ -1,5 +1,9 @@
 # Tests — SDD-001
 
+Status: `SUPERSEDED`
+
+> Plano histórico não executado. A Spec 011 não chegou à implementação nem ao gate de QA; consulte [`supersession.md`](supersession.md).
+
 ## Objetivo
 Validar que a primeira fundação local-first é persistente, isolada por contexto, não destrutiva e mantém o comportamento funcional do catálogo.
 

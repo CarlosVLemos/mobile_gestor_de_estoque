@@ -1,9 +1,11 @@
 # Validation Result — SDD-001
 
-Status: `NOT_RUN`
+Status: `SUPERSEDED`
 Verdict: `NOT_RUN`
 Partial audit: no
 Reduced profile: no
+
+Motivo: a Spec 011 foi superada ainda em `draft`, sem contrato congelado ou implementação própria. O `NOT_RUN` é preservado porque não existe entrega 011 a validar. Consulte [`supersession.md`](supersession.md).
 
 ## Ambiente
 Preencher durante a validação:

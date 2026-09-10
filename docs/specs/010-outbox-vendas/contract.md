@@ -4,8 +4,11 @@
 
 `FROZEN` para a Fase A, autorizado pelo pedido de implementação de 9 de setembro de 2026.
 
-A spec permanece `IN PROGRESS`. Integração de clientes e recuperação remota de
-`confirmation_token` aguardam `HANDOFF-010-BACKEND`.
+A Fase A foi implementada e validada. A Spec completa permanece `BLOCKED`:
+integração de clientes e recuperação remota de `confirmation_token` aguardam
+`HANDOFF-010-BACKEND`.
+
+Adendo aceito: [`CR-010-001`](change-request-001-confirmed-replay.md) formaliza o replay confirmado estrito já implementado.
 
 ## Fronteiras
 
@@ -58,9 +61,9 @@ O token de confirmação é sensível, nunca é logado e é limpo em estado term
 Na Fase A, domínio, persistência, revisão de proposta e CAS de aceite estão
 preparados, mas a fonte remota apenas estaciona os códigos 409 em
 `requires_acceptance`. Ela não extrai `intent_id`, proposta ou token de um
-envelope presumido. O aceite remoto funcional e o reconhecimento do formato de
-replay confirmado permanecem bloqueados até `HANDOFF-010-BACKEND` congelar
-esses campos.
+envelope presumido. O aceite remoto funcional continua bloqueado. Conforme
+`CR-010-001`, replay só é reconciliado quando a resposta 200 traz
+`code=idempotent_replay`, `intent.state=confirmed` e `intent.id` válido.
 
 ## Processamento e recovery
 

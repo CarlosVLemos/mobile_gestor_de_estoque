@@ -2,7 +2,7 @@
 
 ## Status
 
-`IN PROGRESS` — Fase A autorizada em 9 de setembro de 2026.
+`PHASE_A_VALIDATED — E2E_BLOCKED`
 
 ## Escopo pretendido
 
@@ -40,5 +40,6 @@ token de confirmação permanecem bloqueados por `HANDOFF-010-BACKEND`.
 
 ## Veredito
 
-Contrato da Fase A congelado. A spec permanece em progresso até o handoff
-backend e o gate de validação de Mefisto.
+`passed_with_restrictions` — núcleo da Fase A verde; a spec completa permanece bloqueada pelo handoff backend e pela UI ainda baseada em fixture.
+
+O replay confirmado estrito foi reconciliado documentalmente pelo [`CR-010-001`](change-request-001-confirmed-replay.md). Isso não resolve o recovery do token de confirmação.

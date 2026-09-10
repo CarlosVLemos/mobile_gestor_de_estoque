@@ -1,12 +1,12 @@
-# Spec 010 - Referência de Validação Futura
+# Spec 010 — Plano e resultado de validação
 
 ## Objetivo
 
-Registrar como a futura implementação da Spec 010 (Outbox de Vendas e Resiliência Offline) deverá ser validada.
+Registrar como o núcleo implementado e a futura integração ponta a ponta da Spec 010 devem ser validados.
 
 ## O que verificar depois
 
-A futura implementação deverá comprovar que:
+O núcleo implementado e as fases E2E posteriores devem comprovar que:
 - Registrar uma venda no app insere de forma atômica o registro local e o evento de outbox (se um falhar, nada é persistido);
 - O processador lê a outbox de forma sequencial pelo identificador de criação;
 - O `client_request_id` do payload persistido é reutilizado em todas as tentativas;
@@ -44,12 +44,14 @@ A futura implementação deverá comprovar que:
 
 ## Checklist de Validação
 
-- [ ] `sync_outbox` evoluída e tabelas `local_sales`/`local_sale_items` criadas no Drift.
-- [ ] Gravação unificada das tabelas em bloco de transação (`transaction`).
-- [ ] `OutboxProcessor` lê itens pendentes ou em retentativa.
-- [ ] `client_request_id` estável no payload da API de vendas.
-- [ ] Algoritmo de backoff exponencial e jitter implementado.
+- [x] `sync_outbox` evoluída e tabelas `local_sales`/`local_sale_items` criadas no Drift.
+- [x] Gravação unificada das tabelas em bloco de transação (`transaction`).
+- [x] `OutboxProcessor` lê itens pendentes ou em retentativa.
+- [x] `client_request_id` estável no payload da API de vendas.
+- [x] Algoritmo de backoff exponencial e jitter implementado.
 - [ ] Badges visuais de status canônicos integrados no card de vendas.
-- [ ] Testes de transações atômicas passando.
-- [ ] Testes de idempotência passando.
-- [ ] Testes de backoff e jitter passando com sucesso.
+- [x] Testes de transações atômicas passando.
+- [x] Testes de idempotência passando.
+- [x] Testes de backoff e jitter passando com sucesso.
+
+O badge/UI e o fluxo E2E continuam pendentes pelos blockers documentados em `validation-result.md`.

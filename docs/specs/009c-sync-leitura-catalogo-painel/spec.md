@@ -2,7 +2,7 @@
 
 ## Status
 
-`done` — 009A e 009B foram entregues; a leitura local-first de catálogo e dashboard está integrada ao SyncEngine.
+`in_progress — CR-009C-001` — entrega original preservada; reabertura pontual para corrigir o contrato de ID UUID de Category pela Spec 012.
 
 ## Backend auditado
 

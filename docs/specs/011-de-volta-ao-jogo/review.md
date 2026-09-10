@@ -1,7 +1,9 @@
 # Review — SDD-001
 
-Status: `NOT_STARTED`
+Status: `SUPERSEDED`
 Validation verdict: `NOT_RUN`
+
+Motivo: revisão encerrada administrativamente antes da implementação. O escopo foi absorvido por entregas anteriores, conforme [`supersession.md`](supersession.md).
 
 ## Objetivo da revisão
 Registrar a execução real da Spec 01, confrontando implementação, contrato e testes sem tratar planejamento como entrega.

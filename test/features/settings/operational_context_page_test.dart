@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
 import 'package:gestor_de_estoque/app/shell/shell_profile.dart';
 import 'package:gestor_de_estoque/features/settings/presentation/pages/operational_context_page.dart';
+import 'package:gestor_de_estoque/features/settings/domain/entities/operational_context.dart';
+import 'package:gestor_de_estoque/features/settings/settings_providers.dart';
 import 'package:gestor_de_estoque/shared/widgets/tenant_context_card.dart';
 
 void main() {
@@ -12,7 +14,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [shellProfileProvider.overrideWithValue(_profile)],
+        overrides: [
+          shellProfileProvider.overrideWithValue(_profile),
+          currentOperationalContextProvider.overrideWithValue(_context),
+        ],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const Scaffold(body: OperationalContextPage()),
@@ -36,8 +41,8 @@ void main() {
     expect(find.text('Empresa vinculada'), findsOneWidget);
     expect(find.text('Consultar catálogo'), findsOneWidget);
     expect(find.text('Ver métricas financeiras'), findsOneWidget);
-    expect(find.text('Liberado'), findsNWidgets(2));
-    expect(find.text('Restrito'), findsNWidgets(2));
+    expect(find.text('Liberado'), findsOneWidget);
+    expect(find.text('Restrito'), findsNWidgets(3));
   });
 
   testWidgets('conta suporta 320px com textScaler 2.0', (tester) async {
@@ -48,7 +53,10 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [shellProfileProvider.overrideWithValue(_profile)],
+        overrides: [
+          shellProfileProvider.overrideWithValue(_profile),
+          currentOperationalContextProvider.overrideWithValue(_context),
+        ],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const MediaQuery(
@@ -73,4 +81,13 @@ final _profile = ShellProfile(
   tenantSlug: 'arara-centro',
   features: const {'catalog', 'sales'},
   permissions: const {'products_view': true, 'view_financial_metrics': false},
+);
+
+final _context = OperationalContext(
+  userName: _profile.userName,
+  userEmail: _profile.userEmail,
+  tenantName: _profile.tenantName,
+  tenantSlug: _profile.tenantSlug,
+  features: _profile.features,
+  permissions: _profile.permissions,
 );

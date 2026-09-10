@@ -2,9 +2,9 @@
 
 ## Status
 
-`ready`
+`done`
 
-Contrato congelado em 9 de setembro de 2026. Os antigos blockers de teardown e TTL foram resolvidos explicitamente no `contract.md`.
+Contrato congelado em 9 de setembro de 2026. Os antigos blockers de teardown e TTL foram resolvidos no `contract.md`, implementados pela família iniciada em `615e398` e revalidados em 2026-09-09.
 
 ## Dependência
 

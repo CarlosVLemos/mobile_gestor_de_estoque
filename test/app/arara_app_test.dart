@@ -4,11 +4,17 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gestor_de_estoque/app/arara_app.dart';
 import 'package:gestor_de_estoque/app/local_context_lifecycle.dart';
 import 'package:gestor_de_estoque/core/database/database_factory.dart';
+import 'package:gestor_de_estoque/features/catalog/catalog_providers.dart';
+import 'package:gestor_de_estoque/features/catalog/data/repositories/fixture_catalog_repository.dart';
+import 'package:gestor_de_estoque/features/dashboard/dashboard_providers.dart';
+import 'package:gestor_de_estoque/features/dashboard/data/repositories/fixture_dashboard_repository.dart';
 import 'package:gestor_de_estoque/core/result/result.dart';
 import 'package:gestor_de_estoque/features/auth/auth_providers.dart';
+import 'package:gestor_de_estoque/features/auth/data/local/secure_token_storage.dart';
 import 'package:gestor_de_estoque/features/auth/domain/entities/auth_failure.dart';
 import 'package:gestor_de_estoque/features/auth/domain/entities/user_session.dart';
 import 'package:gestor_de_estoque/features/auth/domain/repositories/auth_repository.dart';
@@ -43,7 +49,15 @@ void main() {
 Widget _app(AuthRepository repository) => ProviderScope(
   overrides: [
     authRepositoryProvider.overrideWithValue(repository),
+    secureTokenStorageProvider.overrideWithValue(_FakeSecureTokenStorage()),
     databaseFactoryProvider.overrideWithValue(_databaseFactory()),
+    contextSyncEngineProvider.overrideWithValue(null),
+    catalogRepositoryProvider.overrideWithValue(
+      const FixtureCatalogRepository(),
+    ),
+    dashboardRepositoryProvider.overrideWithValue(
+      const FixtureDashboardRepository(),
+    ),
   ],
   child: const AraraApp(),
 );
@@ -100,4 +114,17 @@ class _FakeAuthRepository implements AuthRepository {
   Future<Result<void, AuthFailure>> logout() async => const Success(null);
   @override
   Future<void> clearLocalSession() async {}
+}
+
+class _FakeSecureTokenStorage extends SecureTokenStorage {
+  _FakeSecureTokenStorage() : super(const FlutterSecureStorage());
+
+  @override
+  Future<String?> read() async => 'test-token';
+
+  @override
+  Future<void> write(String token) async {}
+
+  @override
+  Future<void> clear() async {}
 }

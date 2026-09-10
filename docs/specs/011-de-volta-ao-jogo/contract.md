@@ -1,9 +1,13 @@
 # Contract — SDD-001
 
-Status: DRAFT
+Status: SUPERSEDED
 Version: 1
 Change Request: N/A
 Human approval / freeze date:
+Superseded date: 2026-09-09
+Supersession record: [`supersession.md`](supersession.md)
+
+> Registro histórico: este contrato permaneceu em `DRAFT`, nunca foi `FROZEN` e não autorizou implementação.
 
 ## Scope
 

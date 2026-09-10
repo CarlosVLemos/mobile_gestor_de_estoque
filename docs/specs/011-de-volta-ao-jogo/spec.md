@@ -1,6 +1,9 @@
 # Spec 01 — Fundação Local-First: Drift e Primeira Vertical Persistente do Catálogo
 
-Status: `draft`
+Status: `SUPERSEDED` (estado canônico: `superseded`)
+Substituída em: 2026-09-09
+Registro: [`supersession.md`](supersession.md)
+Observação histórica: permaneceu em `draft`; o contrato nunca foi congelado e nenhuma tarefa foi executada sob esta Spec.
 Data de abertura: 2026-09-08
 Owner: Coordenação Mobile
 Execution mode: `SINGLE_WRITER` até `contract.md` ficar `FROZEN`

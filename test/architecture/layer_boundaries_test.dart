@@ -100,6 +100,8 @@ void main() {
           "import '../../domain/repositories/catalog_repository.dart';",
       'lib/features/catalog/data/repositories/catalog_repository.dart':
           "import '../../domain/repositories/catalog_repository.dart';",
+      'lib/app/composition/catalog_composition.dart':
+          "import '../../features/catalog/data/remote/product_remote_data_source.dart';",
     };
 
     expect(validateArchitecture(sources), isEmpty);

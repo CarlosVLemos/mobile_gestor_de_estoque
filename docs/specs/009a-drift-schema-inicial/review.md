@@ -2,7 +2,7 @@
 
 ## Status
 
-`READY`
+`DONE`
 
 ## Auditoria
 
@@ -20,8 +20,8 @@ A versão antiga da spec foi corrigida para não instalar Drift novamente, não 
 
 ## Gate
 
-Contrato `FROZEN`. Implementação pode ser autorizada como próxima etapa.
+Contrato `FROZEN`. Implementação entregue e revalidada; consulte `validation-result.md`.
 
 ## Veredito
 
-`READY` — primeira sub-spec implementável da família 009.
+`passed` — schema, preservação da outbox e migrações continuam verdes no gate atual.

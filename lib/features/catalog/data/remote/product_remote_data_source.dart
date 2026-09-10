@@ -6,7 +6,7 @@ import '../../../../core/sync/sync_error_mapper.dart';
 
 class RemoteProduct {
   RemoteProduct(Map<String, dynamic> value)
-      : id = _requiredRemoteId(value['id']),
+      : id = _requiredProductId(value['id']),
         name = _requiredText(value['name']),
         sku = _requiredText(value['sku']),
         brand = _nullableText(value['brand']),
@@ -34,7 +34,7 @@ class RemoteCategory {
 
 class RemoteTombstone {
   RemoteTombstone(Map<String, dynamic> value)
-      : id = _requiredRemoteId(value['id']),
+      : id = _requiredProductId(value['id']),
         deletedAt = _requiredDate(value['deleted_at']);
   final String id;
   final DateTime deletedAt;
@@ -90,16 +90,25 @@ class ProductRemoteDataSource {
 Map<String, dynamic> _object(Object? value) => value is Map<String, dynamic> ? value : throw const FormatException('Objeto esperado.');
 List<dynamic> _list(Object? value) => value is List ? value : throw const FormatException('Lista esperada.');
 String _requiredText(Object? value) => value is String && value.isNotEmpty ? value : throw const FormatException('Texto esperado.');
-String _requiredRemoteId(Object? value) {
+String _requiredProductId(Object? value) {
   final parsed = switch (value) {
     int id => id,
     String text => int.tryParse(text),
     _ => null,
   };
   if (parsed == null || parsed <= 0) {
-    throw const FormatException('ID remoto inválido.');
+    throw const FormatException('ID de produto inválido.');
   }
   return parsed.toString();
+}
+final _uuidPattern = RegExp(
+  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+);
+String _requiredCategoryId(Object? value) {
+  if (value is! String || !_uuidPattern.hasMatch(value)) {
+    throw const FormatException('ID de categoria inválido.');
+  }
+  return value;
 }
 String? _nullableText(Object? value) => value == null ? null : _requiredText(value);
 int _integer(Object? value) => value is int ? value : throw const FormatException('Inteiro esperado.');
@@ -107,4 +116,4 @@ bool _bool(Object? value) => value is bool ? value : throw const FormatException
 double? _price(Object? value) => value == null ? null : value is num && value.isFinite ? value.toDouble() : throw const FormatException('Preço inválido.');
 DateTime? _date(Object? value) => value == null ? null : _requiredDate(value);
 DateTime _requiredDate(Object? value) { final parsed = value is String ? DateTime.tryParse(value) : null; return parsed?.toUtc() ?? (throw const FormatException('Data inválida.')); }
-RemoteCategory? _category(Object? value) { if (value == null) return null; final map = _object(value); return RemoteCategory(_requiredRemoteId(map['id']), _requiredText(map['name'])); }
+RemoteCategory? _category(Object? value) { if (value == null) return null; final map = _object(value); return RemoteCategory(_requiredCategoryId(map['id']), _requiredText(map['name'])); }

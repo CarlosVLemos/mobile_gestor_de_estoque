@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
+import 'package:gestor_de_estoque/features/catalog/catalog_providers.dart';
+import 'package:gestor_de_estoque/features/catalog/data/repositories/fixture_catalog_repository.dart';
 import 'package:gestor_de_estoque/features/catalog/presentation/pages/catalog_page.dart';
 
 void main() {
@@ -10,6 +12,11 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          catalogRepositoryProvider.overrideWithValue(
+            const FixtureCatalogRepository(),
+          ),
+        ],
         child: MaterialApp(
           theme: AppTheme.light,
           home: const Scaffold(body: CatalogPage()),

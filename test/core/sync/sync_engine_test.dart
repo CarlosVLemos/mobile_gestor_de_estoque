@@ -248,6 +248,30 @@ void main() {
     expect(await engine.sync(trigger: SyncTrigger.resumed), SyncOutcome.succeeded);
   });
 
+  test('resumed respects cooldown while manual refresh bypasses it', () async {
+    var now = DateTime.utc(2026, 9, 9, 12);
+    engine = SyncEngine(
+      context: context,
+      collections: [collection],
+      lock: lock,
+      leaseStore: _LeaseStore(lease),
+      now: () => now,
+      resumeCooldown: const Duration(minutes: 5),
+    );
+
+    expect(
+      await engine.sync(trigger: SyncTrigger.startup),
+      SyncOutcome.succeeded,
+    );
+    now = now.add(const Duration(minutes: 1));
+    expect(
+      await engine.sync(trigger: SyncTrigger.resumed),
+      SyncOutcome.throttled,
+    );
+    expect(await engine.sync(), SyncOutcome.succeeded);
+    expect(collection.commits, 2);
+  });
+
   test('stop waits for an in-flight heartbeat before releasing lease', () async {
     collection.fetchGate = Completer<void>();
     lease
