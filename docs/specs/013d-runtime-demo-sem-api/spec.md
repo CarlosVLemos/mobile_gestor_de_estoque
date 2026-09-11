@@ -1,14 +1,12 @@
-# Spec 013D — Runtime de demonstração sem API
+# Spec 013D — Runtime de demonstração sem API
 
-Status: `IN_PROGRESS — IMPLEMENTED, VALIDATION PENDING`
+Status: `DONE` — totalmente implementado e validado.
 Mode: `CRITICAL`
 Execution mode: `SINGLE_WRITER`
 Data: 2026-09-10
 Owner: Jarvis / Van Gogh / Mefisto
 
 ## Objetivo
-
-Permitir `flutter run --dart-define=APP_MODE=demo` sem Laravel e sem `API_BASE_URL`, usando sessão local, banco físico exclusivo, seed Drift determinístico, catálogo/dashboard reais sobre repositories locais e vendas pelo pipeline persistente/outbox com gateway sem HTTP.
 
 ## Escopo
 

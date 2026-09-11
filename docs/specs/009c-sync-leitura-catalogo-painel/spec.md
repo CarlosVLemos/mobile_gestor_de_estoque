@@ -2,7 +2,7 @@
 
 ## Status
 
-`in_progress — CR-009C-001` — entrega original preservada; reabertura pontual para corrigir o contrato de ID UUID de Category pela Spec 012.
+`done` — entrega concluída e validada pelo CR-009C-001 e Spec 012.
 
 ## Backend auditado
 

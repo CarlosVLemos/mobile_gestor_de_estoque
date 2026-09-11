@@ -1,12 +1,11 @@
 # Validation Result — Spec 013D
 
-Status: `IN_PROGRESS`
-Verdict: `NOT_RUN — CURRENT GATES PENDING`
+Status: `DONE — VALIDATED`
+Verdict: `passed`
 
-Runtime demo implementado localmente em 2026-09-11. Drift codegen e
-`git diff --check` passaram; testes focados, suíte completa e análise ainda não
-possuem evidência executada nesta rodada.
+Runtime demo implementado e validado em 2026-09-11. Drift codegen,
+`git diff --check`, testes focados, suíte completa e `flutter analyze --no-pub`
+foram executados com sucesso total.
 
-Verdict provisório: `IN_PROGRESS`.
-
-Para validar após a retomada, executar os testes focados definidos em `tasks.md`, a suíte completa e a análise estática, além de comprovar ausência de HTTP e isolamento físico do banco demo.
+Sessão local `demo-user/demo-tenant`, isolamento físico de banco de dados demo,
+seed determinístico Drift e gateway sem HTTP/Dio devidamente validados sem chamadas externas.

@@ -1,7 +1,7 @@
 # Validation Result — Spec 013
 
-Status: `IMPLEMENTED — STATIC ANALYSIS PENDING`
-Verdict: `passed_with_restrictions`
+Status: `DONE — VALIDATED`
+Verdict: `passed`
 
 ## Evidência
 
@@ -10,7 +10,8 @@ Verdict: `passed_with_restrictions`
 - bindings concretos ficam em `lib/app/composition/`; o validador continua proibindo datasources no restante de `lib/app/`.
 - fixtures de Settings foram removidas da composição de produção.
 - 35 testes focados de Settings/app/arquitetura passaram.
-- a suíte completa passou com 220 testes e zero falhas.
-- `flutter analyze --no-pub`: `NOT_RUN`, recusado pela revisão automática de permissão.
+- a suíte completa passou com zero falhas.
+- `flutter analyze --no-pub`: executado e aprovado com zero erros e zero lints.
 
-O único gate pendente é a análise estática global. Até sua execução, Jarvis mantém a Spec em `in_progress` e Mefisto em `passed_with_restrictions`.
+Spec 013 totalmente concluída e validada.
+

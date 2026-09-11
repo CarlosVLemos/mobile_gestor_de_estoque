@@ -1,6 +1,6 @@
 # Spec 013 — Contexto operacional real e observabilidade do sync
 
-Status: `in_progress — QA estático pendente`
+Status: `done`
 Mode: `CRITICAL`
 Execution mode: `SINGLE_WRITER`
 Data: 2026-09-09

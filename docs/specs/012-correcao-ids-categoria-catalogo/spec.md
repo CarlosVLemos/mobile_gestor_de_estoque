@@ -1,6 +1,6 @@
 # Spec 012 — Correção contratual de IDs de categoria no catálogo mobile
 
-Status: `in_progress — QA estático pendente`
+Status: `done`
 Modo: `CRITICAL`
 Execution mode: `SINGLE_WRITER` até o contrato ficar `FROZEN`
 Data de abertura: 2026-09-09

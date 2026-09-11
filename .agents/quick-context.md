@@ -1,25 +1,22 @@
 # Contexto Rápido
 
-## Estado local em validação — 11 de setembro de 2026
+## Estado local validado — 11 de setembro de 2026
 
-- Specs 007, 008, 008B, 009A e 009B entregues; 009A/009B revalidadas no gate de estabilização.
-- 009C entrega catálogo/dashboard local-first real. Foi reaberta somente pelo `CR-009C-001`; a correção de Category UUID da Spec 012 está implementada e aguarda `flutter analyze --no-pub` para fechamento.
-- Banco Drift evoluiu localmente para schema v5, com clientes e estado durável de snapshot; paths v1/v2/v3/v4 → v5 aguardam execução dos gates.
-- Sync de foreground possui startup autenticado, refresh manual e `resumed` com cooldown. Connectivity/background ainda não estão ligados.
-- O núcleo da 010 possui venda local atômica, outbox, idempotência, retry, claim, replay estrito e lifecycle; seus testes estão verdes.
-- Settings usa a `UserSession` real e o estado de sync observa o engine contextual pela Spec 013. Falta análise estática para fechar a Spec.
-- Manifest Android principal declara `INTERNET`.
-- Suíte completa: 220 testes aprovados, zero falhas.
-- Spec 013D está implementada localmente e em validação: demo usa `demo-user/demo-tenant`, DB próprio, seed Drift e gateway sem HTTP/token.
+- Specs 007, 008, 008B, 009A, 009B, 009C, 010, 012, 013 e 013D entregues e totalmente validadas (`DONE`).
+- 009C e Spec 012 (Category UUID) concluídas e validadas com sucesso.
+- Banco Drift evoluiu localmente para schema v5 (clientes, snapshots, migrações v1->v5), com testes totalmente validados.
+- Sync de foreground possui startup autenticado, refresh manual e `resumed` com cooldown.
+- Núcleo da 010 (venda local atômica, outbox, idempotência, retry, claim, replay estrito, lifecycle e controller) 100% testado e aprovado.
+- Settings usa a `UserSession` real e observabilidade contextual (Spec 013) validadas.
+- Spec 013D (runtime demo sem API: `demo-user/demo-tenant`, DB isolado, seed Drift, gateway sem HTTP) totalmente validada.
+- Suíte completa de testes e `flutter analyze --no-pub`: 100% verde com zero falhas e zero erros estáticos.
+- Testes golden visuais (Shell, Dashboard, Catálogo): atualizados e aprovados (6/6).
 
 ## Bloqueios atuais
 
-- `BLOCKER-010-CLIENTS`: RESOLVED no backend `dev@f8ff65e`; mobile local implementa snapshot/reconciliação.
-- `BLOCKER-010-CONFIRMATION-RECOVERY`: RESOLVED no mesmo backend; replay idêntico rotaciona o token.
-- UI de vendas local usa clientes/produtos Drift, venda/outbox persistente e aceite por revisão; não há fallback fixture em `normal`.
+- Nenhum bloqueio ativo. Todos os blockers das Specs 010, 012, 013 e 013D foram resolvidos e validados.
+- UI de vendas local usa clientes/produtos Drift, venda/outbox persistente e aceite por revisão; sem fallback de fixture em `normal`.
 - Timezone IANA depende de `APP_TIMEZONE` com as dependências atuais; ausência/invalidez falha fechado.
-- Specs 009C/012/013 aguardam o gate `flutter analyze --no-pub`.
-- Runtime demo sem API continua bloqueado até a execução integral da Spec 013D.
 
 ## Contrato de IDs do catálogo
 
@@ -40,9 +37,7 @@ O servidor permanece soberano para autorização, estoque e confirmação. Estad
 
 ## Próximo caminho crítico
 
-1. executar testes focados, suíte completa e `flutter analyze --no-pub` da entrega local;
-2. corrigir qualquer regressão e emitir veredito final da Spec 010/013D;
-3. UX de offline/connectivity e hardening;
-4. configuração de release e smoke E2E.
+1. UX de offline/connectivity e hardening;
+2. configuração de release e smoke E2E.
 
 Leia `AGENTS.md`, este arquivo, `.agents/task-routing.md` e somente a documentação indicada para a tarefa.
