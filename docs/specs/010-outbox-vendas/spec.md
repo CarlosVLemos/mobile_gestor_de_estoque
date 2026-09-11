@@ -2,12 +2,12 @@
 
 ## Status
 
-`BLOCKED` — Fase A implementada e validada; integração ponta a ponta depende do handoff backend de clientes e recuperação de confirmação. O contrato congelado está em `contract.md`.
+`IN_PROGRESS` — integração ponta a ponta implementada localmente pelo CR-010-002; validação final pendente. O contrato congelado está em `contract.md`.
 
 Esta fase evolui a `sync_outbox` existente. Idempotência usa
 `client_request_id` no payload; `X-Request-ID` não é requisito. O backend é
 soberano em preços e eles não são enviados. Clientes reais e recuperação do
-token de confirmação aguardam `HANDOFF-010-BACKEND`.
+token de confirmação foram liberados pelo backend `dev@f8ff65e`.
 
 ## Problema
 A realização de vendas no aplicativo precisa operar de forma resiliente mesmo quando o dispositivo estiver sem conexão à internet (ambiente instável ou sem sinal). Para garantir isso, o aplicativo não deve tentar enviar a transação diretamente pela rede; em vez disso, deve gravá-la localmente em uma fila de envio ("Outbox") e tentar a sincronização em segundo plano.

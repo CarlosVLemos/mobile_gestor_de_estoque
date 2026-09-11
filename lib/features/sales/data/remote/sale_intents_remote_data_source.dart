@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 import '../../../../core/errors/api_exception.dart';
@@ -95,9 +97,25 @@ class SaleIntentsRemoteDataSource implements SaleIntentGateway {
   SaleIntentOutcome _success(int? statusCode, Map<String, dynamic> body) {
     final code = _string(body['code']);
     if (statusCode == 201 && code == 'intent_confirmed') {
+      final intent = body['intent'];
+      final sale = body['sale'];
+      final remoteIntentId = intent is Map<String, dynamic>
+          ? _remoteId(intent['id'])
+          : null;
+      final remoteSaleId = sale is Map<String, dynamic>
+          ? _remoteId(sale['id'])
+          : null;
+      if (remoteIntentId == null || remoteSaleId == null) {
+        return const SaleIntentOutcome(
+          kind: SaleIntentOutcomeKind.permanentFailure,
+          code: 'invalid_confirmed_envelope',
+        );
+      }
       return SaleIntentOutcome(
         kind: SaleIntentOutcomeKind.confirmed,
         code: code,
+        remoteIntentId: remoteIntentId,
+        remoteSaleId: remoteSaleId,
       );
     }
     if (statusCode == 200 && code == 'idempotent_replay') {
@@ -127,17 +145,29 @@ class SaleIntentsRemoteDataSource implements SaleIntentGateway {
   SaleIntentOutcome _protocolFailure(ProtocolException error) {
     final code = error.code;
     if (error.statusCode == 409 &&
-        (code == 'requires_confirmation' ||
-            code == 'stock_proposal_changed')) {
+        (code == 'requires_confirmation' || code == 'stock_proposal_changed')) {
+      final remoteIntentId = _remoteIdFrom(error.data['intent']);
+      final proposalJson = _proposalJson(error.data['proposal']);
+      final confirmationToken = _string(error.data['confirmation_token']);
+      if (remoteIntentId == null ||
+          proposalJson == null ||
+          confirmationToken == null) {
+        return const SaleIntentOutcome(
+          kind: SaleIntentOutcomeKind.permanentFailure,
+          code: 'invalid_confirmation_envelope',
+        );
+      }
       return SaleIntentOutcome(
         kind: SaleIntentOutcomeKind.requiresAcceptance,
         code: code,
+        remoteIntentId: remoteIntentId,
+        proposalJson: proposalJson,
+        confirmationToken: confirmationToken,
         message: error.message,
       );
     }
     if ((error.statusCode == 409 &&
-            (code == 'insufficient_stock' ||
-                code == 'idempotency_conflict')) ||
+            (code == 'insufficient_stock' || code == 'idempotency_conflict')) ||
         (error.statusCode == 410 && code == 'intent_expired')) {
       return SaleIntentOutcome(
         kind: SaleIntentOutcomeKind.permanentFailure,
@@ -186,12 +216,17 @@ Map<String, dynamic> _payload(SaleIntentPayload payload) => {
   ],
 };
 
-String? _string(Object? value) => value is String && value.isNotEmpty
-    ? value
-    : null;
+String? _string(Object? value) =>
+    value is String && value.isNotEmpty ? value : null;
 
 String? _remoteId(Object? value) => switch (value) {
   final int id => id.toString(),
   final String id when id.isNotEmpty => id,
   _ => null,
 };
+
+String? _remoteIdFrom(Object? value) =>
+    value is Map ? _remoteId(value['id']) : null;
+
+String? _proposalJson(Object? value) =>
+    value is Map || value is List ? jsonEncode(value) : null;

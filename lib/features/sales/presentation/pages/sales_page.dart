@@ -9,12 +9,14 @@ import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
+import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
 import '../../../../shared/widgets/status_badge.dart';
 import '../../domain/entities/sale_reference_data.dart';
-import '../controllers/pending_sales_controller.dart';
+import '../../domain/entities/sale_sync.dart';
+import '../../sales_providers.dart';
 import '../controllers/sales_controller.dart';
 import '../state/sales_state.dart';
 
@@ -26,7 +28,7 @@ class SalesPage extends ConsumerWidget {
     final state = ref.watch(salesControllerProvider);
     final controller = ref.read(salesControllerProvider.notifier);
     final themeMode = ref.watch(appThemeModeProvider);
-    final pendingSales = ref.watch(pendingSalesProvider);
+    final persistedSales = ref.watch(persistedSalesProvider);
     final shellProfile = ref.watch(shellProfileProvider);
     final permissions = shellProfile.permissions;
     final features = shellProfile.features;
@@ -64,8 +66,11 @@ class SalesPage extends ConsumerWidget {
               message: 'Seu perfil ainda não pode registrar vendas no app.',
             )
           else ...[
-            if (pendingSales.isNotEmpty) ...[
-              _SessionDraftBanner(count: pendingSales.length),
+            if (state.referenceFailure != null) ...[
+              FailureStateCard(
+                title: 'Vendas indisponíveis',
+                message: state.referenceFailure!,
+              ),
               const SizedBox(height: AppSpacing.sectionGap),
             ],
             _ClientCard(
@@ -99,19 +104,39 @@ class SalesPage extends ConsumerWidget {
             _SummaryCard(
               state: state,
               canViewFinancial: canViewFinancial,
-              pendingCount: pendingSales.length,
               onRegister: state.canRegister
-                  ? () {
-                      final pendingSale = controller.registerSale();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Rascunho ${pendingSale.clientRequestId.substring(0, 8)} mantido somente nesta sessão.',
+                  ? () async {
+                      try {
+                        final saleId = await controller.registerSale();
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Venda ${saleId.substring(0, 8)} registrada localmente.',
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } catch (error) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('$error')));
+                      }
                     }
                   : null,
+            ),
+            const SizedBox(height: AppSpacing.sectionGap),
+            persistedSales.when(
+              data: (sales) => _PersistedSalesSection(
+                sales: sales,
+                canViewFinancial: canViewFinancial,
+                onAccept: controller.acceptProposal,
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, _) => const FailureStateCard(
+                title: 'Histórico indisponível',
+                message: 'Não foi possível ler as vendas persistidas.',
+              ),
             ),
           ],
         ],
@@ -124,6 +149,14 @@ class SalesPage extends ConsumerWidget {
     SalesState state,
     SalesController controller,
   ) async {
+    if (state.clients.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nenhum cliente sincronizado neste dispositivo.'),
+        ),
+      );
+      return;
+    }
     final selected = await showModalBottomSheet<SaleClientOption>(
       context: context,
       builder: (context) {
@@ -361,13 +394,11 @@ class _SummaryCard extends StatelessWidget {
   const _SummaryCard({
     required this.state,
     required this.canViewFinancial,
-    required this.pendingCount,
     required this.onRegister,
   });
 
   final SalesState state;
   final bool canViewFinancial;
-  final int pendingCount;
   final VoidCallback? onRegister;
 
   @override
@@ -388,22 +419,13 @@ class _SummaryCard extends StatelessWidget {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              pendingCount == 0
-                  ? 'Nenhum rascunho foi criado nesta sessão.'
-                  : '$pendingCount rascunho${pendingCount > 1 ? 's' : ''} ainda não persistido${pendingCount > 1 ? 's' : ''}.',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const StatusBadge(
-              label: 'Não persistido',
-              tone: AppStatusTone.warning,
-            ),
+            Text('A venda será persistida e enviada pela outbox.'),
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: onRegister,
-                child: const Text('Criar rascunho'),
+                child: const Text('Registrar venda'),
               ),
             ),
           ],
@@ -433,33 +455,121 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _SessionDraftBanner extends StatelessWidget {
-  const _SessionDraftBanner({required this.count});
+class _PersistedSalesSection extends StatelessWidget {
+  const _PersistedSalesSection({
+    required this.sales,
+    required this.canViewFinancial,
+    required this.onAccept,
+  });
 
-  final int count;
+  final List<PersistedSaleSummary> sales;
+  final bool canViewFinancial;
+  final Future<void> Function(String, int) onAccept;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: AppDecorations.card(context),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const StatusBadge(
-              label: 'Somente nesta sessão',
-              tone: AppStatusTone.warning,
+    if (sales.isEmpty) {
+      return const EmptyStateCard(
+        title: 'Nenhuma venda registrada',
+        message: 'As vendas persistidas aparecerão aqui.',
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader(title: 'Vendas persistidas'),
+        const SizedBox(height: AppSpacing.md),
+        for (final sale in sales) ...[
+          DecoratedBox(
+            decoration: AppDecorations.card(context),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.sm,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(sale.clientName),
+                      _SaleStatusBadge(sale.status),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text('${sale.itemCount} item(ns)'),
+                  if (canViewFinancial && sale.totalAmount != null)
+                    Text(AppCurrencyFormatter.format(sale.totalAmount!)),
+                  if (sale.proposalJson != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text('Proposta do servidor: ${sale.proposalJson}'),
+                  ],
+                  if (sale.status == SaleSyncStatus.requiresAcceptance) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    FilledButton.tonal(
+                      onPressed: () async {
+                        try {
+                          await onAccept(
+                            sale.localSaleId,
+                            sale.proposalRevision,
+                          );
+                        } catch (error) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('$error')));
+                        }
+                      },
+                      child: const Text('Aceitar proposta'),
+                    ),
+                  ],
+                  if (sale.lastError != null) Text('Erro: ${sale.lastError}'),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              '$count rascunho${count > 1 ? 's' : ''} em memória. Fechar o app descarta ${count > 1 ? 'esses dados' : 'esse dado'}.',
-            ),
-          ],
-        ),
-      ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+      ],
     );
   }
+}
+
+class _SaleStatusBadge extends StatelessWidget {
+  const _SaleStatusBadge(this.status);
+  final SaleSyncStatus status;
+
+  @override
+  Widget build(BuildContext context) => switch (status) {
+    SaleSyncStatus.pending => const StatusBadge(
+      label: 'Pendente',
+      tone: AppStatusTone.warning,
+    ),
+    SaleSyncStatus.syncing => const StatusBadge(
+      label: 'Sincronizando',
+      tone: AppStatusTone.warning,
+    ),
+    SaleSyncStatus.confirmed => const StatusBadge(
+      label: 'Confirmada',
+      tone: AppStatusTone.success,
+    ),
+    SaleSyncStatus.failedRetryable => const StatusBadge(
+      label: 'Falha temporária',
+      tone: AppStatusTone.warning,
+    ),
+    SaleSyncStatus.failedPermanent => const StatusBadge(
+      label: 'Falha permanente',
+      tone: AppStatusTone.error,
+    ),
+    SaleSyncStatus.requiresAcceptance => const StatusBadge(
+      label: 'Requer aceite',
+      tone: AppStatusTone.restricted,
+    ),
+    SaleSyncStatus.cancelled => const StatusBadge(
+      label: 'Cancelada',
+      tone: AppStatusTone.restricted,
+    ),
+  };
 }
 
 class _ValueChip extends StatelessWidget {

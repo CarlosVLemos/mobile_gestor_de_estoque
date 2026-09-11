@@ -9,9 +9,13 @@ class RegisterSaleUseCase {
     required SalesRepository repository,
     required SaleIdGenerator idGenerator,
     required SaleClock clock,
-  }) : _repository = repository,
-       _idGenerator = idGenerator,
-       _clock = clock;
+  }) : this._(repository, idGenerator, clock);
+
+  const RegisterSaleUseCase._(
+    this._repository,
+    this._idGenerator,
+    this._clock,
+  );
 
   final SalesRepository _repository;
   final SaleIdGenerator _idGenerator;

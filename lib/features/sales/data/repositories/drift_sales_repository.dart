@@ -62,69 +62,69 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
     final payloadJson = _encodePayload(payload);
 
     await _database.transaction(() async {
-      await _database.into(_database.localSalesTable).insert(
-        LocalSalesTableCompanion.insert(
-          id: localSaleId,
-          clientRequestId: clientRequestId,
-          clientId: draft.clientId,
-          clientName: draft.clientName,
-          soldAt: draft.soldAt,
-          timezone: draft.timezone,
-          createdAt: createdAt,
-          updatedAt: createdAt,
-        ),
-      );
+      await _database
+          .into(_database.localSalesTable)
+          .insert(
+            LocalSalesTableCompanion.insert(
+              id: localSaleId,
+              clientRequestId: clientRequestId,
+              clientId: draft.clientId,
+              clientName: draft.clientName,
+              soldAt: draft.soldAt,
+              timezone: draft.timezone,
+              createdAt: createdAt,
+              updatedAt: createdAt,
+            ),
+          );
       await _database.batch((batch) {
-        batch.insertAll(
-          _database.localSaleItemsTable,
-          [
-            for (final item in draft.items)
-              LocalSaleItemsTableCompanion.insert(
-                saleId: localSaleId,
-                productId: item.productId,
-                productName: item.productName,
-                productSku: Value(item.productSku),
-                quantity: item.quantity,
-                historicalUnitPrice: Value(item.historicalUnitPrice),
-              ),
-          ],
-        );
+        batch.insertAll(_database.localSaleItemsTable, [
+          for (final item in draft.items)
+            LocalSaleItemsTableCompanion.insert(
+              saleId: localSaleId,
+              productId: item.productId,
+              productName: item.productName,
+              productSku: Value(item.productSku),
+              quantity: item.quantity,
+              historicalUnitPrice: Value(item.historicalUnitPrice),
+            ),
+        ]);
       });
-      await _database.into(_database.syncOutbox).insert(
-        SyncOutboxCompanion.insert(
-          id: localSaleId,
-          clientRequestId: Value(clientRequestId),
-          operationType: const Value(createOperation),
-          localOperationId: Value(localSaleId),
-          payloadJson: Value(payloadJson),
-          payloadVersion: const Value(SaleIntentPayload.version),
-          status: SaleSyncStatus.pending.databaseValue,
-          attempts: const Value(0),
-          createdAt: Value(createdAt),
-          updatedAt: Value(createdAt),
-        ),
-      );
+      await _database
+          .into(_database.syncOutbox)
+          .insert(
+            SyncOutboxCompanion.insert(
+              id: localSaleId,
+              clientRequestId: Value(clientRequestId),
+              operationType: const Value(createOperation),
+              localOperationId: Value(localSaleId),
+              payloadJson: Value(payloadJson),
+              payloadVersion: const Value(SaleIntentPayload.version),
+              status: SaleSyncStatus.pending.databaseValue,
+              attempts: const Value(0),
+              createdAt: Value(createdAt),
+              updatedAt: Value(createdAt),
+            ),
+          );
     });
     return localSaleId;
   }
 
   @override
   Future<OutboxSale?> read(String id) async {
-    final row = await (_database.select(_database.syncOutbox)
-          ..where((entry) => entry.id.equals(id)))
-        .getSingleOrNull();
+    final row = await (_database.select(
+      _database.syncOutbox,
+    )..where((entry) => entry.id.equals(id))).getSingleOrNull();
     return row == null ? null : _outboxSale(row);
   }
 
   @override
   Future<void> recoverOrphanedSyncing(DateTime now) async {
-    await (_database.update(_database.syncOutbox)
-          ..where(
-            (entry) =>
-                entry.status.equals('syncing') &
-                (entry.operationType.equals(createOperation) |
-                    entry.operationType.equals(confirmOperation)),
-          ))
+    await (_database.update(_database.syncOutbox)..where(
+          (entry) =>
+              entry.status.equals('syncing') &
+              (entry.operationType.equals(createOperation) |
+                  entry.operationType.equals(confirmOperation)),
+        ))
         .write(
           SyncOutboxCompanion(
             status: const Value('pending'),
@@ -157,26 +157,26 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
         try {
           _outboxSale(row);
         } on FormatException {
-          await (_database.update(_database.syncOutbox)
-                ..where((entry) => entry.id.equals(row.id)))
-              .write(
-                SyncOutboxCompanion(
-                  status: const Value('failed_permanent'),
-                  lastError: const Value('invalid_persisted_payload'),
-                  confirmationToken: const Value(null),
-                  updatedAt: Value(now),
-                ),
-              );
+          await (_database.update(
+            _database.syncOutbox,
+          )..where((entry) => entry.id.equals(row.id))).write(
+            SyncOutboxCompanion(
+              status: const Value('failed_permanent'),
+              lastError: const Value('invalid_persisted_payload'),
+              confirmationToken: const Value(null),
+              updatedAt: Value(now),
+            ),
+          );
           continue;
         }
-        await (_database.update(_database.syncOutbox)
-              ..where((entry) => entry.id.equals(row.id)))
-            .write(
-              SyncOutboxCompanion(
-                status: const Value('syncing'),
-                updatedAt: Value(now),
-              ),
-            );
+        await (_database.update(
+          _database.syncOutbox,
+        )..where((entry) => entry.id.equals(row.id))).write(
+          SyncOutboxCompanion(
+            status: const Value('syncing'),
+            updatedAt: Value(now),
+          ),
+        );
         return read(row.id);
       }
     });
@@ -189,22 +189,22 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
     required DateTime now,
   }) {
     return _database.transaction(() async {
-      final changed = await (_database.update(_database.syncOutbox)
-            ..where(
-              (entry) =>
-                  entry.id.equals(id) &
-                  entry.status.equals('requires_acceptance') &
-                  entry.proposalRevision.equals(expectedProposalRevision) &
-                  entry.remoteIntentId.isNotNull() &
-                  entry.confirmationToken.isNotNull(),
-            ))
-          .write(
-            SyncOutboxCompanion(
-              operationType: const Value(confirmOperation),
-              status: const Value('pending'),
-              updatedAt: Value(now),
-            ),
-          );
+      final changed =
+          await (_database.update(_database.syncOutbox)..where(
+                (entry) =>
+                    entry.id.equals(id) &
+                    entry.status.equals('requires_acceptance') &
+                    entry.proposalRevision.equals(expectedProposalRevision) &
+                    entry.remoteIntentId.isNotNull() &
+                    entry.confirmationToken.isNotNull(),
+              ))
+              .write(
+                SyncOutboxCompanion(
+                  operationType: const Value(confirmOperation),
+                  status: const Value('pending'),
+                  updatedAt: Value(now),
+                ),
+              );
       return changed == 1;
     });
   }
@@ -212,26 +212,20 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
   @override
   Future<void> markSyncing(String id, DateTime now) => _update(
     id,
-    SyncOutboxCompanion(
-      status: const Value('syncing'),
-      updatedAt: Value(now),
-    ),
+    SyncOutboxCompanion(status: const Value('syncing'), updatedAt: Value(now)),
   );
 
   @override
-  Future<void> markPending(
-    String id, {
-    String? error,
-    required DateTime now,
-  }) => _update(
-    id,
-    SyncOutboxCompanion(
-      status: const Value('pending'),
-      lastError: Value(error),
-      nextAttemptAt: const Value(null),
-      updatedAt: Value(now),
-    ),
-  );
+  Future<void> markPending(String id, {String? error, required DateTime now}) =>
+      _update(
+        id,
+        SyncOutboxCompanion(
+          status: const Value('pending'),
+          lastError: Value(error),
+          nextAttemptAt: const Value(null),
+          updatedAt: Value(now),
+        ),
+      );
 
   @override
   Future<void> markConfirmed(
@@ -344,9 +338,66 @@ class DriftSalesRepository implements SalesRepository, SaleOutboxStore {
   }
 
   Future<void> _update(String id, SyncOutboxCompanion values) async {
-    await (_database.update(_database.syncOutbox)
-          ..where((entry) => entry.id.equals(id)))
-        .write(values);
+    await (_database.update(
+      _database.syncOutbox,
+    )..where((entry) => entry.id.equals(id))).write(values);
+  }
+
+  Stream<List<PersistedSaleSummary>> watchSalesSummary() {
+    final query = _database.select(_database.localSalesTable).join([
+      leftOuterJoin(
+        _database.syncOutbox,
+        _database.syncOutbox.id.equalsExp(_database.localSalesTable.id),
+      ),
+      leftOuterJoin(
+        _database.localSaleItemsTable,
+        _database.localSaleItemsTable.saleId.equalsExp(
+          _database.localSalesTable.id,
+        ),
+      ),
+    ])..orderBy([OrderingTerm.desc(_database.localSalesTable.createdAt)]);
+    return query.watch().map((rows) {
+      final grouped = <String, List<TypedResult>>{};
+      for (final row in rows) {
+        final sale = row.readTable(_database.localSalesTable);
+        grouped.putIfAbsent(sale.id, () => []).add(row);
+      }
+      return grouped.values
+          .map((saleRows) {
+            final first = saleRows.first;
+            final sale = first.readTable(_database.localSalesTable);
+            final outbox = first.readTableOrNull(_database.syncOutbox);
+            final items = saleRows
+                .map(
+                  (row) => row.readTableOrNull(_database.localSaleItemsTable),
+                )
+                .whereType<StoredLocalSaleItem>()
+                .toList(growable: false);
+            final hasUnknownPrice = items.any(
+              (item) => item.historicalUnitPrice == null,
+            );
+            return PersistedSaleSummary(
+              localSaleId: sale.id,
+              clientName: sale.clientName,
+              createdAt: sale.createdAt,
+              status: outbox == null
+                  ? SaleSyncStatus.pending
+                  : SaleSyncStatusValue.parse(outbox.status),
+              itemCount: items.length,
+              proposalRevision: outbox?.proposalRevision ?? 0,
+              totalAmount: hasUnknownPrice
+                  ? null
+                  : items.fold<double>(
+                      0,
+                      (sum, item) =>
+                          sum + item.historicalUnitPrice! * item.quantity,
+                    ),
+              lastError: outbox?.lastError,
+              proposalJson: outbox?.proposalJson,
+            );
+          })
+          .toList(growable: false);
+    });
   }
 
   OutboxSale _outboxSale(SyncOutboxData row) {
@@ -450,7 +501,8 @@ String _iso8601WithOffset(DateTime value) {
   final offset = value.timeZoneOffset;
   final sign = offset.isNegative ? '-' : '+';
   final absoluteMinutes = offset.inMinutes.abs();
-  final offsetText = '$sign${two(absoluteMinutes ~/ 60)}:'
+  final offsetText =
+      '$sign${two(absoluteMinutes ~/ 60)}:'
       '${two(absoluteMinutes % 60)}';
   return '${value.year.toString().padLeft(4, '0')}-'
       '${two(value.month)}-${two(value.day)}T'

@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 
 import 'tables/categories_table.dart';
+import 'tables/client_snapshot_entries_table.dart';
+import 'tables/clients_table.dart';
 import 'tables/dashboard_snapshots_table.dart';
 import 'tables/local_sale_items_table.dart';
 import 'tables/local_sales_table.dart';
@@ -19,7 +21,8 @@ class SyncOutbox extends Table {
 
   TextColumn get id => text()();
   TextColumn get clientRequestId => text().nullable().unique()();
-  TextColumn get operationType => text().withDefault(const Constant('legacy_unknown'))();
+  TextColumn get operationType =>
+      text().withDefault(const Constant('legacy_unknown'))();
   TextColumn get localOperationId => text().nullable().unique()();
   TextColumn get payloadJson => text().withDefault(const Constant('{}'))();
   IntColumn get payloadVersion => integer().withDefault(const Constant(1))();
@@ -49,19 +52,21 @@ class SyncOutbox extends Table {
     SyncLocksTable,
     LocalSalesTable,
     LocalSaleItemsTable,
+    ClientsTable,
+    ClientSnapshotEntriesTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
-      if (from == 1 && to == 4) {
+      if (from == 1 && to == 5) {
         // 008B's sync_outbox is deliberately absent from this migration: the
         // v1 table and all of its rows must remain untouched.
         await migrator.createTable(categoriesTable);
@@ -70,17 +75,25 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(syncCollectionsTable);
         await migrator.createTable(syncLocksTable);
         await _upgradeOutboxFromV3(migrator);
+        await _upgradeToV5(migrator);
         return;
       }
 
-      if (from == 2 && to == 4) {
+      if (from == 2 && to == 5) {
         await migrator.createTable(syncLocksTable);
         await _upgradeOutboxFromV3(migrator);
+        await _upgradeToV5(migrator);
         return;
       }
 
-      if (from == 3 && to == 4) {
+      if (from == 3 && to == 5) {
         await _upgradeOutboxFromV3(migrator);
+        await _upgradeToV5(migrator);
+        return;
+      }
+
+      if (from == 4 && to == 5) {
+        await _upgradeToV5(migrator);
         return;
       }
 
@@ -94,6 +107,11 @@ class AppDatabase extends _$AppDatabase {
       );
     },
   );
+
+  Future<void> _upgradeToV5(Migrator migrator) async {
+    await migrator.createTable(clientsTable);
+    await migrator.createTable(clientSnapshotEntriesTable);
+  }
 
   Future<void> _upgradeOutboxFromV3(Migrator migrator) async {
     // SQLite cannot add a UNIQUE column in-place. Add nullable/defaulted
@@ -169,10 +187,17 @@ class AppDatabase extends _$AppDatabase {
     return entries.length;
   }
 
-  Selectable<StoredProduct> activeProducts() => select(productsTable)
-    ..where((product) => product.deletedAt.isNull());
+  Selectable<StoredProduct> activeProducts() =>
+      select(productsTable)..where((product) => product.deletedAt.isNull());
 
   Stream<List<StoredProduct>> watchActiveProducts() => activeProducts().watch();
+
+  Stream<List<StoredClient>> watchClients() =>
+      (select(clientsTable)..orderBy([
+            (client) => OrderingTerm.asc(client.name),
+            (client) => OrderingTerm.asc(client.id),
+          ]))
+          .watch();
 
   Stream<StoredDashboardSnapshot?> watchDashboardSnapshot(String scopeKey) =>
       (select(dashboardSnapshotsTable)
@@ -180,7 +205,7 @@ class AppDatabase extends _$AppDatabase {
           .watchSingleOrNull();
 
   Future<StoredSyncCollection?> readSyncCollection(String collection) =>
-      (select(syncCollectionsTable)
-            ..where((row) => row.collection.equals(collection)))
-          .getSingleOrNull();
+      (select(
+        syncCollectionsTable,
+      )..where((row) => row.collection.equals(collection))).getSingleOrNull();
 }

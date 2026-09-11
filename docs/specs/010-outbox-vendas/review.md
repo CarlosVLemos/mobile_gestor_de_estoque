@@ -2,7 +2,7 @@
 
 ## Status
 
-`PHASE_A_VALIDATED — E2E_BLOCKED`
+`IN_PROGRESS — CR-010-002 IMPLEMENTED, CURRENT GATES PENDING`
 
 ## Escopo pretendido
 
@@ -18,7 +18,7 @@
 ## Gate de implementação
 
 ABERTO PARA FASE A conforme `contract.md`. Clientes reais e recuperação do
-token de confirmação permanecem bloqueados por `HANDOFF-010-BACKEND`.
+token de confirmação foram liberados pelo backend auditado; o CR-010-002 está em validação mobile.
 
 ## Fontes consultadas
 

@@ -31,9 +31,11 @@ void main() {
   );
 
   Future<void> insertCategory() async {
-    await database.into(database.categoriesTable).insert(
-      CategoriesTableCompanion.insert(id: 'category-1', name: 'Peças'),
-    );
+    await database
+        .into(database.categoriesTable)
+        .insert(
+          CategoriesTableCompanion.insert(id: 'category-1', name: 'Peças'),
+        );
   }
 
   setUp(() {
@@ -44,12 +46,12 @@ void main() {
     await database.close();
   });
 
-  test('banco novo cria o schema v4 completo', () async {
-    final rows = await database.customSelect(
-      "SELECT name FROM sqlite_master WHERE type = 'table'",
-    ).get();
+  test('banco novo cria o schema v5 completo', () async {
+    final rows = await database
+        .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
+        .get();
 
-    expect(database.schemaVersion, 4);
+    expect(database.schemaVersion, 5);
     expect(
       rows.map((row) => row.read<String>('name')),
       containsAll(<String>[
@@ -61,45 +63,50 @@ void main() {
         'sync_locks',
         'local_sales',
         'local_sale_items',
+        'clients',
+        'client_snapshot_entries',
       ]),
     );
   });
 
-  test('produto preserva nulos e tombstone sai da consulta operacional', () async {
-    await database.into(database.productsTable).insert(
-      product(updatedAt: remoteUpdatedAt),
-    );
+  test(
+    'produto preserva nulos e tombstone sai da consulta operacional',
+    () async {
+      await database
+          .into(database.productsTable)
+          .insert(product(updatedAt: remoteUpdatedAt));
 
-    var stored = await database.select(database.productsTable).getSingle();
-    expect(stored.brand, isNull);
-    expect(stored.price, isNull);
-    expect(stored.categoryId, isNull);
-    expect(stored.imageUrl, isNull);
-    expect(stored.remoteUpdatedAt?.toUtc(), remoteUpdatedAt);
-    expect(await database.activeProducts().get(), hasLength(1));
+      var stored = await database.select(database.productsTable).getSingle();
+      expect(stored.brand, isNull);
+      expect(stored.price, isNull);
+      expect(stored.categoryId, isNull);
+      expect(stored.imageUrl, isNull);
+      expect(stored.remoteUpdatedAt?.toUtc(), remoteUpdatedAt);
+      expect(await database.activeProducts().get(), hasLength(1));
 
-    final deletedAt = DateTime.utc(2026, 9, 8, 13);
-    await (database.update(database.productsTable)
-          ..where((row) => row.id.equals('product-1')))
-        .write(ProductsTableCompanion(deletedAt: Value(deletedAt)));
+      final deletedAt = DateTime.utc(2026, 9, 8, 13);
+      await (database.update(database.productsTable)
+            ..where((row) => row.id.equals('product-1')))
+          .write(ProductsTableCompanion(deletedAt: Value(deletedAt)));
 
-    stored = await database.select(database.productsTable).getSingle();
-    expect(stored.deletedAt?.toUtc(), deletedAt);
-    expect(await database.activeProducts().get(), isEmpty);
-  });
+      stored = await database.select(database.productsTable).getSingle();
+      expect(stored.deletedAt?.toUtc(), deletedAt);
+      expect(await database.activeProducts().get(), isEmpty);
+    },
+  );
 
   test('foreign key exige categoria e usa ON DELETE SET NULL', () async {
     await expectLater(
-      database.into(database.productsTable).insert(
-        product(categoryId: 'category-1'),
-      ),
+      database
+          .into(database.productsTable)
+          .insert(product(categoryId: 'category-1')),
       throwsA(isA<SqliteException>()),
     );
 
     await insertCategory();
-    await database.into(database.productsTable).insert(
-      product(categoryId: 'category-1'),
-    );
+    await database
+        .into(database.productsTable)
+        .insert(product(categoryId: 'category-1'));
     await database.delete(database.categoriesTable).go();
 
     expect(
@@ -114,20 +121,22 @@ void main() {
         .watchDashboardSnapshot(scopeKey)
         .firstWhere((snapshot) => snapshot?.revision == 'revision-1');
 
-    await database.into(database.dashboardSnapshotsTable).insert(
-      DashboardSnapshotsTableCompanion.insert(
-        scopeKey: scopeKey,
-        period: '2026-09',
-        groupBy: 'day',
-        page: 1,
-        revision: 'revision-1',
-        generatedAt: remoteUpdatedAt,
-        referenceDate: '2026-09-08',
-        webDashboardUrl: 'https://example.test/dashboard',
-        canViewFinancial: false,
-        payloadJson: '{"version":1}',
-      ),
-    );
+    await database
+        .into(database.dashboardSnapshotsTable)
+        .insert(
+          DashboardSnapshotsTableCompanion.insert(
+            scopeKey: scopeKey,
+            period: '2026-09',
+            groupBy: 'day',
+            page: 1,
+            revision: 'revision-1',
+            generatedAt: remoteUpdatedAt,
+            referenceDate: '2026-09-08',
+            webDashboardUrl: 'https://example.test/dashboard',
+            canViewFinancial: false,
+            payloadJson: '{"version":1}',
+          ),
+        );
 
     final snapshot = await nextRevision;
     expect(snapshot?.scopeKey, scopeKey);
@@ -136,20 +145,22 @@ void main() {
   });
 
   test('sync_collections preserva cursor opaco e janela alvo', () async {
-    await database.into(database.syncCollectionsTable).insert(
-      SyncCollectionsTableCompanion.insert(
-        collection: 'products',
-        mode: 'delta',
-        cursor: const Value('opaque.cursor.payload'),
-        checkpoint: const Value('2026-09-08T10:00:00Z'),
-        targetCheckpoint: const Value('2026-09-08T12:00:00Z'),
-        revision: const Value('products-r1'),
-        lastSuccessAt: Value(remoteUpdatedAt),
-        isBootstrapped: true,
-        totalReceived: 42,
-        lastError: const Value(null),
-      ),
-    );
+    await database
+        .into(database.syncCollectionsTable)
+        .insert(
+          SyncCollectionsTableCompanion.insert(
+            collection: 'products',
+            mode: 'delta',
+            cursor: const Value('opaque.cursor.payload'),
+            checkpoint: const Value('2026-09-08T10:00:00Z'),
+            targetCheckpoint: const Value('2026-09-08T12:00:00Z'),
+            revision: const Value('products-r1'),
+            lastSuccessAt: Value(remoteUpdatedAt),
+            isBootstrapped: true,
+            totalReceived: 42,
+            lastError: const Value(null),
+          ),
+        );
 
     final stored = await database.readSyncCollection('products');
     expect(stored?.cursor, 'opaque.cursor.payload');
@@ -159,29 +170,33 @@ void main() {
     expect(stored?.totalReceived, 42);
   });
 
-  test('migração v1 para v4 preserva linha pendente da sync_outbox', () async {
+  test('migração v1 para v5 preserva linha pendente da sync_outbox', () async {
     final directory = await Directory.systemTemp.createTemp('arara-v1-to-v2-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
     final legacy = sqlite3.open(file.path);
     legacy
-      ..execute('CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)')
-      ..execute("INSERT INTO sync_outbox (id, status) VALUES ('sale-pending', 'pending')")
+      ..execute(
+        'CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)',
+      )
+      ..execute(
+        "INSERT INTO sync_outbox (id, status) VALUES ('sale-pending', 'pending')",
+      )
       ..execute('PRAGMA user_version = 1')
       ..close();
 
     final upgraded = AppDatabase(NativeDatabase(file));
     try {
-      final pending = await upgraded
-          .select(upgraded.syncOutbox)
+      final pending = await upgraded.select(upgraded.syncOutbox).getSingle();
+      final version = await upgraded
+          .customSelect('PRAGMA user_version')
           .getSingle();
-      final version = await upgraded.customSelect('PRAGMA user_version').getSingle();
-      final tables = await upgraded.customSelect(
-        "SELECT name FROM sqlite_master WHERE type = 'table'",
-      ).get();
+      final tables = await upgraded
+          .customSelect("SELECT name FROM sqlite_master WHERE type = 'table'")
+          .get();
 
       expect(pending.id, 'sale-pending');
       expect(pending.status, 'pending');
-      expect(version.read<int>('user_version'), 4);
+      expect(version.read<int>('user_version'), 5);
       expect(
         tables.map((row) => row.read<String>('name')),
         containsAll(<String>[
@@ -193,6 +208,8 @@ void main() {
           'sync_locks',
           'local_sales',
           'local_sale_items',
+          'clients',
+          'client_snapshot_entries',
         ]),
       );
     } finally {
@@ -201,33 +218,50 @@ void main() {
     }
   });
 
-  test('migração v2 para v4 preserva 009A e adiciona schema 010', () async {
+  test('migração v2 para v5 preserva 009A e adiciona clientes', () async {
     final directory = await Directory.systemTemp.createTemp('arara-v2-to-v3-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
     final legacy = sqlite3.open(file.path);
     legacy
-      ..execute('CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)')
+      ..execute(
+        'CREATE TABLE sync_outbox (id TEXT NOT NULL PRIMARY KEY, status TEXT NOT NULL)',
+      )
       ..execute("INSERT INTO sync_outbox VALUES ('sale-pending', 'pending')")
-      ..execute('CREATE TABLE sync_collections (collection TEXT NOT NULL PRIMARY KEY, mode TEXT NOT NULL, cursor TEXT, checkpoint TEXT, target_checkpoint TEXT, revision TEXT, last_success_at INTEGER, is_bootstrapped INTEGER NOT NULL, total_received INTEGER NOT NULL, last_error TEXT)')
-      ..execute("INSERT INTO sync_collections VALUES ('products', 'delta', 'opaque', NULL, NULL, NULL, NULL, 1, 8, NULL)")
+      ..execute(
+        'CREATE TABLE sync_collections (collection TEXT NOT NULL PRIMARY KEY, mode TEXT NOT NULL, cursor TEXT, checkpoint TEXT, target_checkpoint TEXT, revision TEXT, last_success_at INTEGER, is_bootstrapped INTEGER NOT NULL, total_received INTEGER NOT NULL, last_error TEXT)',
+      )
+      ..execute(
+        "INSERT INTO sync_collections VALUES ('products', 'delta', 'opaque', NULL, NULL, NULL, NULL, 1, 8, NULL)",
+      )
       ..execute('PRAGMA user_version = 2')
       ..close();
 
     final upgraded = AppDatabase(NativeDatabase(file));
     try {
-      expect((await upgraded.select(upgraded.syncOutbox).getSingle()).id, 'sale-pending');
+      expect(
+        (await upgraded.select(upgraded.syncOutbox).getSingle()).id,
+        'sale-pending',
+      );
       expect((await upgraded.readSyncCollection('products'))?.cursor, 'opaque');
-      final locks = await upgraded.customSelect(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sync_locks'",
-      ).get();
+      final locks = await upgraded
+          .customSelect(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'sync_locks'",
+          )
+          .get();
       expect(locks, hasLength(1));
+      expect(await upgraded.select(upgraded.clientsTable).get(), isEmpty);
+      expect(
+        (await upgraded.customSelect('PRAGMA user_version').getSingle())
+            .read<int>('user_version'),
+        5,
+      );
     } finally {
       await upgraded.close();
       await directory.delete(recursive: true);
     }
   });
 
-  test('migração v3 para v4 preserva e evolui a sync_outbox', () async {
+  test('migração v3 para v5 preserva e evolui a sync_outbox', () async {
     final directory = await Directory.systemTemp.createTemp('arara-v3-to-v4-');
     final file = File('${directory.path}${Platform.pathSeparator}context.db');
     final legacy = sqlite3.open(file.path);
@@ -250,9 +284,7 @@ void main() {
       ..execute(
         'CREATE TABLE sync_locks (name TEXT NOT NULL PRIMARY KEY, owner_id TEXT NOT NULL, acquired_at INTEGER NOT NULL, expires_at INTEGER NOT NULL)',
       )
-      ..execute(
-        "INSERT INTO sync_outbox VALUES ('legacy-pending', 'pending')",
-      )
+      ..execute("INSERT INTO sync_outbox VALUES ('legacy-pending', 'pending')")
       ..execute("INSERT INTO categories VALUES ('1', 'Categoria')")
       ..execute(
         "INSERT INTO products VALUES ('2', 'Produto', 'SKU-2', NULL, NULL, 1, 'available', 1, NULL, '1', NULL, NULL)",
@@ -282,7 +314,9 @@ void main() {
         hasLength(1),
       );
       expect(
-        await upgraded.customSelect('SELECT scope_key FROM dashboard_snapshots').get(),
+        await upgraded
+            .customSelect('SELECT scope_key FROM dashboard_snapshots')
+            .get(),
         hasLength(1),
       );
       expect((await upgraded.readSyncCollection('products'))?.cursor, 'cursor');
@@ -290,9 +324,9 @@ void main() {
         await upgraded.customSelect('SELECT name FROM sync_locks').get(),
         hasLength(1),
       );
-      final indexes = await upgraded.customSelect(
-        "SELECT name FROM sqlite_master WHERE type = 'index'",
-      ).get();
+      final indexes = await upgraded
+          .customSelect("SELECT name FROM sqlite_master WHERE type = 'index'")
+          .get();
       expect(
         indexes.map((row) => row.read<String>('name')),
         containsAll(<String>[
@@ -315,6 +349,58 @@ void main() {
         await upgraded.select(upgraded.localSaleItemsTable).get(),
         isEmpty,
       );
+      expect(await upgraded.select(upgraded.clientsTable).get(), isEmpty);
+      expect(
+        (await upgraded.customSelect('PRAGMA user_version').getSingle())
+            .read<int>('user_version'),
+        5,
+      );
+    } finally {
+      await upgraded.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  test('migração v4 para v5 preserva catálogo, venda e outbox', () async {
+    final directory = await Directory.systemTemp.createTemp('arara-v4-to-v5-');
+    final file = File('${directory.path}${Platform.pathSeparator}context.db');
+    final source = AppDatabase(NativeDatabase(file));
+    await source.customStatement('DROP TABLE client_snapshot_entries');
+    await source.customStatement('DROP TABLE clients');
+    await source.customStatement('PRAGMA user_version = 4');
+    await source.into(source.productsTable).insert(product(id: '101'));
+    await source
+        .into(source.localSalesTable)
+        .insert(
+          LocalSalesTableCompanion.insert(
+            id: 'sale-1',
+            clientRequestId: '11111111-2222-4333-8444-555555555555',
+            clientId: '201',
+            clientName: 'Cliente',
+            soldAt: remoteUpdatedAt,
+            timezone: 'America/Sao_Paulo',
+            createdAt: remoteUpdatedAt,
+            updatedAt: remoteUpdatedAt,
+          ),
+        );
+    await source
+        .into(source.syncOutbox)
+        .insert(SyncOutboxCompanion.insert(id: 'outbox-1', status: 'pending'));
+    await source.close();
+
+    final upgraded = AppDatabase(NativeDatabase(file));
+    try {
+      expect(await upgraded.activeProducts().get(), hasLength(1));
+      expect(
+        await upgraded.select(upgraded.localSalesTable).get(),
+        hasLength(1),
+      );
+      expect(await upgraded.select(upgraded.syncOutbox).get(), hasLength(1));
+      expect(await upgraded.select(upgraded.clientsTable).get(), isEmpty);
+      final version = await upgraded
+          .customSelect('PRAGMA user_version')
+          .getSingle();
+      expect(version.read<int>('user_version'), 5);
     } finally {
       await upgraded.close();
       await directory.delete(recursive: true);
@@ -323,7 +409,7 @@ void main() {
 
   test('future migration without an explicit path fails closed', () async {
     await expectLater(
-      database.migration.onUpgrade(Migrator(database), 4, 5),
+      database.migration.onUpgrade(Migrator(database), 5, 6),
       throwsA(isA<StateError>()),
     );
   });

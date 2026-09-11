@@ -1,6 +1,14 @@
 # Validation Result — Spec 010
 
-Status: `PHASE_A_VALIDATED — E2E_BLOCKED`
+Status: `IN_PROGRESS — E2E IMPLEMENTED, CURRENT GATES PENDING`
+
+## Rodada CR-010-002 — 2026-09-11
+
+Os blockers backend foram resolvidos em `dev@f8ff65e`. Clientes local-first,
+vendas persistentes, recovery, aceite e demo foram implementados localmente.
+Drift codegen e `git diff --check` passaram. Testes focados, suíte completa e
+`flutter analyze --no-pub` ainda não possuem resultado executado nesta rodada;
+nenhum PASS anterior é reutilizado como evidência atual.
 Verdict: `passed_with_restrictions`
 
 ## Núcleo validado
@@ -15,8 +23,7 @@ O [`CR-010-001`](change-request-001-confirmed-replay.md) registra que o replay e
 
 ## Restrições reais
 
-1. `BLOCKER-010-CLIENTS`: o backend auditado não fornece `GET /api/mobile/clients`; a UI não pode inventar `client_id` remoto válido.
-2. `BLOCKER-010-CONFIRMATION-RECOVERY`: replay/consulta não devolve o token de confirmação e o mobile ainda não materializa de forma recuperável todo o envelope de conflito.
-3. A tela de vendas ainda usa `FixtureSalesDraftRepository` e pendências em memória; ela não chama o núcleo persistente da Fase A.
+Histórico superseded pelo CR-010-002: clients/recovery/UI eram os blockers da
+Fase A, mas não permanecem ativos após o handoff backend auditado.
 
-A Fase A está validada. A Spec 010 completa permanece `blocked` até handoff backend e conexão segura da UI após o contrato de clientes.
+A Fase A permanece validada. A Spec 010 completa fica `in_progress` até os gates atuais.

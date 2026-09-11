@@ -1,6 +1,6 @@
 # Spec 013D — Runtime de demonstração sem API
 
-Status: `PAUSED — PLANNED, NOT IMPLEMENTED`
+Status: `IN_PROGRESS — IMPLEMENTED, VALIDATION PENDING`
 Mode: `CRITICAL`
 Execution mode: `SINGLE_WRITER`
 Data: 2026-09-10
@@ -48,6 +48,6 @@ Permitir `flutter run --dart-define=APP_MODE=demo` sem Laravel e sem `API_BASE_U
 
 Contrato: [`contract.md`](contract.md).
 
-## Motivo da pausa
+## Estado atual
 
-A implementação foi interrompida antes do gate para evitar incluir um runtime demo parcial no mesmo commit da estabilização. Nenhum código de produção da 013D integra esta entrega. O contrato e o backlog abaixo preservam o desenho para retomada isolada.
+A implementação local usa o mesmo Drift, outbox, use case e SyncEngine. O gate final ainda não foi concluído; portanto a Spec não está `done`.

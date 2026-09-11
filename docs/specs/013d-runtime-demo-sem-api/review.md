@@ -1,6 +1,11 @@
 # Review — Spec 013D
 
-Status: `PAUSED`
+Status: `IN_PROGRESS — IMPLEMENTED, VALIDATION PENDING`
+
+## Rodada 2026-09-11
+
+Runtime, contexto demo, seed v5, banner e gateway sem HTTP/token foram
+implementados localmente. Nenhum fechamento é declarado antes dos gates.
 Validation verdict: `NOT_RUN`
 
 - [ ] Demo é explícito e normal é default.

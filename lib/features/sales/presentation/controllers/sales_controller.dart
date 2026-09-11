@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/composition/local_context_composition.dart';
+import '../../../../app/shell/shell_profile.dart';
+import '../../../../core/sync/sync_state.dart';
 import '../../sales_providers.dart';
-import '../../domain/entities/pending_sale.dart';
 import '../../domain/entities/sale_reference_data.dart';
+import '../../domain/entities/sale_sync.dart';
 import '../state/sales_state.dart';
-import 'pending_sales_controller.dart';
 
 final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
   SalesController.new,
@@ -13,12 +17,41 @@ final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
 class SalesController extends Notifier<SalesState> {
   @override
   SalesState build() {
-    final seed = ref.watch(loadSalesDraftSeedUseCaseProvider).call();
+    ref.listen(salesDraftSeedProvider, (_, next) {
+      next.when(
+        data: _replaceReferences,
+        error: (error, _) => state = state.copyWith(
+          referenceFailure: 'Dados locais de clientes/produtos indisponíveis.',
+        ),
+        loading: () {},
+      );
+    });
+    final initial = ref.read(salesDraftSeedProvider);
+    return initial.when(
+      data: (seed) => SalesState(
+        clients: seed.clients,
+        products: seed.products,
+        cartItems: const {},
+      ),
+      error: (_, _) => SalesState(
+        clients: const [],
+        products: const [],
+        cartItems: const {},
+        referenceFailure: 'Dados locais de clientes/produtos indisponíveis.',
+      ),
+      loading: () => SalesState(
+        clients: const [],
+        products: const [],
+        cartItems: const {},
+      ),
+    );
+  }
 
-    return SalesState(
+  void _replaceReferences(SalesDraftSeed seed) {
+    state = state.copyWith(
       clients: seed.clients,
       products: seed.products,
-      cartItems: const {},
+      clearReferenceFailure: true,
     );
   }
 
@@ -77,7 +110,7 @@ class SalesController extends Notifier<SalesState> {
     state = state.copyWith(cartItems: nextItems);
   }
 
-  PendingSale registerSale() {
+  Future<String> registerSale() async {
     final client = state.selectedClient;
     if (client == null || state.cartItems.isEmpty) {
       throw StateError(
@@ -85,29 +118,53 @@ class SalesController extends Notifier<SalesState> {
       );
     }
 
-    final sale = PendingSale(
-      clientRequestId: ref.read(salesIdGeneratorProvider)(),
-      client: client,
-      items: [
-        for (final item in state.cartItems.values)
-          PendingSaleItem(
-            productId: item.productId,
-            productName: item.name,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          ),
-      ],
-      createdAtLabel: _buildCreatedAtLabel(ref.read(salesClockProvider)()),
+    final timezone = ref.read(salesTimeZoneProvider);
+    if (timezone == null) {
+      throw const SaleRegistrationException(
+        'iana_timezone_unavailable',
+        'Configure APP_TIMEZONE com uma timezone IANA válida.',
+      );
+    }
+    final useCase = ref.read(registerSaleUseCaseProvider);
+    if (useCase == null) {
+      throw StateError('Infraestrutura persistente de vendas indisponível.');
+    }
+    final profile = ref.read(shellProfileProvider);
+    final saleId = await useCase.call(
+      access: SaleAccess(
+        hasSalesFeature: profile.features.contains('sales'),
+        canCreateSales: profile.permissions['sales_create'] == true,
+      ),
+      draft: SaleDraft(
+        clientId: client.id,
+        clientName: client.name,
+        items: [
+          for (final item in state.cartItems.values)
+            SaleDraftItem(
+              productId: item.productId,
+              productName: item.name,
+              productSku: item.sku,
+              quantity: item.quantity,
+              historicalUnitPrice: item.unitPrice,
+            ),
+        ],
+        soldAt: ref.read(salesClockProvider)(),
+        timezone: timezone,
+      ),
     );
-
-    ref.read(pendingSalesProvider.notifier).enqueue(sale);
     state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
-    return sale;
+    final engine = ref.read(contextSyncEngineProvider);
+    if (engine != null) unawaited(engine.sync(trigger: SyncTrigger.manual));
+    return saleId;
   }
 
-  String _buildCreatedAtLabel(DateTime now) {
-    final hour = now.hour.toString().padLeft(2, '0');
-    final minute = now.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+  Future<void> acceptProposal(String saleId, int proposalRevision) async {
+    final processor = ref.read(contextOutboxProcessorProvider);
+    final engine = ref.read(contextSyncEngineProvider);
+    if (processor == null || engine == null) {
+      throw StateError('Sincronização de vendas indisponível.');
+    }
+    await processor.accept(saleId, expectedProposalRevision: proposalRevision);
+    unawaited(engine.sync(trigger: SyncTrigger.manual));
   }
 }

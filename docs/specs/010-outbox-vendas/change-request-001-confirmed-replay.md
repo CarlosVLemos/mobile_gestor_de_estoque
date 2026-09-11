@@ -38,7 +38,8 @@ Este CR não libera:
 - UI de aceite;
 - integração de clientes.
 
-`BLOCKER-010-CONFIRMATION-RECOVERY` permanece ativo para esses itens.
+Nota posterior: esse blocker histórico foi resolvido pelo backend
+`dev@f8ff65e` e absorvido pelo CR-010-002 mobile.
 
 ## Decisão
 

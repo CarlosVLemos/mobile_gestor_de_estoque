@@ -6,6 +6,7 @@ class SalesState {
     required List<SaleProductOption> products,
     required Map<String, SaleCartItem> cartItems,
     this.selectedClient,
+    this.referenceFailure,
   }) : clients = List.unmodifiable(clients),
        products = List.unmodifiable(products),
        cartItems = Map.unmodifiable(cartItems);
@@ -14,6 +15,7 @@ class SalesState {
   final List<SaleProductOption> products;
   final Map<String, SaleCartItem> cartItems;
   final SaleClientOption? selectedClient;
+  final String? referenceFailure;
 
   bool get canRegister => selectedClient != null && cartItems.isNotEmpty;
 
@@ -26,6 +28,8 @@ class SalesState {
     Map<String, SaleCartItem>? cartItems,
     SaleClientOption? selectedClient,
     bool clearSelectedClient = false,
+    String? referenceFailure,
+    bool clearReferenceFailure = false,
   }) {
     return SalesState(
       clients: clients ?? this.clients,
@@ -34,6 +38,9 @@ class SalesState {
       selectedClient: clearSelectedClient
           ? null
           : (selectedClient ?? this.selectedClient),
+      referenceFailure: clearReferenceFailure
+          ? null
+          : (referenceFailure ?? this.referenceFailure),
     );
   }
 }

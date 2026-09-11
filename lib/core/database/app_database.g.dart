@@ -4560,6 +4560,553 @@ class LocalSaleItemsTableCompanion
   }
 }
 
+class $ClientsTableTable extends ClientsTable
+    with TableInfo<$ClientsTableTable, StoredClient> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ClientsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cityMeta = const VerificationMeta('city');
+  @override
+  late final GeneratedColumn<String> city = GeneratedColumn<String>(
+    'city',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, city, state];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'clients';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredClient> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('city')) {
+      context.handle(
+        _cityMeta,
+        city.isAcceptableOrUnknown(data['city']!, _cityMeta),
+      );
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoredClient map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredClient(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      city: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}city'],
+      ),
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      ),
+    );
+  }
+
+  @override
+  $ClientsTableTable createAlias(String alias) {
+    return $ClientsTableTable(attachedDatabase, alias);
+  }
+}
+
+class StoredClient extends DataClass implements Insertable<StoredClient> {
+  final String id;
+  final String name;
+  final String? city;
+  final String? state;
+  const StoredClient({
+    required this.id,
+    required this.name,
+    this.city,
+    this.state,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || city != null) {
+      map['city'] = Variable<String>(city);
+    }
+    if (!nullToAbsent || state != null) {
+      map['state'] = Variable<String>(state);
+    }
+    return map;
+  }
+
+  ClientsTableCompanion toCompanion(bool nullToAbsent) {
+    return ClientsTableCompanion(
+      id: Value(id),
+      name: Value(name),
+      city: city == null && nullToAbsent ? const Value.absent() : Value(city),
+      state: state == null && nullToAbsent
+          ? const Value.absent()
+          : Value(state),
+    );
+  }
+
+  factory StoredClient.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredClient(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      city: serializer.fromJson<String?>(json['city']),
+      state: serializer.fromJson<String?>(json['state']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'city': serializer.toJson<String?>(city),
+      'state': serializer.toJson<String?>(state),
+    };
+  }
+
+  StoredClient copyWith({
+    String? id,
+    String? name,
+    Value<String?> city = const Value.absent(),
+    Value<String?> state = const Value.absent(),
+  }) => StoredClient(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    city: city.present ? city.value : this.city,
+    state: state.present ? state.value : this.state,
+  );
+  StoredClient copyWithCompanion(ClientsTableCompanion data) {
+    return StoredClient(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      city: data.city.present ? data.city.value : this.city,
+      state: data.state.present ? data.state.value : this.state,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredClient(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('city: $city, ')
+          ..write('state: $state')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, city, state);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredClient &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.city == this.city &&
+          other.state == this.state);
+}
+
+class ClientsTableCompanion extends UpdateCompanion<StoredClient> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String?> city;
+  final Value<String?> state;
+  final Value<int> rowid;
+  const ClientsTableCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.city = const Value.absent(),
+    this.state = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ClientsTableCompanion.insert({
+    required String id,
+    required String name,
+    this.city = const Value.absent(),
+    this.state = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<StoredClient> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? city,
+    Expression<String>? state,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (city != null) 'city': city,
+      if (state != null) 'state': state,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ClientsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? city,
+    Value<String?>? state,
+    Value<int>? rowid,
+  }) {
+    return ClientsTableCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      city: city ?? this.city,
+      state: state ?? this.state,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (city.present) {
+      map['city'] = Variable<String>(city.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClientsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('city: $city, ')
+          ..write('state: $state, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ClientSnapshotEntriesTableTable extends ClientSnapshotEntriesTable
+    with
+        TableInfo<
+          $ClientSnapshotEntriesTableTable,
+          ClientSnapshotEntriesTableData
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ClientSnapshotEntriesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _snapshotUpperBoundIdMeta =
+      const VerificationMeta('snapshotUpperBoundId');
+  @override
+  late final GeneratedColumn<int> snapshotUpperBoundId = GeneratedColumn<int>(
+    'snapshot_upper_bound_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<String> clientId = GeneratedColumn<String>(
+    'client_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [snapshotUpperBoundId, clientId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'client_snapshot_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ClientSnapshotEntriesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('snapshot_upper_bound_id')) {
+      context.handle(
+        _snapshotUpperBoundIdMeta,
+        snapshotUpperBoundId.isAcceptableOrUnknown(
+          data['snapshot_upper_bound_id']!,
+          _snapshotUpperBoundIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_snapshotUpperBoundIdMeta);
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {snapshotUpperBoundId, clientId};
+  @override
+  ClientSnapshotEntriesTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ClientSnapshotEntriesTableData(
+      snapshotUpperBoundId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}snapshot_upper_bound_id'],
+      )!,
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_id'],
+      )!,
+    );
+  }
+
+  @override
+  $ClientSnapshotEntriesTableTable createAlias(String alias) {
+    return $ClientSnapshotEntriesTableTable(attachedDatabase, alias);
+  }
+}
+
+class ClientSnapshotEntriesTableData extends DataClass
+    implements Insertable<ClientSnapshotEntriesTableData> {
+  final int snapshotUpperBoundId;
+  final String clientId;
+  const ClientSnapshotEntriesTableData({
+    required this.snapshotUpperBoundId,
+    required this.clientId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['snapshot_upper_bound_id'] = Variable<int>(snapshotUpperBoundId);
+    map['client_id'] = Variable<String>(clientId);
+    return map;
+  }
+
+  ClientSnapshotEntriesTableCompanion toCompanion(bool nullToAbsent) {
+    return ClientSnapshotEntriesTableCompanion(
+      snapshotUpperBoundId: Value(snapshotUpperBoundId),
+      clientId: Value(clientId),
+    );
+  }
+
+  factory ClientSnapshotEntriesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ClientSnapshotEntriesTableData(
+      snapshotUpperBoundId: serializer.fromJson<int>(
+        json['snapshotUpperBoundId'],
+      ),
+      clientId: serializer.fromJson<String>(json['clientId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'snapshotUpperBoundId': serializer.toJson<int>(snapshotUpperBoundId),
+      'clientId': serializer.toJson<String>(clientId),
+    };
+  }
+
+  ClientSnapshotEntriesTableData copyWith({
+    int? snapshotUpperBoundId,
+    String? clientId,
+  }) => ClientSnapshotEntriesTableData(
+    snapshotUpperBoundId: snapshotUpperBoundId ?? this.snapshotUpperBoundId,
+    clientId: clientId ?? this.clientId,
+  );
+  ClientSnapshotEntriesTableData copyWithCompanion(
+    ClientSnapshotEntriesTableCompanion data,
+  ) {
+    return ClientSnapshotEntriesTableData(
+      snapshotUpperBoundId: data.snapshotUpperBoundId.present
+          ? data.snapshotUpperBoundId.value
+          : this.snapshotUpperBoundId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClientSnapshotEntriesTableData(')
+          ..write('snapshotUpperBoundId: $snapshotUpperBoundId, ')
+          ..write('clientId: $clientId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(snapshotUpperBoundId, clientId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ClientSnapshotEntriesTableData &&
+          other.snapshotUpperBoundId == this.snapshotUpperBoundId &&
+          other.clientId == this.clientId);
+}
+
+class ClientSnapshotEntriesTableCompanion
+    extends UpdateCompanion<ClientSnapshotEntriesTableData> {
+  final Value<int> snapshotUpperBoundId;
+  final Value<String> clientId;
+  final Value<int> rowid;
+  const ClientSnapshotEntriesTableCompanion({
+    this.snapshotUpperBoundId = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ClientSnapshotEntriesTableCompanion.insert({
+    required int snapshotUpperBoundId,
+    required String clientId,
+    this.rowid = const Value.absent(),
+  }) : snapshotUpperBoundId = Value(snapshotUpperBoundId),
+       clientId = Value(clientId);
+  static Insertable<ClientSnapshotEntriesTableData> custom({
+    Expression<int>? snapshotUpperBoundId,
+    Expression<String>? clientId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (snapshotUpperBoundId != null)
+        'snapshot_upper_bound_id': snapshotUpperBoundId,
+      if (clientId != null) 'client_id': clientId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ClientSnapshotEntriesTableCompanion copyWith({
+    Value<int>? snapshotUpperBoundId,
+    Value<String>? clientId,
+    Value<int>? rowid,
+  }) {
+    return ClientSnapshotEntriesTableCompanion(
+      snapshotUpperBoundId: snapshotUpperBoundId ?? this.snapshotUpperBoundId,
+      clientId: clientId ?? this.clientId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (snapshotUpperBoundId.present) {
+      map['snapshot_upper_bound_id'] = Variable<int>(
+        snapshotUpperBoundId.value,
+      );
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<String>(clientId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClientSnapshotEntriesTableCompanion(')
+          ..write('snapshotUpperBoundId: $snapshotUpperBoundId, ')
+          ..write('clientId: $clientId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4578,6 +5125,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $LocalSaleItemsTableTable localSaleItemsTable =
       $LocalSaleItemsTableTable(this);
+  late final $ClientsTableTable clientsTable = $ClientsTableTable(this);
+  late final $ClientSnapshotEntriesTableTable clientSnapshotEntriesTable =
+      $ClientSnapshotEntriesTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4591,6 +5141,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncLocksTable,
     localSalesTable,
     localSaleItemsTable,
+    clientsTable,
+    clientSnapshotEntriesTable,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -7400,6 +7952,372 @@ typedef $$LocalSaleItemsTableTableProcessedTableManager =
       StoredLocalSaleItem,
       PrefetchHooks Function({bool saleId})
     >;
+typedef $$ClientsTableTableCreateCompanionBuilder =
+    ClientsTableCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> city,
+      Value<String?> state,
+      Value<int> rowid,
+    });
+typedef $$ClientsTableTableUpdateCompanionBuilder =
+    ClientsTableCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> city,
+      Value<String?> state,
+      Value<int> rowid,
+    });
+
+class $$ClientsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ClientsTableTable> {
+  $$ClientsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get city => $composableBuilder(
+    column: $table.city,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ClientsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ClientsTableTable> {
+  $$ClientsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get city => $composableBuilder(
+    column: $table.city,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get state => $composableBuilder(
+    column: $table.state,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ClientsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ClientsTableTable> {
+  $$ClientsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get city =>
+      $composableBuilder(column: $table.city, builder: (column) => column);
+
+  GeneratedColumn<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
+}
+
+class $$ClientsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ClientsTableTable,
+          StoredClient,
+          $$ClientsTableTableFilterComposer,
+          $$ClientsTableTableOrderingComposer,
+          $$ClientsTableTableAnnotationComposer,
+          $$ClientsTableTableCreateCompanionBuilder,
+          $$ClientsTableTableUpdateCompanionBuilder,
+          (
+            StoredClient,
+            BaseReferences<_$AppDatabase, $ClientsTableTable, StoredClient>,
+          ),
+          StoredClient,
+          PrefetchHooks Function()
+        > {
+  $$ClientsTableTableTableManager(_$AppDatabase db, $ClientsTableTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ClientsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ClientsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ClientsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> city = const Value.absent(),
+                Value<String?> state = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ClientsTableCompanion(
+                id: id,
+                name: name,
+                city: city,
+                state: state,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String?> city = const Value.absent(),
+                Value<String?> state = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ClientsTableCompanion.insert(
+                id: id,
+                name: name,
+                city: city,
+                state: state,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ClientsTableTable, StoredClient>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ClientsTableTable,
+                    StoredClient
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ClientsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ClientsTableTable,
+      StoredClient,
+      $$ClientsTableTableFilterComposer,
+      $$ClientsTableTableOrderingComposer,
+      $$ClientsTableTableAnnotationComposer,
+      $$ClientsTableTableCreateCompanionBuilder,
+      $$ClientsTableTableUpdateCompanionBuilder,
+      (
+        StoredClient,
+        BaseReferences<_$AppDatabase, $ClientsTableTable, StoredClient>,
+      ),
+      StoredClient,
+      PrefetchHooks Function()
+    >;
+typedef $$ClientSnapshotEntriesTableTableCreateCompanionBuilder =
+    ClientSnapshotEntriesTableCompanion Function({
+      required int snapshotUpperBoundId,
+      required String clientId,
+      Value<int> rowid,
+    });
+typedef $$ClientSnapshotEntriesTableTableUpdateCompanionBuilder =
+    ClientSnapshotEntriesTableCompanion Function({
+      Value<int> snapshotUpperBoundId,
+      Value<String> clientId,
+      Value<int> rowid,
+    });
+
+class $$ClientSnapshotEntriesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ClientSnapshotEntriesTableTable> {
+  $$ClientSnapshotEntriesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get snapshotUpperBoundId => $composableBuilder(
+    column: $table.snapshotUpperBoundId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ClientSnapshotEntriesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ClientSnapshotEntriesTableTable> {
+  $$ClientSnapshotEntriesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get snapshotUpperBoundId => $composableBuilder(
+    column: $table.snapshotUpperBoundId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ClientSnapshotEntriesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ClientSnapshotEntriesTableTable> {
+  $$ClientSnapshotEntriesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get snapshotUpperBoundId => $composableBuilder(
+    column: $table.snapshotUpperBoundId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
+}
+
+class $$ClientSnapshotEntriesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ClientSnapshotEntriesTableTable,
+          ClientSnapshotEntriesTableData,
+          $$ClientSnapshotEntriesTableTableFilterComposer,
+          $$ClientSnapshotEntriesTableTableOrderingComposer,
+          $$ClientSnapshotEntriesTableTableAnnotationComposer,
+          $$ClientSnapshotEntriesTableTableCreateCompanionBuilder,
+          $$ClientSnapshotEntriesTableTableUpdateCompanionBuilder,
+          (
+            ClientSnapshotEntriesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $ClientSnapshotEntriesTableTable,
+              ClientSnapshotEntriesTableData
+            >,
+          ),
+          ClientSnapshotEntriesTableData,
+          PrefetchHooks Function()
+        > {
+  $$ClientSnapshotEntriesTableTableTableManager(
+    _$AppDatabase db,
+    $ClientSnapshotEntriesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ClientSnapshotEntriesTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ClientSnapshotEntriesTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ClientSnapshotEntriesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> snapshotUpperBoundId = const Value.absent(),
+                Value<String> clientId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ClientSnapshotEntriesTableCompanion(
+                snapshotUpperBoundId: snapshotUpperBoundId,
+                clientId: clientId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int snapshotUpperBoundId,
+                required String clientId,
+                Value<int> rowid = const Value.absent(),
+              }) => ClientSnapshotEntriesTableCompanion.insert(
+                snapshotUpperBoundId: snapshotUpperBoundId,
+                clientId: clientId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $ClientSnapshotEntriesTableTable,
+                    ClientSnapshotEntriesTableData
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ClientSnapshotEntriesTableTable,
+                    ClientSnapshotEntriesTableData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ClientSnapshotEntriesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ClientSnapshotEntriesTableTable,
+      ClientSnapshotEntriesTableData,
+      $$ClientSnapshotEntriesTableTableFilterComposer,
+      $$ClientSnapshotEntriesTableTableOrderingComposer,
+      $$ClientSnapshotEntriesTableTableAnnotationComposer,
+      $$ClientSnapshotEntriesTableTableCreateCompanionBuilder,
+      $$ClientSnapshotEntriesTableTableUpdateCompanionBuilder,
+      (
+        ClientSnapshotEntriesTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $ClientSnapshotEntriesTableTable,
+          ClientSnapshotEntriesTableData
+        >,
+      ),
+      ClientSnapshotEntriesTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7423,4 +8341,12 @@ class $AppDatabaseManager {
       $$LocalSalesTableTableTableManager(_db, _db.localSalesTable);
   $$LocalSaleItemsTableTableTableManager get localSaleItemsTable =>
       $$LocalSaleItemsTableTableTableManager(_db, _db.localSaleItemsTable);
+  $$ClientsTableTableTableManager get clientsTable =>
+      $$ClientsTableTableTableManager(_db, _db.clientsTable);
+  $$ClientSnapshotEntriesTableTableTableManager
+  get clientSnapshotEntriesTable =>
+      $$ClientSnapshotEntriesTableTableTableManager(
+        _db,
+        _db.clientSnapshotEntriesTable,
+      );
 }

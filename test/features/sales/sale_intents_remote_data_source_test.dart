@@ -13,54 +13,80 @@ void main() {
     items: const [SaleIntentItem(productId: 456, quantity: 2)],
   );
 
-  test('envia payload v1 numérico sem preços, tenant ou X-Request-ID', () async {
-    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-    late RequestOptions request;
-    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-      request = options;
-      handler.resolve(Response(
-        requestOptions: options,
-        statusCode: 201,
-        data: {'code': 'intent_confirmed'},
-      ));
-    }));
-
-    final outcome = await SaleIntentsRemoteDataSource(
-      ApiClient(dio),
-      accessToken: 'token',
-    ).createIntent(payload());
-
-    final body = request.data as Map<String, dynamic>;
-    expect(request.path, '/api/mobile/sale-intents');
-    expect(request.headers['Authorization'], 'Bearer token');
-    expect(request.headers.containsKey('X-Request-ID'), isFalse);
-    expect(body['payload_version'], 1);
-    expect(body['client_request_id'], payload().clientRequestId);
-    expect(body['client_id'], 123);
-    final item = (body['items'] as List).single as Map<String, dynamic>;
-    expect(item['product_id'], 456);
-    expect(item.containsKey('price'), isFalse);
-    expect(body['sold_at'], contains('-03:00'));
-    expect(body.containsKey('price'), isFalse);
-    expect(body.containsKey('tenant_id'), isFalse);
-    expect(outcome.kind, SaleIntentOutcomeKind.confirmed);
-  });
-
-  test('409 requires_confirmation bloqueia para aceite sem inventar envelope', () async {
-    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-      handler.reject(DioException(
-        requestOptions: options,
-        type: DioExceptionType.badResponse,
-        response: Response(
-          requestOptions: options,
-          statusCode: 409,
-          data: {
-            'code': 'requires_confirmation',
+  test(
+    'envia payload v1 numérico sem preços, tenant ou X-Request-ID',
+    () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+      late RequestOptions request;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            request = options;
+            handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 201,
+                data: {
+                  'code': 'intent_confirmed',
+                  'intent': {'id': 91, 'state': 'confirmed'},
+                  'sale': {'id': 37},
+                },
+              ),
+            );
           },
         ),
-      ));
-    }));
+      );
+
+      final outcome = await SaleIntentsRemoteDataSource(
+        ApiClient(dio),
+        accessToken: 'token',
+      ).createIntent(payload());
+
+      final body = request.data as Map<String, dynamic>;
+      expect(request.path, '/api/mobile/sale-intents');
+      expect(request.headers['Authorization'], 'Bearer token');
+      expect(request.headers.containsKey('X-Request-ID'), isFalse);
+      expect(body['payload_version'], 1);
+      expect(body['client_request_id'], payload().clientRequestId);
+      expect(body['client_id'], 123);
+      final item = (body['items'] as List).single as Map<String, dynamic>;
+      expect(item['product_id'], 456);
+      expect(item.containsKey('price'), isFalse);
+      expect(body['sold_at'], contains('-03:00'));
+      expect(body.containsKey('price'), isFalse);
+      expect(body.containsKey('tenant_id'), isFalse);
+      expect(outcome.kind, SaleIntentOutcomeKind.confirmed);
+    },
+  );
+
+  test('409 requires_confirmation extrai envelope restart-safe', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.badResponse,
+              response: Response(
+                requestOptions: options,
+                statusCode: 409,
+                data: {
+                  'code': 'requires_confirmation',
+                  'intent': {'id': 91, 'state': 'requires_confirmation'},
+                  'proposal': {
+                    'proposed_items': [
+                      {'product_id': 456, 'quantity': 1},
+                    ],
+                  },
+                  'confirmation_token': 'fresh-token',
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
 
     final outcome = await SaleIntentsRemoteDataSource(
       ApiClient(dio),
@@ -68,21 +94,101 @@ void main() {
     ).createIntent(payload());
 
     expect(outcome.kind, SaleIntentOutcomeKind.requiresAcceptance);
+    expect(outcome.remoteIntentId, '91');
+    expect(outcome.proposalJson, contains('proposed_items'));
+    expect(outcome.confirmationToken, 'fresh-token');
   });
+
+  test('409 confirmation sem token falha fechado', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.badResponse,
+              response: Response(
+                requestOptions: options,
+                statusCode: 409,
+                data: {
+                  'code': 'requires_confirmation',
+                  'intent': {'id': 91},
+                  'proposal': {'proposed_items': []},
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    final outcome = await SaleIntentsRemoteDataSource(
+      ApiClient(dio),
+      accessToken: 'token',
+    ).createIntent(payload());
+    expect(outcome.kind, SaleIntentOutcomeKind.permanentFailure);
+    expect(outcome.code, 'invalid_confirmation_envelope');
+  });
+
+  test(
+    'stock_proposal_changed exige novo aceite e substitui token/proposta',
+    () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.badResponse,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: 409,
+                  data: {
+                    'code': 'stock_proposal_changed',
+                    'intent': {'id': 91},
+                    'proposal': {
+                      'proposed_items': [
+                        {'product_id': 456, 'quantity': 1},
+                      ],
+                    },
+                    'confirmation_token': 'new-token',
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+      );
+      final outcome = await SaleIntentsRemoteDataSource(
+        ApiClient(dio),
+        accessToken: 'token',
+      ).confirmIntent(intentId: '91', confirmationToken: 'old-token');
+      expect(outcome.kind, SaleIntentOutcomeKind.requiresAcceptance);
+      expect(outcome.code, 'stock_proposal_changed');
+      expect(outcome.confirmationToken, 'new-token');
+    },
+  );
 
   test('200 replay só confirma com intent confirmado e extrai IDs', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-      handler.resolve(Response(
-        requestOptions: options,
-        statusCode: 200,
-        data: {
-          'code': 'idempotent_replay',
-          'intent': {'id': 91, 'state': 'confirmed'},
-          'sale': {'id': 37},
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.resolve(
+            Response(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'code': 'idempotent_replay',
+                'intent': {'id': 91, 'state': 'confirmed'},
+                'sale': {'id': 37},
+              },
+            ),
+          );
         },
-      ));
-    }));
+      ),
+    );
 
     final outcome = await SaleIntentsRemoteDataSource(
       ApiClient(dio),
@@ -100,13 +206,19 @@ void main() {
       {'state': 'confirmed'},
     ]) {
       final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-      dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-        handler.resolve(Response(
-          requestOptions: options,
-          statusCode: 200,
-          data: {'code': 'idempotent_replay', 'intent': intent},
-        ));
-      }));
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.resolve(
+              Response(
+                requestOptions: options,
+                statusCode: 200,
+                data: {'code': 'idempotent_replay', 'intent': intent},
+              ),
+            );
+          },
+        ),
+      );
 
       final outcome = await SaleIntentsRemoteDataSource(
         ApiClient(dio),
@@ -120,12 +232,18 @@ void main() {
 
   test('cancelamento controlado não é falha de transporte', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-      handler.reject(DioException(
-        requestOptions: options,
-        type: DioExceptionType.cancel,
-      ));
-    }));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.cancel,
+            ),
+          );
+        },
+      ),
+    );
 
     final outcome = await SaleIntentsRemoteDataSource(
       ApiClient(dio),
@@ -142,17 +260,23 @@ void main() {
       (410, 'intent_expired'),
     ]) {
       final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-      dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-        handler.reject(DioException(
-          requestOptions: options,
-          type: DioExceptionType.badResponse,
-          response: Response(
-            requestOptions: options,
-            statusCode: scenario.$1,
-            data: {'code': scenario.$2},
-          ),
-        ));
-      }));
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.badResponse,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: scenario.$1,
+                  data: {'code': scenario.$2},
+                ),
+              ),
+            );
+          },
+        ),
+      );
       final outcome = await SaleIntentsRemoteDataSource(
         ApiClient(dio),
         accessToken: 'token',
@@ -171,17 +295,23 @@ void main() {
     ];
     for (final scenario in scenarios) {
       final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-      dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-        handler.reject(DioException(
-          requestOptions: options,
-          type: DioExceptionType.badResponse,
-          response: Response(
-            requestOptions: options,
-            statusCode: scenario.$1,
-            data: scenario.$2,
-          ),
-        ));
-      }));
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            handler.reject(
+              DioException(
+                requestOptions: options,
+                type: DioExceptionType.badResponse,
+                response: Response(
+                  requestOptions: options,
+                  statusCode: scenario.$1,
+                  data: scenario.$2,
+                ),
+              ),
+            );
+          },
+        ),
+      );
       final outcome = await SaleIntentsRemoteDataSource(
         ApiClient(dio),
         accessToken: 'token',
@@ -192,17 +322,23 @@ void main() {
 
   test('409 desconhecido falha fechado sem retry automático', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
-    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
-      handler.reject(DioException(
-        requestOptions: options,
-        type: DioExceptionType.badResponse,
-        response: Response(
-          requestOptions: options,
-          statusCode: 409,
-          data: {'code': 'future_conflict'},
-        ),
-      ));
-    }));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.reject(
+            DioException(
+              requestOptions: options,
+              type: DioExceptionType.badResponse,
+              response: Response(
+                requestOptions: options,
+                statusCode: 409,
+                data: {'code': 'future_conflict'},
+              ),
+            ),
+          );
+        },
+      ),
+    );
     final outcome = await SaleIntentsRemoteDataSource(
       ApiClient(dio),
       accessToken: 'token',

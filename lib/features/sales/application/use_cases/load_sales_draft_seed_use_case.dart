@@ -9,4 +9,12 @@ class LoadSalesDraftSeedUseCase {
   SalesDraftSeed call() {
     return _repository.loadDraftSeed();
   }
+
+  Stream<SalesDraftSeed> watch() {
+    final repository = _repository;
+    if (repository is! ReactiveSalesDraftRepository) {
+      return Stream.value(repository.loadDraftSeed());
+    }
+    return repository.watchDraftSeed();
+  }
 }

@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/local_context_lifecycle.dart';
+import '../../../../core/config/app_mode.dart';
 import '../../../../core/database/local_context.dart';
 import '../../../../core/network/session_invalidation_signal.dart';
 import '../../../../core/result/result.dart';
@@ -28,6 +30,10 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> restore() async {
     state = const AuthState(status: AuthStatus.resolvingSession);
+    if (ref.read(appModeProvider).isDemo) {
+      await _applyDemoSession();
+      return;
+    }
     final result = await ref.read(restoreSessionUseCaseProvider).call();
     await _applySessionResult(result);
   }
@@ -38,6 +44,10 @@ class AuthController extends Notifier<AuthState> {
     required String deviceName,
   }) async {
     state = const AuthState(status: AuthStatus.resolvingSession);
+    if (ref.read(appModeProvider).isDemo) {
+      await _applyDemoSession();
+      return;
+    }
     final result = await ref
         .read(loginUseCaseProvider)
         .call(
@@ -74,6 +84,61 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  Future<void> _applyDemoSession() async {
+    const session = UserSession(
+      userId: 'demo-user',
+      userName: 'Usuário Demo',
+      email: 'demo@araragastos.local',
+      tenantId: 'demo-tenant',
+      tenantName: 'Arara Gastos Demo',
+      tenantSlug: 'demo',
+      features: {'catalog', 'sales'},
+      permissions: {
+        'products_view': true,
+        'sales_create': true,
+        'view_financial_metrics': true,
+      },
+      revision: 'demo-v1',
+      mustChangePassword: false,
+    );
+    try {
+      const context = LocalContext(
+        userId: 'demo-user',
+        tenantId: 'demo-tenant',
+      );
+      await ref.read(databaseFactoryProvider).open(context);
+      ref.invalidate(operationalDatabaseProvider);
+      ref.read(activeAccessTokenProvider.notifier).state = null;
+      ref
+          .read(operationalReadAccessProvider.notifier)
+          .state = const OperationalReadAccess(
+        hasCatalogFeature: true,
+        canViewProducts: true,
+        canViewFinancialMetrics: true,
+        hasSalesFeature: true,
+        canCreateSales: true,
+      );
+      ref.read(activeSyncContextProvider.notifier).state = context;
+      ref.invalidate(contextSyncEngineProvider);
+      final engine = ref.read(contextSyncEngineProvider);
+      if (engine != null) {
+        unawaited(engine.sync(trigger: SyncTrigger.startup));
+      }
+      state = const AuthState(
+        status: AuthStatus.authenticated,
+        session: session,
+      );
+    } catch (_) {
+      state = const AuthState(
+        status: AuthStatus.failure,
+        failure: AuthFailure(
+          AuthFailureKind.unknown,
+          'Não foi possível abrir o banco de demonstração.',
+        ),
+      );
+    }
+  }
+
   Future<LogoutAttempt> logout({bool confirmPendingOutbox = false}) async {
     final session = state.session;
     final purgeService = ref.read(dataPurgeServiceProvider);
@@ -83,6 +148,10 @@ class AuthController extends Notifier<AuthState> {
     }
 
     state = AuthState(status: AuthStatus.resolvingSession, session: session);
+    if (ref.read(appModeProvider).isDemo) {
+      await _transitionToUnauthenticated();
+      return const LogoutAttempt.completed();
+    }
     final result = await ref.read(logoutUseCaseProvider).call();
     switch (result) {
       case Success<void, AuthFailure>():
@@ -134,23 +203,23 @@ class AuthController extends Notifier<AuthState> {
             tenantId: value.tenantId,
           );
           ref.read(activeAccessTokenProvider.notifier).state = token;
-          ref.read(operationalReadAccessProvider.notifier).state =
-              OperationalReadAccess(
-                hasCatalogFeature: value.features.contains('catalog'),
-                canViewProducts: value.permissions['products_view'] == true,
-                canViewFinancialMetrics:
-                    value.permissions['view_financial_metrics'] == true,
-                hasSalesFeature: value.features.contains('sales'),
-                canCreateSales: value.permissions['sales_create'] == true,
-              );
+          ref
+              .read(operationalReadAccessProvider.notifier)
+              .state = OperationalReadAccess(
+            hasCatalogFeature: value.features.contains('catalog'),
+            canViewProducts: value.permissions['products_view'] == true,
+            canViewFinancialMetrics:
+                value.permissions['view_financial_metrics'] == true,
+            hasSalesFeature: value.features.contains('sales'),
+            canCreateSales: value.permissions['sales_create'] == true,
+          );
           ref.read(activeSyncContextProvider.notifier).state = context;
           ref.invalidate(contextSyncEngineProvider);
           final engine = ref.read(contextSyncEngineProvider);
-          if (engine != null) unawaited(engine.sync(trigger: SyncTrigger.startup));
-          state = AuthState(
-            status: AuthStatus.authenticated,
-            session: value,
-          );
+          if (engine != null) {
+            unawaited(engine.sync(trigger: SyncTrigger.startup));
+          }
+          state = AuthState(status: AuthStatus.authenticated, session: value);
         } catch (_) {
           state = const AuthState(
             status: AuthStatus.failure,
@@ -180,7 +249,9 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _transitionToUnauthenticated() {
     final inFlight = _sessionTerminationInFlight;
-    if (inFlight != null) return inFlight;
+    if (inFlight != null) {
+      return inFlight;
+    }
 
     late final Future<void> operation;
     operation = _completeSessionTermination().whenComplete(() {
@@ -194,7 +265,9 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _completeSessionTermination() async {
     await ref.read(dataPurgeServiceProvider).purge();
-    if (!ref.mounted) return;
+    if (!ref.mounted) {
+      return;
+    }
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 }

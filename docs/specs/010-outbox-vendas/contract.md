@@ -2,11 +2,10 @@
 
 ## Status
 
-`FROZEN` para a Fase A, autorizado pelo pedido de implementação de 9 de setembro de 2026.
+`FROZEN` v2. O delta atual está em [`CR-010-002`](change-request-002-clients-acceptance.md), autorizado em 11 de setembro de 2026.
 
-A Fase A foi implementada e validada. A Spec completa permanece `BLOCKED`:
-integração de clientes e recuperação remota de `confirmation_token` aguardam
-`HANDOFF-010-BACKEND`.
+Os antigos blockers de clientes e recuperação de `confirmation_token` foram
+resolvidos pelo backend `dev@f8ff65e`. A implementação mobile está em validação.
 
 Adendo aceito: [`CR-010-001`](change-request-001-confirmed-replay.md) formaliza o replay confirmado estrito já implementado.
 
@@ -15,9 +14,9 @@ Adendo aceito: [`CR-010-001`](change-request-001-confirmed-replay.md) formaliza 
 - Escopo exclusivo do Flutter; nenhuma alteração no Laravel.
 - O banco continua fisicamente isolado por `userId + tenantId`.
 - A `sync_outbox` existente é evoluída; não existe segunda outbox nem lifecycle/SyncEngine paralelo.
-- O schema parte de v3 e evolui de forma não destrutiva para v4.
+- O schema v5 preserva todos os caminhos v1/v2/v3/v4 e adiciona clientes/snapshot durável.
 - Servidor permanece soberano para preço, estoque, autorização e confirmação.
-- A UI de fixture não registra venda real e IDs como `client-1`/`prod-1` nunca chegam ao transporte.
+- A UI lê produtos/clientes do Drift e registra pelo pipeline persistente; fixtures não compõem `normal`.
 
 ## Persistência e atomicidade
 
@@ -81,12 +80,9 @@ envelope presumido. O aceite remoto funcional continua bloqueado. Conforme
 Uma nova venda exige feature `sales` e permissão `sales_create` na sessão atual.
 Perda posterior de acesso não apaga pendências já persistidas.
 
-## Bloqueado por handoff
+## Delta v2
 
-- contrato e sync/listagem real de clientes;
-- envelope de proposta/token e regra/endpoint final de recuperação de
-  `confirmation_token` após restart;
-- conexão do fluxo real de criação à UI, que hoje usa fixtures.
-
-Qualquer mudança destas rotas, payload, schema, idempotência, tenant boundary ou
-ownership exige Change Request explícito.
+Clientes usam snapshot completo, cursor opaco e poda exclusivamente terminal.
+`requires_confirmation` persiste intent/proposta/token/revisão; aceite usa CAS e
+`stock_proposal_changed` exige nova decisão humana. A timezone enviada precisa
+ser IANA; ausência de resolução confiável falha fechado.

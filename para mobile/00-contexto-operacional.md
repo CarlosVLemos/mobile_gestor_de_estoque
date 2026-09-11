@@ -4,7 +4,7 @@
 
 Esta é a porta de entrada canônica para o estado comprovado do Arara-Gastos Mobile. Documentação descreve intenção; código, contrato implementado, testes e evidências comprovam o estado real.
 
-## Estado atual — 9 de setembro de 2026
+## Estado atual — 11 de setembro de 2026
 
 ```text
 007  Core de rede                         ✅ entregue
@@ -13,7 +13,7 @@ Esta é a porta de entrada canônica para o estado comprovado do Arara-Gastos Mo
 009A Drift/schema e migrações             ✅ validada
 009B Sync Engine Base                     ✅ validada
 009C Catálogo/dashboard local-first       🟨 revalidação do CR-009C-001
-010  Outbox/vendas                        🟨 Fase A validada / E2E bloqueado
+010  Outbox/vendas                        🟨 implementação E2E local / validação pendente
 011  Draft histórico                      ⛔ superseded
 012  Category UUID                        🟨 implementada / analyze pendente
 013  Contexto real e observabilidade      🟨 implementada / analyze pendente
@@ -32,17 +32,17 @@ Núcleo de vendas implementado:
 RegisterSaleUseCase -> venda local + outbox atômicas
   -> SyncEngine -> OutboxProcessor -> sale-intents
 
-Tela de vendas atual:
-FixtureSalesDraftRepository -> controllers em memória -> Page
+Tela de vendas local em validação:
+Drift clients/products -> SalesController -> RegisterSaleUseCase -> Drift/outbox
 ```
 
-O núcleo de vendas está implementado e testado, mas a tela ainda não o chama.
+O núcleo e a tela estão conectados localmente; falta concluir os gates atuais.
 
 ## Contratos e bloqueios
 
 - Category usa UUID no backend; Product e tombstones de Product usam inteiros. O mobile preserva todos como `String` interna, com validação específica por entidade.
-- Não existe endpoint mobile auditado de clientes no backend. Não usar fixture como `client_id` remoto.
-- O recovery de confirmação de `sale-intents` não é seguro porque replay/consulta não restituem o token necessário.
+- O backend `dev@f8ff65e` possui snapshot mobile de clientes e recovery seguro de `requires_confirmation`; ambos os blockers antigos estão resolvidos.
+- O mobile local implementa clientes Drift/snapshot, UI persistente de vendas e aceite, mas os gates finais ainda não foram executados.
 - Settings usa dados da `UserSession` real; não há fallback fixture.
 - `syncStateProvider` observa a mesma instância contextual usada pelo lifecycle.
 - Startup autenticado, refresh manual e `resumed` com cooldown estão ligados. Connectivity/background continuam pendentes.
@@ -62,10 +62,9 @@ O núcleo de vendas está implementado e testado, mas a tela ainda não o chama.
 ## Próximo caminho crítico
 
 1. concluir `flutter analyze --no-pub` e fechar 009C/012/013;
-2. entregar no backend o contrato mobile de clientes e o recovery de confirmação;
-3. sincronizar clientes e conectar a UI de vendas à Fase A da 010;
-4. adicionar UX/connectivity mínima, hardening e observabilidade operacional;
-5. configurar release, HTTPS/VPS, identidade do app e executar smoke E2E.
+2. validar a implementação local de clientes, vendas e demo e fechar 010/013D somente com gates verdes;
+3. adicionar UX/connectivity mínima, hardening e observabilidade operacional;
+4. configurar release, HTTPS/VPS, identidade do app e executar smoke E2E.
 
 ## Como escolher o que ler
 

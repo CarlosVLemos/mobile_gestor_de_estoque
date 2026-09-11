@@ -6,6 +6,7 @@ import 'context_sync_scope.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_theme_mode_controller.dart';
+import '../shared/widgets/demo_mode_banner.dart';
 
 class AraraApp extends ConsumerWidget {
   const AraraApp({super.key});
@@ -21,8 +22,13 @@ class AraraApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
-      builder: (context, child) => ContextSyncScope(
-        child: child ?? const SizedBox.shrink(),
+      builder: (context, child) => Column(
+        children: [
+          const DemoModeBanner(),
+          Expanded(
+            child: ContextSyncScope(child: child ?? const SizedBox.shrink()),
+          ),
+        ],
       ),
     );
   }

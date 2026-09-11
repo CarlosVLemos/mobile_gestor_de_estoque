@@ -34,28 +34,38 @@ void main() {
           .insert(
             SyncOutboxCompanion.insert(id: 'sale-pending', status: 'pending'),
           );
-      await xDatabase.into(xDatabase.productsTable).insert(
-        ProductsTableCompanion.insert(
-          id: 'product-x',
-          name: 'Produto X',
-          sku: 'SKU-X',
-          stockQuantity: 1,
-          stockStatus: 'available',
-          isAvailableForSale: true,
-        ),
-      );
+      await xDatabase
+          .into(xDatabase.productsTable)
+          .insert(
+            ProductsTableCompanion.insert(
+              id: 'product-x',
+              name: 'Produto X',
+              sku: 'SKU-X',
+              stockQuantity: 1,
+              stockStatus: 'available',
+              isAvailableForSale: true,
+            ),
+          );
+      await xDatabase
+          .into(xDatabase.clientsTable)
+          .insert(ClientsTableCompanion.insert(id: '201', name: 'Cliente X'));
       await factory.closeActive();
       expect(File(xPath).existsSync(), isTrue);
 
       final yDatabase = await factory.open(y);
       expect(await yDatabase.pendingOutboxCount(), 0);
       expect(await yDatabase.activeProducts().get(), isEmpty);
+      expect(await yDatabase.select(yDatabase.clientsTable).get(), isEmpty);
       await factory.closeActive();
       expect(File(yPath).existsSync(), isTrue);
 
       final restoredX = await factory.open(x);
       expect(await restoredX.pendingOutboxCount(), 1);
       expect(await restoredX.activeProducts().get(), hasLength(1));
+      expect(
+        await restoredX.select(restoredX.clientsTable).get(),
+        hasLength(1),
+      );
       await factory.closeActive();
     },
   );
@@ -119,7 +129,9 @@ void main() {
   test(
     'purges concorrentes compartilham uma única sequência de teardown',
     () async {
-      final root = await Directory.systemTemp.createTemp('context-purge-flight');
+      final root = await Directory.systemTemp.createTemp(
+        'context-purge-flight',
+      );
       addTearDown(() => root.delete(recursive: true));
       final factory = _factory(root);
       const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
@@ -144,12 +156,18 @@ void main() {
       sync.release();
       await Future.wait([first, second, third]);
 
-      expect(steps.where((step) => step == PurgeStep.syncStopped), hasLength(1));
+      expect(
+        steps.where((step) => step == PurgeStep.syncStopped),
+        hasLength(1),
+      );
       expect(
         steps.where((step) => step == PurgeStep.databaseClosed),
         hasLength(1),
       );
-      expect(steps.where((step) => step == PurgeStep.cacheCleared), hasLength(1));
+      expect(
+        steps.where((step) => step == PurgeStep.cacheCleared),
+        hasLength(1),
+      );
       expect(
         steps.where((step) => step == PurgeStep.stateInvalidated),
         hasLength(1),
@@ -160,61 +178,71 @@ void main() {
     },
   );
 
-  test('falha no stop preserva banco e contexto para retry recuperável', () async {
-    final root = await Directory.systemTemp.createTemp('context-stop-failure');
-    addTearDown(() => root.delete(recursive: true));
-    final factory = _factory(root);
-    const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
-    await factory.open(context);
-    final service = DataPurgeService(
-      factory,
-      _FailingSyncLifecycle(),
-      ContextCacheCleaner(temporaryDirectory: () async => root),
-      () {},
-    );
+  test(
+    'falha no stop preserva banco e contexto para retry recuperável',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'context-stop-failure',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final factory = _factory(root);
+      const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
+      await factory.open(context);
+      final service = DataPurgeService(
+        factory,
+        _FailingSyncLifecycle(),
+        ContextCacheCleaner(temporaryDirectory: () async => root),
+        () {},
+      );
 
-    await expectLater(service.purge(), throwsStateError);
-    expect(factory.activeDatabase, isNotNull);
-    expect(factory.activeContext, context);
-    await factory.closeActive();
-  });
+      await expectLater(service.purge(), throwsStateError);
+      expect(factory.activeDatabase, isNotNull);
+      expect(factory.activeContext, context);
+      await factory.closeActive();
+    },
+  );
 
-  test('purge waits for a registered engine before closing the active database', () async {
-    final root = await Directory.systemTemp.createTemp('context-engine-purge');
-    addTearDown(() => root.delete(recursive: true));
-    final factory = _factory(root);
-    const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
-    await factory.open(context);
-    final collection = _EngineCollection();
-    final engine = SyncEngine(
-      context: context,
-      collections: [collection],
-      lock: SyncLock(),
-      leaseStore: _EngineLeaseStore(),
-    );
-    final lifecycle = ContextSyncLifecycle()..register(engine);
-    final service = DataPurgeService(
-      factory,
-      lifecycle,
-      ContextCacheCleaner(temporaryDirectory: () async => root),
-      () {},
-    );
+  test(
+    'purge waits for a registered engine before closing the active database',
+    () async {
+      final root = await Directory.systemTemp.createTemp(
+        'context-engine-purge',
+      );
+      addTearDown(() => root.delete(recursive: true));
+      final factory = _factory(root);
+      const context = LocalContext(userId: 'user-x', tenantId: 'tenant-1');
+      await factory.open(context);
+      final collection = _EngineCollection();
+      final engine = SyncEngine(
+        context: context,
+        collections: [collection],
+        lock: SyncLock(),
+        leaseStore: _EngineLeaseStore(),
+      );
+      final lifecycle = ContextSyncLifecycle()..register(engine);
+      final service = DataPurgeService(
+        factory,
+        lifecycle,
+        ContextCacheCleaner(temporaryDirectory: () async => root),
+        () {},
+      );
 
-    final running = engine.sync();
-    await Future<void>.delayed(Duration.zero);
-    final purging = service.purge();
-    await Future<void>.delayed(Duration.zero);
+      final running = engine.sync();
+      await Future<void>.delayed(Duration.zero);
+      final purging = service.purge();
+      await Future<void>.delayed(Duration.zero);
 
-    expect(collection.requestCancelled, isTrue);
-    expect(factory.activeDatabase, isNotNull);
-    collection.fetchGate.complete();
+      expect(collection.requestCancelled, isTrue);
+      expect(factory.activeDatabase, isNotNull);
+      collection.fetchGate.complete();
 
-    await running;
-    await purging;
-    expect(engine.isStopped, isTrue);
-    expect(factory.activeDatabase, isNull);
-    expect(factory.activeContext, isNull);
-  });
+      await running;
+      await purging;
+      expect(engine.isStopped, isTrue);
+      expect(factory.activeDatabase, isNull);
+      expect(factory.activeContext, isNull);
+    },
+  );
 }
 
 DatabaseFactory _factory(Directory root) => DatabaseFactory(
@@ -246,7 +274,8 @@ class _BlockingSyncLifecycle implements SyncLifecycle {
 
 class _FailingSyncLifecycle implements SyncLifecycle {
   @override
-  Future<void> stop(LocalContext context) => Future<void>.error(StateError('timeout'));
+  Future<void> stop(LocalContext context) =>
+      Future<void>.error(StateError('timeout'));
 }
 
 class _EngineCollection implements SyncCollection, CancellableSyncCollection {

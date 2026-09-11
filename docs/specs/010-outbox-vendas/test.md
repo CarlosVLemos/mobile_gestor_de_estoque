@@ -54,4 +54,6 @@ O núcleo implementado e as fases E2E posteriores devem comprovar que:
 - [x] Testes de idempotência passando.
 - [x] Testes de backoff e jitter passando com sucesso.
 
-O badge/UI e o fluxo E2E continuam pendentes pelos blockers documentados em `validation-result.md`.
+O CR-010-002 adiciona cobertura de clientes, migração v5, UI persistente,
+recovery e aceite. Os resultados atuais devem ser registrados em
+`validation-result.md`; teste escrito não equivale a PASS executado.

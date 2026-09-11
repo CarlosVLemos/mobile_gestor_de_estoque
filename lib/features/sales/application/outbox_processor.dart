@@ -13,10 +13,14 @@ class OutboxProcessor implements OutboxDrainer {
     required SaleIntentGateway gateway,
     OutboxClock? clock,
     OutboxJitter? jitter,
-  }) : _store = store,
-       _gateway = gateway,
-       _clock = clock ?? DateTime.now,
-       _jitter = jitter ?? _defaultJitter;
+  }) : this._(
+         store,
+         gateway,
+         clock ?? DateTime.now,
+         jitter ?? _defaultJitter,
+       );
+
+  OutboxProcessor._(this._store, this._gateway, this._clock, this._jitter);
 
   final SaleOutboxStore _store;
   final SaleIntentGateway _gateway;
@@ -33,7 +37,9 @@ class OutboxProcessor implements OutboxDrainer {
 
   @override
   Future<void> drain({required OutboxWriteGuard protect}) async {
-    if (_running) return;
+    if (_running) {
+      return;
+    }
     _running = true;
     final generation = _cancelGeneration;
     try {
@@ -43,7 +49,9 @@ class OutboxProcessor implements OutboxDrainer {
         await protect(() async {
           item = await _store.claimNextEligible(_clock());
         });
-        if (item == null) return;
+        if (item == null) {
+          return;
+        }
         final claimed = item!;
         final outcome = claimed.operation == SaleOutboxOperation.confirmIntent
             ? await _confirm(claimed)

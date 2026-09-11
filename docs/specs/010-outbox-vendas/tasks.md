@@ -14,11 +14,19 @@
   - [x] Conectar com o `ApiClient` para despachar `POST /api/mobile/sale-intents` e `/confirm`, mantendo `client_request_id` no payload persistido.
   - [x] Implementar o cálculo do delay de retentativa com backoff exponencial + jitter ao cair no bloco de tratamento de erro temporário (gravando `next_attempt_at` e incrementando `attempts`).
   - [x] Tratar erros definitivos (`422`) marcando o item como `failed_permanent`.
-  - [ ] **Fase 3B bloqueada:** conectar o envelope real de proposal/intent/sale/token após `HANDOFF-010-BACKEND`.
+  - [x] Conectar envelopes reais de intent/sale/proposal/token, recovery por replay e `stock_proposal_changed`.
 
-- [ ] **Fase 4: Indicadores na Interface de Usuário (adiada; sem estética final nesta fase)**
-  - [ ] Atualizar a tela de lista de vendas para exibir um badge/pílula de status no card de cada venda correspondente ao status canônico da outbox.
+- [x] **Fase 4: Indicadores e aceite persistentes**
+  - [x] Exibir estados canônicos da outbox e proposta persistida.
+  - [x] Aceite explícito com CAS por `proposalRevision`; proposta alterada exige novo aceite.
   - [ ] Adicionar botão de reprocessamento manual ou limpeza para itens com falha definitiva.
+
+- [x] **CR-010-002: clientes e UI real**
+  - [x] Drift v5 e migrações v1/v2/v3/v4 → v5.
+  - [x] Snapshot de clientes com estado durável e poda somente terminal.
+  - [x] Produtos/clientes Drift alimentam a UI; sem fixture/fallback em `normal`.
+  - [x] Demo usa DB/seed/gateway local sem token ou HTTP.
+  - [ ] Executar gates focados, análise e suíte completa.
 
 - [ ] **Fase 5: testes E2E de conectividade; núcleo unitário validado**
   - [ ] Criar testes unitários para o `OutboxProcessor` validando reenvio automático ao reestabelecer conexão.
