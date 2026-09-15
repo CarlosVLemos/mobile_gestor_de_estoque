@@ -44,6 +44,19 @@ void main() {
     expect(find.text('Meta operacional'), findsOneWidget);
   });
 
+  testWidgets('separa data e hora da atualização em dois cartões', (tester) async {
+    await _pumpDashboard(
+      tester,
+      DashboardLoadResult.ready(buildDashboardFixture()),
+    );
+
+    expect(find.text('12/06/2026'), findsOneWidget);
+    expect(find.text('09:40'), findsOneWidget);
+    expect(find.text('SINCRONIZADO EM'), findsOneWidget);
+    expect(find.text('SINCRONIZADO ÀS'), findsOneWidget);
+    expect(find.textContaining('09:40:'), findsNothing);
+  });
+
   testWidgets('mostra estado vazio sem montar indicadores', (tester) async {
     await _pumpDashboard(
       tester,

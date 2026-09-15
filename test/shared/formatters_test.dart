@@ -25,6 +25,12 @@ void main() {
     );
   });
 
+  test('AppDateFormatter separa data e hora sem segundos', () {
+    final timestamp = DateTime(2026, 9, 5, 8, 7, 59);
+    expect(AppDateFormatter.date(timestamp), '05/09/2026');
+    expect(AppDateFormatter.time(timestamp), '08:07');
+  });
+
   test('AppStockFormatter diferencia singular, zero e plural', () {
     expect(AppStockFormatter.units(0), '0 unidades');
     expect(AppStockFormatter.units(1), '1 unidade');

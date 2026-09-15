@@ -43,6 +43,30 @@ void main() {
     );
   });
 
+  test('horário do painel vem da conclusão da sincronização', () async {
+    final response = _responseWithRevision('r-sync-time');
+    (response['meta'] as Map<String, dynamic>)['generated_at'] =
+        '2000-01-01T00:00:00Z';
+    final collection = DashboardSyncCollection(
+      database: database,
+      remote: _Remote(response),
+      scopeKey: 'day:2026-09:1',
+      goalMonth: '2026-09',
+    );
+    await collection.commitPage(
+      await collection.fetchPage(const SyncCheckpoint()),
+    );
+    final checkpoint = await database.readSyncCollection(collection.name);
+    final snapshot = await database.watchDashboardSnapshot('day:2026-09:1').first;
+    final result = await DriftDashboardRepository(
+      database,
+      'day:2026-09:1',
+      canViewFinancialMetrics: false,
+    ).load();
+    expect(result.overview!.syncedAt, checkpoint!.lastSuccessAt!.toLocal());
+    expect(result.overview!.syncedAt, isNot(snapshot!.generatedAt.toLocal()));
+  });
+
   test('failed checkpoint write retains the prior dashboard snapshot', () async {
     final first = DashboardSyncCollection(database: database, remote: _Remote(_response), scopeKey: 'day:2026-09:1', goalMonth: '2026-09');
     await first.commitPage(await first.fetchPage(const SyncCheckpoint()));

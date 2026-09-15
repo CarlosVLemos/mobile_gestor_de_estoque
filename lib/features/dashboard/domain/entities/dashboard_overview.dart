@@ -8,6 +8,7 @@ class DashboardOverview {
     required this.canViewFinancial,
     required this.webDashboardUrl,
     required this.updatedAtLabel,
+    this.syncedAt,
   }) : kpis = List.unmodifiable(kpis),
        lowStockAlerts = List.unmodifiable(lowStockAlerts),
        recentMovements = List.unmodifiable(recentMovements),
@@ -21,6 +22,7 @@ class DashboardOverview {
   final bool canViewFinancial;
   final String webDashboardUrl;
   final String updatedAtLabel;
+  final DateTime? syncedAt;
 }
 
 class DashboardKpi {

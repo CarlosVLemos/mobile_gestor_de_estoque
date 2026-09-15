@@ -44,7 +44,7 @@ void main() {
       scopeKey: 'ignored',
       goalMonth: 'ignored',
     );
-    expect(collections.single.name, 'demo_seed_v5');
+    expect(collections.single.name, 'demo_seed_v6');
   });
 
   test('normal falha fechado sem API/token em vez de usar demo', () {

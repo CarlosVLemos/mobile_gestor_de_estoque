@@ -6,6 +6,7 @@ import 'context_sync_scope.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'theme/app_theme_mode_controller.dart';
+import '../core/config/app_mode.dart';
 import '../shared/widgets/demo_mode_banner.dart';
 
 class AraraApp extends ConsumerWidget {
@@ -15,6 +16,7 @@ class AraraApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(appThemeModeProvider);
+    final isDemo = ref.watch(appModeProvider).isDemo;
     return MaterialApp.router(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
@@ -22,14 +24,19 @@ class AraraApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
-      builder: (context, child) => Column(
-        children: [
-          const DemoModeBanner(),
-          Expanded(
-            child: ContextSyncScope(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) {
+        final content = ContextSyncScope(child: child ?? const SizedBox.shrink());
+        if (!isDemo) return content;
+        return SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              const DemoModeBanner(),
+              Expanded(child: content),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

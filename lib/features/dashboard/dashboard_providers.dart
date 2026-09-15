@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'application/use_cases/load_dashboard_use_case.dart';
 import '../../app/local_context_lifecycle.dart';
+import '../../app/demo/demo_seed_collection.dart';
+import '../../core/config/app_mode.dart';
 import 'data/repositories/drift_dashboard_repository.dart';
 import 'domain/repositories/dashboard_repository.dart';
 
@@ -15,6 +17,9 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
     database,
     'day:$month:1',
     canViewFinancialMetrics: access?.canViewFinancialMetrics == true,
+    syncCollectionName: ref.watch(appModeProvider).isDemo
+        ? DemoSeedCollection.collectionName
+        : 'dashboard:day:$month:1',
   );
 });
 

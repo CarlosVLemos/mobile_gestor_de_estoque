@@ -24,4 +24,13 @@ abstract final class AppDateFormatter {
     final minute = value.minute.toString().padLeft(2, '0');
     return '$day $month, $hour:$minute';
   }
+
+  static String date(DateTime value) =>
+      '${value.day.toString().padLeft(2, '0')}/'
+      '${value.month.toString().padLeft(2, '0')}/'
+      '${value.year.toString().padLeft(4, '0')}';
+
+  static String time(DateTime value) =>
+      '${value.hour.toString().padLeft(2, '0')}:'
+      '${value.minute.toString().padLeft(2, '0')}';
 }

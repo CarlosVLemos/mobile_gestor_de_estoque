@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart';
+
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/dashboard_overview.dart';
 import '../../domain/repositories/dashboard_repository.dart';
@@ -9,33 +11,47 @@ class DriftDashboardRepository implements ReactiveDashboardRepository {
     this._database,
     this.scopeKey, {
     required this.canViewFinancialMetrics,
-  });
+    String? syncCollectionName,
+  }) : syncCollectionName = syncCollectionName ?? 'dashboard:$scopeKey';
 
   final AppDatabase _database;
   final String scopeKey;
   final bool canViewFinancialMetrics;
+  final String syncCollectionName;
 
   @override
   Future<DashboardLoadResult> load() => watch().first;
 
   @override
-  Stream<DashboardLoadResult> watch() =>
-      _database.watchDashboardSnapshot(scopeKey).map((snapshot) {
-        if (snapshot == null) {
-          return const DashboardLoadResult.empty(
-            'O painel ainda não foi sincronizado neste dispositivo.',
-          );
-        }
-        try {
-          return DashboardLoadResult.ready(_decode(snapshot));
-        } on FormatException {
-          return const DashboardLoadResult.failure(
-            'O snapshot local do painel é inválido.',
-          );
-        }
-      });
+  Stream<DashboardLoadResult> watch() {
+    final snapshots = _database.dashboardSnapshotsTable;
+    final syncCollections = _database.syncCollectionsTable;
+    final query = _database.select(snapshots).join([
+      leftOuterJoin(
+        syncCollections,
+        syncCollections.collection.equals(syncCollectionName),
+      ),
+    ])..where(snapshots.scopeKey.equals(scopeKey));
+    return query.watch().map((rows) {
+      if (rows.isEmpty) {
+        return const DashboardLoadResult.empty(
+          'O painel ainda não foi sincronizado neste dispositivo.',
+        );
+      }
+      try {
+        final row = rows.first;
+        final snapshot = row.readTable(snapshots);
+        final syncedAt = row.readTableOrNull(syncCollections)?.lastSuccessAt;
+        return DashboardLoadResult.ready(_decode(snapshot, syncedAt));
+      } on FormatException {
+        return const DashboardLoadResult.failure(
+          'O snapshot local do painel é inválido.',
+        );
+      }
+    });
+  }
 
-  DashboardOverview _decode(StoredDashboardSnapshot row) {
+  DashboardOverview _decode(StoredDashboardSnapshot row, DateTime? syncedAt) {
     final data = _map(jsonDecode(row.payloadJson));
     final canViewFinancial =
         canViewFinancialMetrics && row.canViewFinancial;
@@ -52,6 +68,7 @@ class DriftDashboardRepository implements ReactiveDashboardRepository {
       canViewFinancial: canViewFinancial,
       webDashboardUrl: row.webDashboardUrl,
       updatedAtLabel: row.generatedAt.toLocal().toString(),
+      syncedAt: syncedAt?.toLocal(),
     );
   }
 }

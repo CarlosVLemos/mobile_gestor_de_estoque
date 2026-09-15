@@ -159,27 +159,29 @@ class SalesPage extends ConsumerWidget {
     }
     final selected = await showModalBottomSheet<SaleClientOption>(
       context: context,
-      builder: (context) {
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          itemCount: state.clients.length,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (context, index) {
-            final client = state.clients[index];
-            return DecoratedBox(
-              decoration: AppDecorations.card(context),
-              child: Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  title: Text(client.name),
-                  subtitle: Text('${client.code} • ${client.city}'),
-                  onTap: () => Navigator.of(context).pop(client),
-                ),
-              ),
-            );
-          },
-        );
-      },
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => _SearchablePickerSheet<SaleClientOption>(
+        title: 'Selecionar cliente',
+        searchHint: 'Buscar por nome, código ou cidade',
+        emptyMessage: 'Nenhum cliente encontrado para essa busca.',
+        items: state.clients,
+        matches: (client, query) =>
+            client.name.toLowerCase().contains(query) ||
+            client.code.toLowerCase().contains(query) ||
+            client.city.toLowerCase().contains(query),
+        itemBuilder: (context, client, onSelect) => DecoratedBox(
+          decoration: AppDecorations.card(context),
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
+              title: Text(client.name),
+              subtitle: Text('${client.code} • ${client.city}'),
+              onTap: onSelect,
+            ),
+          ),
+        ),
+      ),
     );
 
     if (selected != null) {
@@ -195,30 +197,32 @@ class SalesPage extends ConsumerWidget {
     final selected = await showModalBottomSheet<SaleProductOption>(
       context: context,
       isScrollControlled: true,
-      builder: (context) {
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          itemCount: state.products.length,
-          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-          itemBuilder: (context, index) {
-            final product = state.products[index];
-            return DecoratedBox(
-              decoration: AppDecorations.card(context),
-              child: Material(
-                color: Colors.transparent,
-                child: ListTile(
-                  title: Text(product.name),
-                  subtitle: Text(product.sku),
-                  trailing: product.price == null
-                      ? const Text('Preço restrito')
-                      : Text(AppCurrencyFormatter.format(product.price!)),
-                  onTap: () => Navigator.of(context).pop(product),
-                ),
-              ),
-            );
-          },
-        );
-      },
+      useSafeArea: true,
+      builder: (context) => _SearchablePickerSheet<SaleProductOption>(
+        title: 'Adicionar produto',
+        searchHint: 'Buscar por nome ou SKU',
+        emptyMessage: state.products.isEmpty
+            ? 'Nenhum produto disponível para venda.'
+            : 'Nenhum produto encontrado para essa busca.',
+        items: state.products,
+        matches: (product, query) =>
+            product.name.toLowerCase().contains(query) ||
+            product.sku.toLowerCase().contains(query),
+        itemBuilder: (context, product, onSelect) => DecoratedBox(
+          decoration: AppDecorations.card(context),
+          child: Material(
+            color: Colors.transparent,
+            child: ListTile(
+              title: Text(product.name),
+              subtitle: Text(product.sku),
+              trailing: product.price == null
+                  ? const Text('Preço restrito')
+                  : Text(AppCurrencyFormatter.format(product.price!)),
+              onTap: onSelect,
+            ),
+          ),
+        ),
+      ),
     );
 
     if (selected != null) {
@@ -229,6 +233,107 @@ class SalesPage extends ConsumerWidget {
   void _showSearchMessage(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Busca global ainda não entrou no app.')),
+    );
+  }
+}
+
+class _SearchablePickerSheet<T> extends StatefulWidget {
+  const _SearchablePickerSheet({
+    required this.title,
+    required this.searchHint,
+    required this.emptyMessage,
+    required this.items,
+    required this.matches,
+    required this.itemBuilder,
+  });
+
+  final String title;
+  final String searchHint;
+  final String emptyMessage;
+  final List<T> items;
+  final bool Function(T item, String query) matches;
+  final Widget Function(BuildContext context, T item, VoidCallback onSelect)
+  itemBuilder;
+
+  @override
+  State<_SearchablePickerSheet<T>> createState() =>
+      _SearchablePickerSheetState<T>();
+}
+
+class _SearchablePickerSheetState<T> extends State<_SearchablePickerSheet<T>> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final results = widget.items
+        .where((item) => widget.matches(item, _query))
+        .toList(growable: false);
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: FractionallySizedBox(
+        heightFactor: 0.85,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Fechar',
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: widget.searchHint,
+                  prefixIcon: const Icon(AppIcons.search),
+                  border: const OutlineInputBorder(),
+                ),
+                onChanged: (value) => setState(() {
+                  _query = value.trim().toLowerCase();
+                }),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Expanded(
+                child: results.isEmpty
+                    ? Center(
+                        child: Text(
+                          widget.emptyMessage,
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        itemCount: results.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: AppSpacing.sm),
+                        itemBuilder: (context, index) {
+                          final item = results[index];
+                          return widget.itemBuilder(
+                            context,
+                            item,
+                            () => Navigator.of(context).pop(item),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

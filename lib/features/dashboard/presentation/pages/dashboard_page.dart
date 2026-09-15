@@ -9,6 +9,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
 import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
+import '../../../../shared/formatters/app_date_formatter.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
 import '../../../../shared/widgets/app_drawer.dart';
@@ -175,15 +176,38 @@ class DashboardPage extends ConsumerWidget {
                                 : KpiTone.neutral),
                     ),
                   ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final stacked = constraints.maxWidth < 320 ||
+                MediaQuery.textScalerOf(context).scale(1) > 1.3;
+            final cardWidth = stacked
+                ? constraints.maxWidth
+                : (constraints.maxWidth - AppSpacing.md) / 2;
+            return Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.md,
+              children: [
                 SizedBox(
                   width: cardWidth,
                   child: KpiCard(
-                    label: 'Atualização',
-                    value: overview.updatedAtLabel,
-                    subtitle: overview.canViewFinancial
-                        ? 'Financeiro liberado'
-                        : 'Financeiro restrito',
-                    tone: KpiTone.neutral,
+                    label: 'Sincronizado em',
+                    value: overview.syncedAt == null
+                        ? '—'
+                        : AppDateFormatter.date(overview.syncedAt!),
+                  ),
+                ),
+                SizedBox(
+                  width: cardWidth,
+                  child: KpiCard(
+                    label: 'Sincronizado às',
+                    value: overview.syncedAt == null
+                        ? '—'
+                        : AppDateFormatter.time(overview.syncedAt!),
                   ),
                 ),
               ],

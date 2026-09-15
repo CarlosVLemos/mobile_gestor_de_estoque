@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/app_decorations.dart';
+import '../../app/theme/app_spacing.dart';
+import '../../app/theme/app_theme_context.dart';
 import '../../core/config/app_mode.dart';
-import 'status_badge.dart';
 
 class DemoModeBanner extends ConsumerWidget {
   const DemoModeBanner({super.key});
@@ -13,13 +14,31 @@ class DemoModeBanner extends ConsumerWidget {
     if (!ref.watch(appModeProvider).isDemo) {
       return const SizedBox.shrink();
     }
-    return const SafeArea(
-      bottom: false,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: StatusBadge(
-          label: 'Modo demonstração — dados fictícios',
-          tone: AppStatusTone.warning,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.xs,
+          AppSpacing.md,
+          AppSpacing.xs,
+        ),
+        child: DecoratedBox(
+          decoration: AppDecorations.tonalBadge(context, AppStatusTone.warning),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            child: Text(
+              'DEMO • dados fictícios',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.textTheme.labelSmall?.copyWith(
+                color: context.appColors.onWarningContainer,
+              ),
+            ),
+          ),
         ),
       ),
     );

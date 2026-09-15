@@ -6,6 +6,7 @@ DashboardOverview buildDashboardFixture() {
     canViewFinancial: appFixtureAccessProfile.canViewFinancialMetrics,
     webDashboardUrl: 'https://app.exemplo/painel',
     updatedAtLabel: 'Atualizado às 09:40',
+    syncedAt: DateTime(2026, 6, 12, 9, 40),
     kpis: [
       const DashboardKpi(
         label: 'Pedidos em campo',
