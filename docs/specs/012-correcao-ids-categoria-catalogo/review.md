@@ -1,9 +1,9 @@
 # Review — Spec 012
 
-Status: `IN_PROGRESS — STATIC ANALYSIS PENDING`
-Validation verdict: `passed_with_restrictions`
+Status: `DONE — VALIDATED`
+Validation verdict: `passed`
 
-## Checklist de revisão futura
+## Checklist de revisão
 
 - [x] O diff de implementação da 012 está restrito aos paths congelados.
 - [x] Category usa validação UUID específica.
@@ -14,7 +14,7 @@ Validation verdict: `passed_with_restrictions`
 - [x] A UUID realista aparece nos testes.
 - [x] Upsert, FK, tombstone e checkpoint têm evidência de não regressão.
 - [x] `validation-result.md` registra os gates executados.
-- [ ] Mefisto emite `passed` após `flutter analyze --no-pub`.
+- [x] Mefisto emite `passed` após `flutter analyze --no-pub`.
 
 ## Procedimento de revalidação da 009C
 
@@ -28,4 +28,4 @@ Validation verdict: `passed_with_restrictions`
 
 ## Handoff
 
-A implementação e os testes funcionais estão concluídos. Mefisto deve executar `flutter analyze --no-pub` quando houver autorização explícita atual; em caso de sucesso, registrar `passed`, aceitar o `CR-009C-001` e devolver a 009C a `done`/validada.
+A implementação, os testes funcionais e o `flutter analyze --no-pub` foram concluídos. Mefisto registrou `passed`, o `CR-009C-001` foi aceito e a 009C voltou a `done`/validada.

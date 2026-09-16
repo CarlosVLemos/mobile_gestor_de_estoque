@@ -1,6 +1,6 @@
 # Tasks — Spec 012
 
-Status: `IN_PROGRESS — STATIC ANALYSIS PENDING`
+Status: `DONE — VALIDATED`
 
 ## Gate de governança
 
@@ -31,7 +31,7 @@ Status: `IN_PROGRESS — STATIC ANALYSIS PENDING`
 ## Fechamento
 
 - [x] Registrar comandos, resultados e ambiente em `validation-result.md`.
-- [ ] Mefisto emite veredito final após análise estática.
-- [ ] Registrar o resultado no `CR-009C-001`.
-- [ ] Se `PASS`, aceitar o CR, aplicar adendo histórico e devolver 009C a `done`/validada.
-- [ ] Se `FAIL` ou `PARTIAL`, manter CR e reabertura ativos.
+- [x] Mefisto emite veredito final após análise estática.
+- [x] Registrar o resultado no `CR-009C-001`.
+- [x] Com `PASS`, aceitar o CR, aplicar adendo histórico e devolver 009C a `done`/validada.
+- [x] Ramo `FAIL`/`PARTIAL` não aplicável; o veredito final foi `passed`.

@@ -1,6 +1,6 @@
 # Test Plan — Spec 012
 
-Status: `EXECUTED — STATIC ANALYSIS PENDING`
+Status: `EXECUTED — PASSED`
 Execução nesta sessão: autorizada pelo pedido de estabilização e pela ordem posterior para rodar os testes.
 
 ## Objetivo

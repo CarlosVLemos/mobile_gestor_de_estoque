@@ -112,7 +112,7 @@ Não são esperadas alterações em `app_database.dart`, migrations, `schemaVers
 - [x] AC-012-11: os testes incluem `550e8400-e29b-41d4-a716-446655440000`.
 - [x] AC-012-12: nenhuma migração Drift foi criada; as colunas textuais já eram compatíveis.
 - [x] AC-012-13: o contrato congelado da 009C recebeu reabertura por CR aprovado antes da implementação.
-- [ ] AC-012-14: testes focados e suíte completa passaram; falta executar `flutter analyze` para o veredito final.
+- [x] AC-012-14: testes focados, suíte completa e `flutter analyze --no-pub` passaram; veredito final `passed` registrado em `validation-result.md`.
 
 ## Impacto na 009C
 
@@ -125,4 +125,4 @@ A 009C entregou a integração de leitura do catálogo, mas congelou/validou uma
 3. [atendido] a missão de estabilização aprovou o Change Request;
 4. [atendido] `contract.md` passou a `FROZEN` antes da implementação.
 
-A implementação foi autorizada e concluída. O único gate de fechamento pendente é a análise estática.
+A implementação foi autorizada, concluída e validada, incluindo a análise estática.

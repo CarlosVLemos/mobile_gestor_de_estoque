@@ -12,15 +12,16 @@ Esta é a porta de entrada canônica para o estado comprovado do Arara-Gastos Mo
 008B Isolamento user + tenant             ✅ entregue
 009A Drift/schema e migrações             ✅ validada
 009B Sync Engine Base                     ✅ validada
-009C Catálogo/dashboard local-first       🟨 revalidação do CR-009C-001
-010  Outbox/vendas                        🟨 implementação E2E local / validação pendente
+009C Catálogo/dashboard local-first       ✅ validada
+010  Outbox/vendas                        ✅ validada
 011  Draft histórico                      ⛔ superseded
-012  Category UUID                        🟨 implementada / analyze pendente
-013  Contexto real e observabilidade      🟨 implementada / analyze pendente
+012  Category UUID                        ✅ validada
+013  Contexto real e observabilidade      ✅ validada
+013D Runtime demo sem API                 ✅ validada
 Release                                   ⏭ pendente
 ```
 
-A suíte Flutter completa passou com 220 testes e zero falhas. O `flutter analyze --no-pub` ainda não foi executado porque a revisão automática de permissão recusou o comando.
+A suíte Flutter completa e o `flutter analyze --no-pub` passaram sem falhas, erros ou lints. Os testes golden visuais de Shell, Dashboard e Catálogo também foram aprovados (6/6).
 
 ## Verticais reais
 
@@ -28,21 +29,24 @@ A suíte Flutter completa passou com 220 testes e zero falhas. O `flutter analyz
 Catálogo/dashboard:
 API -> SyncEngine -> Drift -> Repository -> Controller -> Page
 
-Núcleo de vendas implementado:
+Vendas local-first validadas:
 RegisterSaleUseCase -> venda local + outbox atômicas
   -> SyncEngine -> OutboxProcessor -> sale-intents
 
-Tela de vendas local em validação:
+Tela de vendas persistente:
 Drift clients/products -> SalesController -> RegisterSaleUseCase -> Drift/outbox
+
+Runtime demo validado:
+sessão demo -> banco isolado -> seed Drift -> gateway sem HTTP
 ```
 
-O núcleo e a tela estão conectados localmente; falta concluir os gates atuais.
+O núcleo, a tela persistente e o runtime demo estão conectados e validados. Operações pendentes continuam explicitamente distintas de confirmação remota.
 
 ## Contratos e bloqueios
 
 - Category usa UUID no backend; Product e tombstones de Product usam inteiros. O mobile preserva todos como `String` interna, com validação específica por entidade.
 - O backend `dev@f8ff65e` possui snapshot mobile de clientes e recovery seguro de `requires_confirmation`; ambos os blockers antigos estão resolvidos.
-- O mobile local implementa clientes Drift/snapshot, UI persistente de vendas e aceite, mas os gates finais ainda não foram executados.
+- O mobile implementa clientes Drift/snapshot, UI persistente de vendas, aceite e recovery; os gates finais foram aprovados.
 - Settings usa dados da `UserSession` real; não há fallback fixture.
 - `syncStateProvider` observa a mesma instância contextual usada pelo lifecycle.
 - Startup autenticado, refresh manual e `resumed` com cooldown estão ligados. Connectivity/background continuam pendentes.
@@ -61,10 +65,9 @@ O núcleo e a tela estão conectados localmente; falta concluir os gates atuais.
 
 ## Próximo caminho crítico
 
-1. concluir `flutter analyze --no-pub` e fechar 009C/012/013;
-2. validar a implementação local de clientes, vendas e demo e fechar 010/013D somente com gates verdes;
-3. adicionar UX/connectivity mínima, hardening e observabilidade operacional;
-4. configurar release, HTTPS/VPS, identidade do app e executar smoke E2E.
+1. adicionar UX de offline/connectivity e hardening operacional;
+2. configurar release, HTTPS/VPS e identidade do app;
+3. executar smoke E2E em ambiente/dispositivo alvo.
 
 ## Como escolher o que ler
 

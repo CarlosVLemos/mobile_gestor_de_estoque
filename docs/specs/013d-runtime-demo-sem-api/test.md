@@ -1,6 +1,6 @@
 # Test Plan — Spec 013D
 
-Status: `READY`
+Status: `EXECUTED — PASSED`
 
 - parser e default normal;
 - demo sem `API_BASE_URL`;
