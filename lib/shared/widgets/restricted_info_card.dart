@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import '../../app/theme/app_decorations.dart';
-import '../../app/theme/app_spacing.dart';
-import '../../app/theme/app_theme_context.dart';
-import 'status_badge.dart';
+import 'app_state_panel.dart';
 
 class RestrictedInfoCard extends StatelessWidget {
   const RestrictedInfoCard({
@@ -19,33 +16,11 @@ class RestrictedInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: AppDecorations.card(context),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const StatusBadge(
-              label: 'Restrito',
-              tone: AppStatusTone.restricted,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(title, style: context.textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              message,
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: context.appColors.onSurfaceMuted,
-              ),
-            ),
-            if (action != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              action!,
-            ],
-          ],
-        ),
-      ),
+    return AppStatePanel(
+      tone: AppStatePanelTone.restricted,
+      title: title,
+      message: message,
+      action: action,
     );
   }
 }

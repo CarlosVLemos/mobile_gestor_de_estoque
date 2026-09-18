@@ -26,6 +26,8 @@ abstract final class AppIcons {
   static const IconData tune = LucideIcons.slidersHorizontal;
   static const IconData shield = LucideIcons.shield;
   static const IconData search = LucideIcons.search;
+  static const IconData close = LucideIcons.x;
+  static const IconData info = LucideIcons.info;
   static const IconData filter = LucideIcons.listFilter;
   static const IconData settings = LucideIcons.settings;
   static const IconData themeLight = LucideIcons.sun;

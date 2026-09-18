@@ -10,6 +10,10 @@ class AppThemeModeController extends Notifier<ThemeMode> {
   @override
   ThemeMode build() => ThemeMode.system;
 
+  void setMode(ThemeMode mode) {
+    state = mode;
+  }
+
   void toggle(Brightness platformBrightness) {
     state = switch (state) {
       ThemeMode.dark => ThemeMode.light,

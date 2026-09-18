@@ -12,17 +12,23 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: AppDecorations.tonalBadge(context, tone),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        child: Text(
-          label,
-          style: context.textTheme.labelMedium?.copyWith(
-            color: _foreground(context),
+    return Semantics(
+      container: true,
+      label: 'Status: $label',
+      child: ExcludeSemantics(
+        child: DecoratedBox(
+          decoration: AppDecorations.tonalBadge(context, tone),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Text(
+              label,
+              style: context.textTheme.labelMedium?.copyWith(
+                color: _foreground(context),
+              ),
+            ),
           ),
         ),
       ),
@@ -37,6 +43,7 @@ class StatusBadge extends StatelessWidget {
       AppStatusTone.warning => tokens.onWarningContainer,
       AppStatusTone.error => colors.onErrorContainer,
       AppStatusTone.restricted => tokens.onRestricted,
+      AppStatusTone.info => colors.onPrimaryContainer,
     };
   }
 }

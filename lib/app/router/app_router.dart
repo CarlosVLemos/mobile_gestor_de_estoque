@@ -60,8 +60,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.changePassword,
         builder: (context, state) => const ChangePasswordPage(),
       ),
-      // TODO(auth): proteger a shell operacional quando o fluxo mobile de login
-      // estiver disponível. Até lá, esta navegação usa bootstrap local controlado.
+      // Os redirects acima protegem a shell autenticada. O indexed stack
+      // preserva o estado independente de cada destino principal.
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return _OperationalShellPage(navigationShell: navigationShell);
@@ -97,8 +97,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.more,
                 builder: (context, state) => const MorePage(),
               ),
-              // TODO(auth): a rota permanece pública apenas dentro do bootstrap
-              // local enquanto a spec de autenticação não existe.
+              // Conta permanece aninhada no branch de Mais sem criar um novo
+              // destino na navegação principal.
               GoRoute(
                 path: AppRoutes.context,
                 builder: (context, state) => const OperationalContextPage(),

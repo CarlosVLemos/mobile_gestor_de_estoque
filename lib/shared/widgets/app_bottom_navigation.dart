@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_motion.dart';
 import '../../app/theme/app_radius.dart';
 import '../../app/theme/app_sizes.dart';
+import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_theme_context.dart';
 
 class AppBottomNavigationDestination {
@@ -34,88 +36,108 @@ class AppBottomNavigation extends StatelessWidget {
     final textScaler = MediaQuery.textScalerOf(context);
     final isTextLarge = textScaler.scale(1) > 1.3;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      child: SizedBox(
-        height: isTextLarge
-            ? AppSizes.bottomNavigationExpandedHeight
-            : AppSizes.bottomNavigationHeight,
-        child: Padding(
-          padding: isTextLarge
-              ? const EdgeInsets.symmetric(vertical: 8.0)
-              : EdgeInsets.zero,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border(top: BorderSide(color: tokens.borderSubtle)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset),
+        child: SizedBox(
+          height: isTextLarge
+              ? AppSizes.bottomNavigationExpandedHeight
+              : AppSizes.bottomNavigationHeight,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              for (var i = 0; i < destinations.length; i++) ...[
-                (() {
-                  final destination = destinations[i];
-                  final isSelected = i == currentIndex;
-                  final contentColor = isSelected
-                      ? colors.primary
-                      : tokens.onSurfaceMuted;
+              for (var i = 0; i < destinations.length; i++)
+                Expanded(
+                  child: _NavigationItem(
+                    destination: destinations[i],
+                    selected: i == currentIndex,
+                    onTap: () => onSelect(i),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-                  return Expanded(
-                    child: Semantics(
-                      selected: isSelected,
-                      container: true,
-                      button: true,
-                      label: destination.label,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => onSelect(i),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              minWidth: AppSizes.minTouchTarget,
-                              minHeight: AppSizes.minTouchTarget,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? colors.primary.withValues(alpha: 0.1)
-                                        : Colors.transparent,
-                                    borderRadius: const BorderRadius.all(
-                                      AppRadius.radiusSm,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    destination.icon,
-                                    size: AppSizes.navigationIcon,
-                                    color: contentColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  destination.label,
-                                  textAlign: TextAlign.center,
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: contentColor,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+class _NavigationItem extends StatelessWidget {
+  const _NavigationItem({
+    required this.destination,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppBottomNavigationDestination destination;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected
+        ? context.colors.onPrimaryContainer
+        : context.appColors.onSurfaceMuted;
+
+    return Semantics(
+      selected: selected,
+      button: true,
+      label: destination.label,
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: AppSizes.minTouchTarget,
+                minHeight: AppSizes.minTouchTarget,
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedContainer(
+                      duration: AppDurations.fast,
+                      curve: AppCurves.standard,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? context.colors.primaryContainer
+                            : Colors.transparent,
+                        borderRadius: AppRadius.pill,
+                      ),
+                      child: Icon(
+                        destination.icon,
+                        size: AppSizes.navigationIcon,
+                        color: foreground,
                       ),
                     ),
-                  );
-                })(),
-              ],
-            ],
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      destination.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.labelMedium?.copyWith(
+                        color: foreground,
+                        fontWeight: selected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),

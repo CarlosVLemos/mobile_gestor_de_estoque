@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
-import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
-import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
@@ -41,30 +39,10 @@ class CatalogPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(catalogControllerProvider);
     final controller = ref.read(catalogControllerProvider.notifier);
-    final themeMode = ref.watch(appThemeModeProvider);
 
     return Scaffold(
-      drawer: const AppDrawer(),
       backgroundColor: Colors.transparent,
-      appBar: OperationalTopBar(
-        title: 'Produtos',
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(AppIcons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
-        ),
-        showSearchAction: true,
-        onSearchPressed: () => _showSearchMessage(context),
-        themeMode: themeMode,
-        onThemeToggle: () {
-          ref
-              .read(appThemeModeProvider.notifier)
-              .toggle(MediaQuery.platformBrightnessOf(context));
-        },
-      ),
+      appBar: const OperationalTopBar(title: 'Produtos'),
       body: RefreshIndicator(
         onRefresh: controller.refresh,
         child: ListView(
@@ -188,9 +166,4 @@ class CatalogPage extends ConsumerWidget {
     );
   }
 
-  void _showSearchMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Busca global ainda não entrou no app.')),
-    );
-  }
 }

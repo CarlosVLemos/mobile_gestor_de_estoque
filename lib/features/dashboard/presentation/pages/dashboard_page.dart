@@ -4,15 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_decorations.dart';
-import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
-import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
 import '../../../../shared/formatters/app_date_formatter.dart';
 import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
-import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/kpi_card.dart';
@@ -34,30 +31,10 @@ class DashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardControllerProvider);
     final controller = ref.read(dashboardControllerProvider.notifier);
-    final themeMode = ref.watch(appThemeModeProvider);
 
     return Scaffold(
-      drawer: const AppDrawer(),
       backgroundColor: Colors.transparent,
-      appBar: OperationalTopBar(
-        title: 'Painel',
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(AppIcons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
-        ),
-        showSearchAction: true,
-        onSearchPressed: () => _showSearchMessage(context),
-        themeMode: themeMode,
-        onThemeToggle: () {
-          ref
-              .read(appThemeModeProvider.notifier)
-              .toggle(MediaQuery.platformBrightnessOf(context));
-        },
-      ),
+      appBar: const OperationalTopBar(title: 'Painel'),
       body: RefreshIndicator(
         onRefresh: controller.refresh,
         child: ListView(
@@ -364,12 +341,6 @@ class DashboardPage extends ConsumerWidget {
             ),
           ),
       ],
-    );
-  }
-
-  void _showSearchMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Busca global ainda não entrou no app.')),
     );
   }
 

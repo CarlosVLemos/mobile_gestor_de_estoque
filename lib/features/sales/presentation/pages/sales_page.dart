@@ -5,9 +5,7 @@ import '../../../../app/shell/shell_profile.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
-import '../../../../app/theme/app_theme_mode_controller.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
-import '../../../../shared/widgets/app_drawer.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
@@ -27,7 +25,6 @@ class SalesPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(salesControllerProvider);
     final controller = ref.read(salesControllerProvider.notifier);
-    final themeMode = ref.watch(appThemeModeProvider);
     final persistedSales = ref.watch(persistedSalesProvider);
     final shellProfile = ref.watch(shellProfileProvider);
     final permissions = shellProfile.permissions;
@@ -36,27 +33,8 @@ class SalesPage extends ConsumerWidget {
     final canViewFinancial = permissions['view_financial_metrics'] ?? false;
 
     return Scaffold(
-      drawer: const AppDrawer(),
       backgroundColor: Colors.transparent,
-      appBar: OperationalTopBar(
-        title: 'Vendas',
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(AppIcons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            );
-          },
-        ),
-        showSearchAction: true,
-        onSearchPressed: () => _showSearchMessage(context),
-        themeMode: themeMode,
-        onThemeToggle: () {
-          ref
-              .read(appThemeModeProvider.notifier)
-              .toggle(MediaQuery.platformBrightnessOf(context));
-        },
-      ),
+      appBar: const OperationalTopBar(title: 'Vendas'),
       body: ListView(
         padding: AppSpacing.screenPadding,
         children: [
@@ -230,11 +208,6 @@ class SalesPage extends ConsumerWidget {
     }
   }
 
-  void _showSearchMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Busca global ainda não entrou no app.')),
-    );
-  }
 }
 
 class _SearchablePickerSheet<T> extends StatefulWidget {

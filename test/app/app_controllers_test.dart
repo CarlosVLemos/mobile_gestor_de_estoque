@@ -19,6 +19,21 @@ void main() {
     expect(container.read(appThemeModeProvider), ThemeMode.light);
   });
 
+  test('tema aceita seleção explícita sem persistência adicional', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final controller = container.read(appThemeModeProvider.notifier);
+
+    controller.setMode(ThemeMode.light);
+    expect(container.read(appThemeModeProvider), ThemeMode.light);
+
+    controller.setMode(ThemeMode.dark);
+    expect(container.read(appThemeModeProvider), ThemeMode.dark);
+
+    controller.setMode(ThemeMode.system);
+    expect(container.read(appThemeModeProvider), ThemeMode.system);
+  });
+
   test('nome local é normalizado e entrada vazia é ignorada', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

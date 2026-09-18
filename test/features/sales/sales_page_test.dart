@@ -22,7 +22,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cliente Real'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Adicionar produto'));
+    await tester.ensureVisible(find.text('Adicionar produto'));
+    await tester.tap(
+      find.text('Adicionar produto'),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Produto Drift').last);
     await tester.pumpAndSettle();
@@ -35,6 +38,8 @@ void main() {
     expect(repository.draft?.items.single.productId, '101');
     expect(find.textContaining('registrada localmente'), findsOneWidget);
     expect(find.textContaining('Somente nesta sessão'), findsNothing);
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+    expect(scaffold.drawer, isNull);
   });
 
   testWidgets('busca cliente por nome, código e cidade antes da seleção', (
@@ -77,7 +82,10 @@ void main() {
   testWidgets('busca produto por nome e SKU antes de adicionar', (tester) async {
     await tester.pumpWidget(_page(_Repository(), references: _searchReferences()));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Adicionar produto'));
+    await tester.ensureVisible(find.text('Adicionar produto'));
+    await tester.tap(
+      find.text('Adicionar produto'),
+    );
     await tester.pumpAndSettle();
 
     final search = find.byType(TextField);
@@ -115,7 +123,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Nenhum cliente selecionado.'), findsOneWidget);
 
-    await tester.tap(find.text('Adicionar produto'));
+    await tester.ensureVisible(find.text('Adicionar produto'));
+    await tester.tap(
+      find.text('Adicionar produto'),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Fechar'));
     await tester.pumpAndSettle();
@@ -145,7 +156,10 @@ void main() {
     await tester.tap(find.byTooltip('Fechar'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Adicionar produto'));
+    await tester.ensureVisible(find.text('Adicionar produto'));
+    await tester.tap(
+      find.text('Adicionar produto'),
+    );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });

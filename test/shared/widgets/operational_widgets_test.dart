@@ -47,10 +47,8 @@ void main() {
             child: const Scaffold(
               appBar: OperationalTopBar(
                 title: 'Título operacional longo',
-                leading: IconButton(onPressed: null, icon: Icon(AppIcons.menu)),
                 actions: [
-                  IconButton(onPressed: null, icon: Icon(AppIcons.search)),
-                  IconButton(onPressed: null, icon: Icon(AppIcons.themeDark)),
+                  IconButton(onPressed: null, icon: Icon(AppIcons.refresh)),
                 ],
               ),
             ),
@@ -62,8 +60,11 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Título operacional longo'), findsOneWidget);
-      expect(find.byIcon(AppIcons.search), findsOneWidget);
-      expect(find.byIcon(AppIcons.themeDark), findsOneWidget);
+      expect(find.byIcon(AppIcons.refresh), findsOneWidget);
+      expect(find.byIcon(AppIcons.menu), findsNothing);
+      expect(find.byIcon(AppIcons.search), findsNothing);
+      expect(find.byIcon(AppIcons.themeDark), findsNothing);
+      expect(find.byIcon(AppIcons.themeLight), findsNothing);
     });
   });
 
@@ -151,11 +152,24 @@ void main() {
   });
 
   group('AppBottomNavigation', () {
-    testWidgets('renderiza destinos e responde ao toque', (tester) async {
+    testWidgets('mantém quatro destinos, seleção visual e resposta ao toque', (
+      tester,
+    ) async {
       int selectedIndex = -1;
-      final destinations = [
-        const AppBottomNavigationDestination(label: 'Dest 1', icon: Icons.home),
-        const AppBottomNavigationDestination(label: 'Dest 2', icon: Icons.star),
+      const destinations = [
+        AppBottomNavigationDestination(
+          label: 'Painel',
+          icon: AppIcons.dashboard,
+        ),
+        AppBottomNavigationDestination(
+          label: 'Produtos',
+          icon: AppIcons.products,
+        ),
+        AppBottomNavigationDestination(
+          label: 'Vendas',
+          icon: AppIcons.sales,
+        ),
+        AppBottomNavigationDestination(label: 'Mais', icon: AppIcons.more),
       ];
 
       await tester.pumpWidget(
@@ -173,13 +187,28 @@ void main() {
         ),
       );
 
-      expect(find.text('Dest 1'), findsOneWidget);
-      expect(find.text('Dest 2'), findsOneWidget);
+      expect(find.text('Painel'), findsOneWidget);
+      expect(find.text('Produtos'), findsOneWidget);
+      expect(find.text('Vendas'), findsOneWidget);
+      expect(find.text('Mais'), findsOneWidget);
 
-      await tester.tap(find.text('Dest 2'));
+      final selectedIcon = tester.widget<Icon>(
+        find.byIcon(AppIcons.dashboard),
+      );
+      final inactiveIcon = tester.widget<Icon>(find.byIcon(AppIcons.products));
+      expect(selectedIcon.color, isNot(inactiveIcon.color));
+      final selectedSemantics = tester.widget<Semantics>(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics && widget.properties.label == 'Painel',
+        ),
+      );
+      expect(selectedSemantics.properties.selected, isTrue);
+
+      await tester.tap(find.text('Vendas'));
       await tester.pump();
 
-      expect(selectedIndex, 1);
+      expect(selectedIndex, 2);
     });
 
     testWidgets('absorve safe area inset inferior', (tester) async {

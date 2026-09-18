@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gestor_de_estoque/app/theme/app_icons.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
 import 'package:gestor_de_estoque/features/catalog/catalog_providers.dart';
 import 'package:gestor_de_estoque/features/catalog/data/repositories/fixture_catalog_repository.dart';
@@ -29,5 +30,8 @@ void main() {
     expect(find.text('Capacete Trail Pro'), findsOneWidget);
     expect(find.text('Preço restrito'), findsWidgets);
     expect(find.text('Kit Sinalização LED'), findsOneWidget);
+    expect(find.byType(Drawer), findsNothing);
+    expect(find.byIcon(AppIcons.menu), findsNothing);
+    expect(find.byIcon(AppIcons.themeDark), findsNothing);
   });
 }

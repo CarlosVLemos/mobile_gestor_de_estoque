@@ -5,7 +5,7 @@ import 'app_radius.dart';
 import 'app_shadows.dart';
 import 'app_theme_context.dart';
 
-enum AppStatusTone { success, warning, error, restricted }
+enum AppStatusTone { success, warning, error, restricted, info }
 
 abstract final class AppDecorations {
   const AppDecorations._();
@@ -90,26 +90,6 @@ abstract final class AppDecorations {
     );
   }
 
-  /// Variante de vidro sem borderRadius, para uso em barras de navegação
-  /// que são recortadas pelo container pai com [ClipRRect].
-  static BoxDecoration glassSurfaceBar(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = context.colors;
-
-    return BoxDecoration(
-      color: colors.surface.withValues(
-        alpha: theme.brightness == Brightness.dark ? 0.72 : 0.88,
-      ),
-      border: Border(
-        top: BorderSide(
-          color: theme.brightness == Brightness.dark
-              ? colors.onSurface.withValues(alpha: 0.08)
-              : AppColors.white.withValues(alpha: 0.72),
-        ),
-      ),
-    );
-  }
-
   static BoxDecoration tonalBadge(BuildContext context, AppStatusTone tone) {
     final colors = context.colors;
     final tokens = context.appColors;
@@ -125,6 +105,10 @@ abstract final class AppDecorations {
       ),
       AppStatusTone.error => (colors.errorContainer, colors.onErrorContainer),
       AppStatusTone.restricted => (tokens.restricted, tokens.onRestricted),
+      AppStatusTone.info => (
+        colors.primaryContainer,
+        colors.onPrimaryContainer,
+      ),
     };
 
     return BoxDecoration(

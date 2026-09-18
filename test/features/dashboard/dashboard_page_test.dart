@@ -37,13 +37,15 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('ATUALIZAÇÃO'), findsOneWidget);
+      expect(find.text('Atualização'), findsOneWidget);
       expect(find.text('Meta operacional'), findsOneWidget);
       expect(find.text('Nível de estoque'), findsOneWidget);
       expect(find.text('Financeiro restrito'), findsNWidgets(2));
       expect(find.text('Movimentos'), findsOneWidget);
       expect(find.text('KPIs resumidos'), findsNothing);
       expect(find.text('Movimentos recentes'), findsNothing);
+      final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
+      expect(scaffold.drawer, isNull);
     },
   );
 
