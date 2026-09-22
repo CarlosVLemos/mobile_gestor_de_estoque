@@ -297,7 +297,7 @@ class _SearchablePickerSheetState<T> extends State<_SearchablePickerSheet<T>> {
                   ),
                   IconButton(
                     tooltip: 'Fechar',
-                    icon: const Icon(Icons.close),
+              icon: const Icon(AppIcons.close),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
