@@ -1,11 +1,13 @@
 # Tasks — Spec 014
 
-Status: `DONE — Gate consolidado 5–8: PASS; Fase 9: PASS`
+Status: `DONE — Gate consolidado 5–8: PASS; Fase 9: PASS WITH RESTRICTION`
 Execution mode: `SINGLE_WRITER`
 
 ## Fechamento autoritativo — Fase 9
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`. Fase 9 `PASS`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`. Fase 9 `PASS WITH RESTRICTION`.
+TalkBack e ordem de foco em aparelho/emulador permanecem como check manual
+residual; não reabrem a implementação nem bloqueiam o fechamento aceito.
 
 - O harness em `test/goldens/visual_goldens_test.dart` declara exatamente 18
   superfícies em 390×844: Shell, Login, Troca de senha, Dashboard, Catálogo,
@@ -253,8 +255,8 @@ operacionais de Vendas, Conta/Empresa e acessibilidade.
 - [x] Van Gogh entrega handoff curto com paths, decisões e riscos.
 - [x] Mefisto compara diff contra o contrato FROZEN.
 - [x] Mefisto registra resultados reais em `validation-result.md`.
-- [x] Mefisto emite `passed`.
-- [x] Jarvis registra riscos residuais e fecha a Spec após o veredito.
+- [x] Mefisto emite `passed_with_restrictions`.
+- [x] Jarvis registra TalkBack/ordem de foco como residual e fecha a Spec.
 
 ## Histórico — Parallel now
 

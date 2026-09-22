@@ -1,11 +1,11 @@
 # Review — Spec 014
 
-Status: `DONE — Gate consolidado 5–8: PASS; Fase 9: PASS`
-Validation: `PASS`
+Status: `DONE — Gate consolidado 5–8: PASS; Fase 9: PASS WITH RESTRICTION`
+Validation: `PASS WITH RESTRICTION`
 
 ## Fase 9 — Review final
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS WITH RESTRICTION`.
 
 O harness de golden foi ampliado para exatamente 18 superfícies em 390×844,
 cobrindo Shell, Auth, Dashboard, Catálogo, Vendas nova/histórico, Mais e
@@ -15,7 +15,8 @@ foi modificada nesta fase.
 
 Os 18 PNGs foram gerados/comparados e aprovados em revisão humana. O contraste
 do hero dark e a captura do CTA de Nova venda foram corrigidos. Golden suite,
-analyze e suíte completa passaram. Mefisto emite `passed`; Jarvis fecha a Spec.
+analyze e suíte completa passaram. Mefisto emite `passed_with_restrictions`;
+Jarvis fecha a Spec com TalkBack/ordem de foco manual como residual explícito.
 
 ## Registro histórico de estabilização — não autoritativo
 
@@ -274,9 +275,9 @@ seguia `FAIL / pending revalidation`; o resultado foi superado pelo `PASS` final
 1. `DEBT-014-01`: detalhes da proposta exigem modelo estruturado futuro; risco aceito, sem parsing visual;
 2. remoção do Drawer deve preservar logout e confirmação de pendências em Mais;
 3. estoque no picker exigiria ampliar `SaleProductOption` e permanece fora da 014;
-4. o golden armazenado do Dashboard pode estar defasado da fonte e precisa de gate autorizado;
+4. resolvido: o golden do Dashboard foi regenerado e aprovado com o foreground `onSurfaceHero`;
 5. goldens podem gerar custo alto se pickers/estados transitórios forem incluídos sem estabilidade;
-6. escopo transversal exige revisões por fase para manter o diff auditável.
+6. TalkBack e ordem de foco aguardam validação manual em aparelho/emulador.
 
 ## Jarvis closure
 
@@ -285,5 +286,6 @@ seguia `FAIL / pending revalidation`; o resultado foi superado pelo `PASS` final
 Próximo gate:
 
 ```text
-nenhum — Spec 014 encerrada após veredito Mefisto `passed`
+nenhum bloqueante — Spec 014 encerrada após veredito Mefisto `passed_with_restrictions`;
+TalkBack/ordem de foco permanece como check manual residual
 ```

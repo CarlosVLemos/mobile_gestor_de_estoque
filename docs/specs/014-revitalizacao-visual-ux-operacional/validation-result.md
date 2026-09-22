@@ -1,11 +1,11 @@
 # Validation Result — Spec 014
 
-Status: `Gate consolidado 5–8: PASS; Fase 9: PASS`
-Validation: `PASS`
+Status: `Gate consolidado 5–8: PASS; Fase 9: PASS WITH RESTRICTION`
+Validation: `PASS WITH RESTRICTION`
 
 ## Fase 9 — Resultado final
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS WITH RESTRICTION`.
 
 Foram comparados e aprovados 18 goldens estáveis em 390×844 para as nove
 superfícies em claro/escuro. A revisão humana confirmou o contraste corrigido
@@ -18,7 +18,11 @@ Warnings Drift preexistentes não bloquearam a validação.
 Os blocos anteriores de `FAIL / pending revalidation` são histórico de
 estabilizações anteriores e não substituem este status.
 
-Mefisto verdict: `passed`.
+Mefisto verdict: `passed_with_restrictions`.
+
+Restrição residual: QA-014-16 permanece `NOT_RUN / residual manual check` para
+TalkBack e ordem de foco em aparelho/emulador. Semântica, touch targets,
+responsividade, contraste visual e regressão automatizada foram aprovados.
 
 ## Registro histórico de estabilização — não autoritativo
 
@@ -202,11 +206,12 @@ Validação consolidada: `NOT_RUN`.
 - proposta estruturada não está disponível ao presentation; risco conhecido
   aceito como `DEBT-014-01` e não bloqueia a 014;
 - estoque não está disponível no modelo atual do picker de produto;
-- há indício estático de golden do Dashboard defasado em relação à fonte atual;
-- acessibilidade e contraste exigem validação posterior em runtime/dispositivo;
+- resolvido na Fase 9: o golden do Dashboard foi regenerado e aprovado após a
+  correção de contraste com `onSurfaceHero`;
+- TalkBack e ordem de foco ainda exigem validação manual em aparelho/emulador;
 - arquivos históricos possuem alguns comentários/copies obsoletos que não provam o estado funcional atual;
-- validação manual de contraste/TalkBack e superfícies consumidoras continua
-  pertencendo aos gates posteriores da Spec;
+- contraste e superfícies consumidoras foram aprovados; TalkBack manual
+  permanece como restrição residual documentada;
 - `ProductCard` ainda usa badge para preço no baseline; a correção pertence à
   Fase 5 e não foi antecipada nesta entrega;
 - Fase 2 foi implementada, mas permanece sem evidência runtime até o QA

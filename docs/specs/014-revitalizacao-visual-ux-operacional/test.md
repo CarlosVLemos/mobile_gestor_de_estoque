@@ -1,12 +1,15 @@
 # Test Plan — Spec 014
 
-Status: `Gate consolidado 5–8: PASS; Fase 9: PASS`
+Status: `Gate consolidado 5–8: PASS; Fase 9: PASS WITH RESTRICTION`
 Execução final: 18 goldens comparados, análise estática e suíte completa aprovados
 Validation: `PASS`
 
 ## Fase 9 — Golden suite validada
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS WITH RESTRICTION`.
+Restrição residual: TalkBack e ordem de foco ainda não foram validados
+manualmente em aparelho/emulador; cobertura automatizada de semântica e touch
+targets permanece aprovada.
 
 O arquivo `test/goldens/visual_goldens_test.dart` contém exatamente 18 casos:
 Shell, Login, Troca de senha, Dashboard, Catálogo, Vendas/Nova venda,
@@ -61,9 +64,9 @@ outbox, confirmação remota ou boundaries arquiteturais.
 | QA-014-13 | boundaries, estrutura e ícones | architecture | nenhuma alteração incidental fora dos paths; Lucide encapsulado | `PASS` |
 | QA-014-14 | análise estática | static | zero erros/lints introduzidos | `PASS` |
 | QA-014-15 | regressão completa | full suite | suíte completa aprovada somente no fechamento | `PASS` |
-| QA-014-16 | TalkBack/semântica, foco, teclado, touch target e contraste | manual accessibility | controles compreensíveis e operáveis em dispositivo/emulador autorizado | `PASS` |
+| QA-014-16 | TalkBack/semântica, foco, teclado, touch target e contraste | manual accessibility | automação de semântica/touch target aprovada; TalkBack e ordem de foco em aparelho/emulador permanecem residuais | `NOT_RUN / residual manual check` |
 
-## Baseline confirmado
+## Baseline final confirmado
 
 Goldens canônicos atuais, todos 390x844:
 
@@ -74,6 +77,18 @@ test/goldens/goldens/dashboard_claro.png
 test/goldens/goldens/dashboard_escuro.png
 test/goldens/goldens/catalogo_claro.png
 test/goldens/goldens/catalogo_escuro.png
+test/goldens/goldens/login_claro.png
+test/goldens/goldens/login_escuro.png
+test/goldens/goldens/change_password_claro.png
+test/goldens/goldens/change_password_escuro.png
+test/goldens/goldens/vendas_nova_claro.png
+test/goldens/goldens/vendas_nova_escuro.png
+test/goldens/goldens/vendas_historico_claro.png
+test/goldens/goldens/vendas_historico_escuro.png
+test/goldens/goldens/mais_claro.png
+test/goldens/goldens/mais_escuro.png
+test/goldens/goldens/conta_empresa_claro.png
+test/goldens/goldens/conta_empresa_escuro.png
 ```
 
 `test/goldens/failures/**` nunca é baseline desejado.
@@ -317,7 +332,7 @@ flutter test --no-pub test/goldens/visual_goldens_test.dart
 A atualização deve ser seguida por inspeção humana das imagens. Todos:
 `NOT_RUN`.
 
-## Integration/manual checks
+## Integration/manual checks — residual
 
 - navegar por todas as rotas atuais com sessão autenticada;
 - confirmar fluxo obrigatório de troca de senha e logout;
@@ -329,7 +344,8 @@ A atualização deve ser seguida por inspeção humana das imagens. Todos:
 - revisar contraste e densidade em light/dark;
 - confirmar banner demo e ausência dele em normal.
 
-Status: `NOT_RUN`.
+Status: `PARTIAL`. TalkBack e ordem de foco em aparelho/emulador: `NOT_RUN /
+residual manual check`. Demais evidências automatizadas e revisão visual: `PASS`.
 
 ## Full-suite gate
 
@@ -339,7 +355,7 @@ Somente no fechamento/merge e após autorização explícita:
 flutter test --no-pub
 ```
 
-Status: `NOT_RUN`.
+Status: `PASS` — resultado informado pelo responsável no fechamento.
 
 ## Retomada das Fases 6–8 — testes preparados
 
