@@ -369,7 +369,7 @@ class _DashboardHero extends StatelessWidget {
                 Text(
                   'VISÃO GERAL',
                   style: context.textTheme.labelMedium?.copyWith(
-                    color: context.colors.onPrimary.withValues(alpha: 0.78),
+                    color: context.appColors.onSurfaceHero.withValues(alpha: 0.78),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.4,
                   ),
@@ -378,7 +378,7 @@ class _DashboardHero extends StatelessWidget {
                 Text(
                   'Acompanhe sua operação\nde forma rápida.',
                   style: context.textTheme.headlineSmall?.copyWith(
-                    color: context.colors.onPrimary,
+                    color: context.appColors.onSurfaceHero,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -386,14 +386,14 @@ class _DashboardHero extends StatelessWidget {
                 Text(
                   'Indicadores, alertas e movimentos em uma leitura objetiva.',
                   style: context.textTheme.bodyMedium?.copyWith(
-                    color: context.colors.onPrimary.withValues(alpha: 0.82),
+                    color: context.appColors.onSurfaceHero.withValues(alpha: 0.82),
                   ),
                 ),
               ],
             );
             final icon = DecoratedBox(
               decoration: BoxDecoration(
-                color: context.colors.onPrimary.withValues(alpha: 0.12),
+                color: context.appColors.onSurfaceHero.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
@@ -401,7 +401,7 @@ class _DashboardHero extends StatelessWidget {
                 child: Icon(
                   AppIcons.insights,
                   size: 28,
-                  color: context.colors.onPrimary,
+                  color: context.appColors.onSurfaceHero,
                 ),
               ),
             );
