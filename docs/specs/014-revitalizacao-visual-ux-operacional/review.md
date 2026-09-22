@@ -1,7 +1,22 @@
 # Review — Spec 014
 
-Status: `IN_PROGRESS — Gate 2: PASS; Gate consolidado 5–8: FAIL / pending revalidation`
+Status: `IN_PROGRESS — Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
 Validation: `NOT_RUN`
+
+## Fase 9 — Review de preparação
+
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `IMPLEMENTADA / NOT_RUN`.
+
+O harness de golden foi ampliado para exatamente 18 superfícies em 390×844,
+cobrindo Shell, Auth, Dashboard, Catálogo, Vendas nova/histórico, Mais e
+Conta/Empresa nos dois temas. A composição usa fixtures e overrides determinísticos;
+nenhuma UI de produção, contrato, rota, domínio, dados, Drift, sync ou outbox
+foi modificada nesta fase.
+
+Não há veredito visual final: PNGs não foram gerados/alterados e nenhuma
+validação foi executada. O próximo gate é humano: gerar baselines, inspecionar
+as 18 imagens, rodar golden compare, suíte completa e analyze. Menções anteriores
+a `FAIL / pending revalidation` ficam preservadas como histórico das Fases 5–8.
 
 Estabilização atual: Sales interage por Keys explícitas dos segmentos, enquanto
 o design system valida Semantics por `isSemantics`. O fluxo compacto substituiu

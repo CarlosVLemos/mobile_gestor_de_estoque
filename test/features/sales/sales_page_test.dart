@@ -257,6 +257,7 @@ void main() {
     await _ensureVisibleAndTap(tester, removeProduct);
     expect(find.text('Nenhum produto adicionado'), findsOneWidget);
 
+    await _returnToSalesTop(tester);
     await _materializeAndTap(tester, addProduct);
     final productForRegistration = find.text('Produto Drift');
     await _ensureVisibleAndTap(tester, productForRegistration);

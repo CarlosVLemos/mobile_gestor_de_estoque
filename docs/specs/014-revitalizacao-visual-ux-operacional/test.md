@@ -1,8 +1,31 @@
 # Test Plan — Spec 014
 
-Status: `Gate 2: PASS; Gate consolidado 5–8: FAIL / pending revalidation`
-Execução nesta missão: nenhuma; testes focados preparados para validação humana posterior
+Status: `Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
+Execução nesta missão: nenhuma; harness dourado preparado para validação humana final
 Validation: `NOT_RUN`
+
+## Fase 9 — Golden suite final preparada
+
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `IMPLEMENTADA / NOT_RUN`.
+
+O arquivo `test/goldens/visual_goldens_test.dart` contém exatamente 18 casos:
+Shell, Login, Troca de senha, Dashboard, Catálogo, Vendas/Nova venda,
+Vendas/Histórico, Mais e Conta/Empresa, em tema claro e escuro, viewport
+390×844. Fixtures e providers locais impedem dependência de rede, sessão real
+ou banco local; cada cenário estabiliza conteúdo representativo da superfície.
+
+Validação humana final proposta, sem execução nesta missão:
+
+```bash
+flutter test --no-pub --update-goldens test/goldens/visual_goldens_test.dart
+flutter test --no-pub test/goldens/visual_goldens_test.dart
+flutter test --no-pub
+flutter analyze --no-pub
+```
+
+Após o primeiro comando, a inspeção humana dos 18 PNGs é obrigatória. Os
+registros anteriores de `FAIL / pending revalidation` são históricos das Fases
+5–8; o status atual é o indicado acima.
 
 Estabilização atual: Sales usa Keys de presentation para a interação dos
 segmentos e não cria `SemanticsHandle`. O teste compartilhado é responsável

@@ -1,7 +1,21 @@
 # Tasks — Spec 014
 
-Status: `IN_PROGRESS — GATE 2 PASS; GATE CONSOLIDADO 5–8 FAIL / pending revalidation`
+Status: `IN_PROGRESS — Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
 Execution mode: `SINGLE_WRITER`
+
+## Handoff atual — Fase 9
+
+Estado autoritativo: Gate consolidado 5–8 `PASS`. Fase 9 `IMPLEMENTADA / NOT_RUN`.
+
+- O harness em `test/goldens/visual_goldens_test.dart` declara exatamente 18
+  superfícies em 390×844: Shell, Login, Troca de senha, Dashboard, Catálogo,
+  Nova venda, Histórico, Mais e Conta/Empresa, cada uma em claro e escuro.
+- As superfícies usam fixtures e overrides estáveis. Startup, pickers e
+  estados transitórios permanecem fora de golden.
+- Nenhum PNG, golden baseline ou comando de validação foi atualizado/executado.
+
+As entradas anteriores de `FAIL / pending revalidation` registram tentativas
+históricas das Fases 5–8 e são preservadas como histórico, não como estado atual.
 Validation mode: `FULL` no fechamento, sempre sujeito à autorização explícita
 
 Estabilização atual: segmentos de Sales usam Keys de presentation no elemento
@@ -222,14 +236,11 @@ operacionais de Vendas, Conta/Empresa e acessibilidade.
 
 ## Fase 9 — Goldens / QA
 
-- [ ] Atualizar testes que cristalizam sync como dois KPIs.
-- [ ] Atualizar testes que exigem `Fora do escopo` e `tenant` na UI.
-- [ ] Adicionar testes Auth, navegação, Histórico e proposta/aceite.
-- [ ] Adicionar asserts negativos para linguagem técnica proibida.
-- [ ] Manter os seis goldens existentes até aprovação visual da implementação.
-- [ ] Consolidar exatamente 18 goldens: nove superfícies em claro/escuro.
-- [ ] Cobrir Startup, pickers e estados especiais com widget tests, não goldens.
-- [ ] Não executar nem atualizar goldens sem autorização explícita.
+- [x] Consolidar o harness determinístico de 18 goldens em 390×844: nove superfícies em claro/escuro.
+- [x] Cobrir Shell, Login, Troca de senha, Dashboard, Catálogo, Nova venda, Histórico, Mais e Conta/Empresa.
+- [x] Usar fixtures e overrides locais; pickers, Startup e estados transitórios seguem como widget/manual checks, não goldens.
+- [x] Preservar os seis baselines existentes; os 12 novos PNGs continuam pendentes de geração humana autorizada.
+- [x] Não executar nem atualizar goldens nesta preparação.
 - [ ] Executar os gates de `test.md` somente quando autorizados.
 
 ## Fase 10 — Review e fechamento

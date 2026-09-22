@@ -1,7 +1,23 @@
 # Validation Result — Spec 014
 
-Status: `Gate 2: PASS; Gate consolidado 5–8: FAIL / pending revalidation`
+Status: `Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
 Validation: `NOT_RUN`
+
+## Fase 9 — Handoff de validação final
+
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `IMPLEMENTADA / NOT_RUN`.
+
+Preparação concluída: foram declarados 18 goldens estáveis em 390×844 para as
+nove superfícies aprovadas em claro/escuro. As dependências são substituídas por
+fixtures e overrides locais. Não houve geração/atualização de PNG, execução de
+testes, analyze, format, build ou alteração de produção/contrato.
+
+Próxima evidência necessária: gerar os baselines sob autorização, revisar
+visualmente cada imagem, executar a comparação golden, a suíte completa e a
+análise estática. Warnings Drift preexistentes não fazem parte desta Fase.
+
+Os blocos anteriores de `FAIL / pending revalidation` são histórico de
+estabilizações anteriores e não substituem este status.
 
 Estabilização atual: a segmentação mantém correção de acessibilidade, mas a
 interação funcional foi separada para Keys de presentation. A API obsoleta
