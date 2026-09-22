@@ -14,7 +14,6 @@ import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/permission_list_tile.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
 import '../../../../shared/widgets/section_header.dart';
-import '../../../../shared/widgets/tenant_context_card.dart';
 import '../../domain/entities/operational_context.dart';
 import '../controllers/operational_context_controller.dart';
 
@@ -31,6 +30,7 @@ class OperationalContextPage extends ConsumerWidget {
       appBar: OperationalTopBar(
         title: 'Conta',
         leading: IconButton(
+          tooltip: 'Voltar',
           icon: const Icon(AppIcons.arrowBack),
           onPressed: () {
             if (context.canPop()) {
@@ -91,15 +91,19 @@ class _OperationalContextContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TenantContextCard(
-          tenantName: operationalContext.tenantName,
+        const SectionHeader(
+          title: 'Conta e empresa',
+          subtitle: 'Informações da operação que está em uso.',
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _AccountIdentityCard(
           userName: userName,
           userEmail: operationalContext.userEmail,
         ),
         const SizedBox(height: AppSpacing.sectionGap),
         const SectionHeader(
-          title: 'Vínculo da conta',
-          subtitle: 'Esta conta está associada à empresa abaixo.',
+          title: 'Empresa atual',
+          subtitle: 'A empresa associada à sua conta nesta operação.',
         ),
         const SizedBox(height: AppSpacing.md),
         DecoratedBox(
@@ -110,7 +114,7 @@ class _OperationalContextContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Empresa vinculada',
+                  'EMPRESA EM USO',
                   style: context.textTheme.labelMedium?.copyWith(
                     color: context.appColors.onSurfaceMuted,
                   ),
@@ -124,7 +128,7 @@ class _OperationalContextContent extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Text(
-                  '$userName usa esta conta para acessar a operação dessa empresa.',
+                  'Sua conta está usando esta empresa nesta operação.',
                   style: context.textTheme.bodyMedium?.copyWith(
                     color: context.appColors.onSurfaceMuted,
                   ),
@@ -135,9 +139,8 @@ class _OperationalContextContent extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sectionGap),
         const SectionHeader(
-          title: 'Permissões operacionais',
-          subtitle:
-              'A interface usa estas permissões como orientação; o servidor continua soberano.',
+          title: 'Acesso disponível',
+          subtitle: 'Recursos liberados para esta conta.',
         ),
         const SizedBox(height: AppSpacing.md),
         PermissionListTile(
@@ -153,12 +156,6 @@ class _OperationalContextContent extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         PermissionListTile(
-          label: 'Ver relatórios',
-          description: 'Acessar relatórios quando o módulo estiver disponível.',
-          allowed: operationalContext.permissionGranted('reports_view'),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        PermissionListTile(
           label: 'Ver métricas financeiras',
           description: 'Exibir preços, totais e indicadores financeiros.',
           allowed: operationalContext.permissionGranted(
@@ -166,6 +163,64 @@ class _OperationalContextContent extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AccountIdentityCard extends StatelessWidget {
+  const _AccountIdentityCard({required this.userName, required this.userEmail});
+
+  final String userName;
+  final String userEmail;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: AppDecorations.card(context),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: context.colors.primaryContainer,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Icon(
+                  AppIcons.account,
+                  color: context.colors.onPrimaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sua conta',
+                    style: context.textTheme.labelMedium?.copyWith(
+                      color: context.appColors.onSurfaceMuted,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(userName, style: context.textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    userEmail,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: context.appColors.onSurfaceMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

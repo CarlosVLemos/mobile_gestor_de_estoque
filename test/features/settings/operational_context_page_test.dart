@@ -6,10 +6,9 @@ import 'package:gestor_de_estoque/app/shell/shell_profile.dart';
 import 'package:gestor_de_estoque/features/settings/presentation/pages/operational_context_page.dart';
 import 'package:gestor_de_estoque/features/settings/domain/entities/operational_context.dart';
 import 'package:gestor_de_estoque/features/settings/settings_providers.dart';
-import 'package:gestor_de_estoque/shared/widgets/tenant_context_card.dart';
 
 void main() {
-  testWidgets('contexto operacional exibe tenant, usuário e vínculo', (
+  testWidgets('conta organiza identidade, empresa e acesso com dados reais', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -27,22 +26,21 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(
-      find.descendant(
-        of: find.byType(TenantContextCard),
-        matching: find.text('Arara Centro Logistico'),
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Arara Centro Logistico'), findsNWidgets(2));
+    expect(find.text('Conta e empresa'), findsOneWidget);
+    expect(find.text('Sua conta'), findsOneWidget);
+    expect(find.text('Empresa atual'), findsOneWidget);
+    expect(find.text('Arara Centro Logistico'), findsOneWidget);
     expect(find.text('Maria Oliveira'), findsOneWidget);
     expect(find.text('maria@arara-gastos.test'), findsOneWidget);
-    expect(find.text('Vínculo da conta'), findsOneWidget);
-    expect(find.text('Empresa vinculada'), findsOneWidget);
+    expect(find.byTooltip('Voltar'), findsOneWidget);
+    expect(find.text('EMPRESA EM USO'), findsOneWidget);
     expect(find.text('Consultar catálogo'), findsOneWidget);
     expect(find.text('Ver métricas financeiras'), findsOneWidget);
     expect(find.text('Liberado'), findsOneWidget);
-    expect(find.text('Restrito'), findsNWidgets(3));
+    expect(find.text('Restrito'), findsNWidgets(2));
+    expect(find.textContaining('tenant'), findsNothing);
+    expect(find.textContaining('Alterar nome'), findsNothing);
+    expect(find.textContaining('Relatórios'), findsNothing);
   });
 
   testWidgets('conta suporta 320px com textScaler 2.0', (tester) async {
@@ -70,6 +68,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+    expect(find.text('Conta e empresa'), findsOneWidget);
     expect(find.text('EMPRESA EM USO'), findsOneWidget);
   });
 }

@@ -1,7 +1,14 @@
 # Test Plan — Spec 014
 
-Status: `GATE 2 FAIL — CORRECTIONS PREPARED, REVALIDATION PENDING`
-Execução nesta missão: nenhuma; correções estáticas preparadas a partir da evidência humana
+Status: `Gate 2: PASS; Gate consolidado 5–8: FAIL / pending revalidation`
+Execução nesta missão: nenhuma; testes focados preparados para validação humana posterior
+Validation: `NOT_RUN`
+
+Estabilização atual: Sales usa Keys de presentation para a interação dos
+segmentos e não cria `SemanticsHandle`. O teste compartilhado é responsável
+por Semantics com `isSemantics`, label, seleção, botão e callback. O helper
+compacto usa `ensureVisible` e `hitTestable`; não resolve Scrollable nem calcula
+viewport manualmente. Gate consolidado 5–8: `FAIL / pending revalidation`.
 
 ## Objetivo
 
@@ -88,15 +95,86 @@ flutter analyze --no-pub
 
 ## Focused tests
 
+### Fase 4 — Dashboard preparada
+
+Estado: `IMPLEMENTADA`.
+Gate 4: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+- hero operacional e métricas reais renderizam com sincronização em
+  `AppSyncIndicator`, fora da grade de KPIs;
+- estados restricted, empty, failure, offline e dados locais permanecem
+  cobertos pelos testes de estados existentes;
+- testes preparados para 320px/scaler 2.0 e viewport ampla, sem asserts de
+  estrutura incidental ou cores literais;
+- execução futura mínima: `flutter test --no-pub test/features/dashboard` e
+  `flutter analyze --no-pub`, somente após autorização explícita.
+
+Evidência humana posterior: Gate 4 `PASS`; Fase 4 `VALIDADA`.
+
+### Fase 5 — Catálogo preparada
+
+Estado: `IMPLEMENTADA`.
+Gate 5: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+- busca real, contexto de resultados, produto, preço restrito, estados e
+  ausência de Drawer permanecem cobertos;
+- preço disponível é tipografia, não badge; preço nulo continua restrito;
+- execução futura mínima: `flutter test --no-pub test/features/catalog` e
+  `flutter analyze --no-pub`, somente após autorização explícita.
+
+### Batch Fases 5–8
+
+Validação consolidada: `NOT_RUN`.
+
+- Vendas: textos técnicos/JSON ausentes, status pendente distinto de confirmado,
+  revisão necessária e erro seguro preservados;
+- Conta/Empresa: identidade, empresa e acesso útil sem jargão ou backlog;
+- Estados: failure, restricted, offline e empty mantêm componentes semânticos
+  existentes. A execução será consolidada após a Fase 8.
+
+### Fase 3 — Auth preparada
+
+Status: `IMPLEMENTADA`.
+Validation: `NOT_RUN`.
+Gate 3: `FAIL / pending revalidation`.
+
+- `test/features/auth/auth_pages_test.dart`: Startup em restauração e falha/retry;
+  Login com obrigatoriedade, payload, busy, erro, mostrar/ocultar senha e CTA
+  alcançável em 320px/scaler 2.0; Change Password com três campos, payload,
+  busy, erro, logout, mostrar/ocultar e reflow compacto.
+- Nenhum golden foi criado ou atualizado.
+- Execução futura mínima: `flutter test --no-pub test/features/auth/auth_pages_test.dart`
+  e `flutter analyze --no-pub`, somente mediante autorização explícita.
+- Estabilização preparada: testes observam `EditableText.obscureText` por Keys
+  estáveis, sem acessar API inexistente de `TextFormField`; o double usa
+  `seedState`, sem conflito com o notifier.
+- Revalidação humana: `test/app` e analyze passaram; `test/features/auth`
+  revelou transição de seed sem remount, taps fora da viewport e overflow no
+  CTA ocupado. Correções preparadas; resultado do Gate 3 permanece pendente.
+- Correção sintática preparada em `change_password_page.dart`: fechamento de
+  `Text`/`Flexible`/`Row` restaurado sem remover a proteção responsiva do CTA.
+- O analyzer revelou uma vírgula de fechamento excedente na lista `children`;
+  removida nesta retomada. Gate 3 permanece `FAIL / pending revalidation`.
+
 ### Gate 2 observado e correções preparadas
 
 - `test/shared/widgets`: `+25`, aprovado; sem alteração corretiva.
 - `test/features/settings`: falha no alvo ainda não materializado do `ListView`;
   o teste agora usa `scrollUntilVisible` até `Sair`.
-- `test/features/dashboard`: expectativa visual antiga `ATUALIZAÇÃO`; o teste
-  agora verifica `Atualização`, mantendo a informação funcional.
+- `test/features/dashboard`: o rótulo histórico `Atualização` não é mais
+  renderizado. O fixture mantém `syncedAt`, e a UI o expõe por dois
+  `KpiCard -> AppMetricCard`; o teste verifica os labels semânticos
+  `Sincronizado em, 12/06/2026` e `Sincronizado às, 09:40`.
+- `test/features/dashboard`: o fixture contém somente um KPI financeiro com
+  `value = null`/restrito (`Receita prevista`); a expectativa de
+  `Financeiro restrito` é, portanto, uma ocorrência.
 - `test/features/sales`: finder global por `IconData` substituído por inspeção
-  de `Scaffold.drawer`; taps em `Adicionar produto` agora respeitam a viewport.
+  de `Scaffold.drawer`; no cenário 320x700, o teste rola explicitamente o
+  `Scrollable` descendente de `SalesPage` até `Adicionar produto`, confirma o
+  centro dentro da viewport, toca e prova que o picker abriu antes de verificar
+  overflow.
 - `test/features/catalog`: `+27`, aprovado; sem alteração corretiva.
 - analyze: import não utilizado removido de `dashboard_page.dart`.
 - warnings Drift sobre `AppDatabase`/`QueryExecutor`: preexistentes e não
@@ -236,6 +314,37 @@ flutter test --no-pub
 ```
 
 Status: `NOT_RUN`.
+
+## Retomada das Fases 6–8 — testes preparados
+
+Nenhum comando foi executado. Foram preparados cenários de widget para:
+
+- alternar `Nova venda` e `Histórico` sem descartar cliente ou itens do draft;
+- histórico vazio, `createdAt`, Pendente, Confirmada e Revisão necessária;
+- ausência de JSON de proposal e de erro técnico bruto;
+- largura 320 px com `TextScaler.linear(2)`, controle segmentado e picker;
+- tooltips de remover/alterar quantidade e de voltar em Conta;
+- hierarquia de Conta/Empresa, dados reais e ausência de termos/módulos proibidos.
+
+Próxima validação humana proposta, sem executá-la nesta retomada:
+
+```bash
+flutter test --no-pub test/features/sales/sales_page_test.dart
+flutter test --no-pub test/features/settings/operational_context_page_test.dart
+flutter analyze --no-pub
+```
+
+Gate consolidado 5–8: `FAIL / pending revalidation`.
+
+### Estabilização de Sales
+
+O finder de segmentos foi alterado de `find.text` para o rótulo exposto por
+`Semantics` no `AppSegmentedControl`. No cenário compacto, o teste obtém o
+`Scrollable` único descendente de `SalesPage`, rola até Selecionar cliente,
+confirma o centro do alvo na viewport e exige o `TextField` do picker após o
+tap. Nenhuma validação foi executada nesta estabilização.
+
+Gate consolidado 5–8: `FAIL / pending revalidation`.
 
 ## Gate de aprovação
 

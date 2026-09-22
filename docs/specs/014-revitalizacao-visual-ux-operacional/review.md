@@ -1,6 +1,12 @@
 # Review — Spec 014
 
-Status: `IN_PROGRESS — GATE 2 FAIL, REVALIDATION PENDING`
+Status: `IN_PROGRESS — Gate 2: PASS; Gate consolidado 5–8: FAIL / pending revalidation`
+Validation: `NOT_RUN`
+
+Estabilização atual: Sales interage por Keys explícitas dos segmentos, enquanto
+o design system valida Semantics por `isSemantics`. O fluxo compacto substituiu
+`scrollUntilVisible` e cálculo de viewport por `ensureVisible` seguido de
+`hitTestable`. Gate consolidado 5–8: `FAIL / pending revalidation`.
 
 ## Implementation handoff
 
@@ -107,18 +113,92 @@ Dashboard ou Vendas.
 
 - Settings (`C`): `ensureVisible` recebia finder vazio porque o item final do
   `ListView` ainda não estava materializado; o teste passou a rolar até `Sair`.
-- Dashboard (`B`): a informação continua presente como `Atualização`; apenas
-  a expectativa de uppercase pertencia à apresentação anterior.
+- Dashboard (`B`): `Atualização` era um rótulo histórico e não é mais
+  renderizado. O fixture preserva `syncedAt` e a UI atual o apresenta por
+  `KpiCard -> AppMetricCard` em dois metadados semânticos: `Sincronizado em,
+  12/06/2026` e `Sincronizado às, 09:40`.
+- Dashboard/restrição (`B`): há um único `DashboardKpi` financeiro restrito no
+  fixture (`Receita prevista`, sem valor). A expectativa anterior de dois
+  textos `Financeiro restrito` refletia composição visual antiga, não os dados.
 - Sales/ícone (`C`): `find.byIcon` confundia ícones legítimos que compartilham
   o mesmo `IconData`; a ausência do Drawer agora é verificada no `Scaffold`.
-- Sales/viewport (`C`): os testes agora trazem `Adicionar produto` à viewport
-  antes do toque, sem comprimir a UI de produção.
+- Sales/viewport (`C`): o `ListView` não é o tipo aceito por
+  `scrollUntilVisible`. O cenário 320x700 agora encontra o `Scrollable`
+  descendente de `SalesPage`, rola até `Adicionar produto`, confirma o centro
+  na viewport e, após o toque, confirma o `TextField` do picker; não comprime
+  a UI de produção.
 - Drift: warnings preexistentes e não causais, mantidos fora do escopo.
 
 Nenhuma validação foi executada nesta estabilização. Gate 2 permanece
 `FAIL / pending revalidation`, e Auth continua não autorizada.
 
+## Phase 3 implementation review
+
+Status: `IMPLEMENTADA`.
+Validation: `NOT_RUN`.
+Gate 3: `FAIL / pending revalidation`.
+
+- Startup foi refinada exclusivamente em presentation, mantendo a chamada a
+  `restore()` e o retry existente;
+- `AuthShell` concentra atmosfera, SafeArea, largura máxima, scroll com inset
+  de teclado, marca e superfície sem assumir regra de autenticação;
+- Login preserva `accessCode`, `password` e `deviceName`, reduzindo apenas o
+  peso visual do dispositivo; Change Password preserva seus três argumentos e
+  o logout do fluxo obrigatório;
+- os controles de mostrar/ocultar senha são locais, acessíveis por tooltip e
+  usam aliases de `AppIcons`; erros usam a mensagem segura do estado no
+  `AppStatePanel`;
+- testes de widget foram preparados e permanecem sem execução. Dashboard não
+  foi iniciado.
+- Estabilização: os erros conhecidos de compilação foram corrigidos sem mudar
+  comportamento funcional; a aprovação depende da reexecução humana do Gate 3.
+- A revalidação humana confirmou que os slices de app e analyze passam. Os
+  resíduos de Auth foram limitados a isolamento do double, interação fora da
+  viewport e reflow do CTA em texto ampliado; as correções permanecem sem nova
+  execução nesta retomada.
+- A estabilização seguinte corrigiu apenas o fechamento sintático do
+  `Flexible` no CTA ocupado de Change Password, mantendo a contração do texto
+  em scaler alto e sem alterar fluxo funcional.
+- A evidência seguinte revelou somente uma vírgula excedente no mesmo trecho;
+  removida sem alteração funcional. Gate 3 segue pendente de revalidação.
+
+## Phase 4 implementation review
+
+Estado: `IMPLEMENTADA`.
+Gate 4: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+- Dashboard foi alterado somente em presentation: hero operacional, hierarquia
+  de métricas e metadata de sincronização;
+- a restrição financeira continua usando o valor nulo/restrito real, sem
+  substituir por valor financeiro inventado;
+- gráficos preservam séries e cálculos existentes; estados local-first e ações
+  de retry foram mantidos;
+- testes focados foram atualizados, sem execução, analyze, format, build ou
+  goldens. Catálogo não foi iniciado.
+
+## Phase 5 implementation review
+
+Estado: `IMPLEMENTADA`.
+Gate 5: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+- Gate 4 registrado como `PASS` e Fase 4 validada por evidência humana;
+- Catálogo preserva busca real, controller, estados e conteúdo local;
+- preço permitido deixou de usar badge; `price == null` permanece restrito e
+  nenhum estoque foi inferido além do dado formal já exibido pelo Catálogo;
+- testes foram atualizados sem execução. Vendas não foi iniciada.
+
 ## Audit review
+
+## Batch Fases 5–8 implementation review
+
+Validação consolidada: `NOT_RUN`.
+
+- execução sequencial autorizada pelo responsável humano; Fase 9 permanece
+  bloqueada até o gate consolidado;
+- presentation de Vendas e Conta/Empresa foi humanizada sem mudança funcional;
+- testes serão reexecutados no gate consolidado. Nenhum comando foi executado.
 
 - [x] oito rotas atuais confirmadas;
 - [x] shell de quatro destinos confirmada;
@@ -140,6 +220,37 @@ Nenhuma validação foi executada nesta estabilização. Gate 2 permanece
 - [ ] implementação da Fase 2 revisada por Mefisto;
 - [ ] implementação das Fases 3–9 revisada;
 - [ ] QA executado e verdict emitido.
+
+## Retomada das Fases 6–8 — revisão de implementação
+
+A execução anterior foi corretamente reclassificada como `PARCIAL`: a remoção
+de linguagem técnica era válida, mas não substituía uma superfície de venda
+orientada ao fluxo operacional.
+
+A retomada introduz a separação estrutural Nova venda/Histórico na SalesPage,
+com o controle segmentado compartilhado e sem nova rota. O draft não muda de
+owner e permanece no controller durante a alternância. O Histórico apresenta
+cliente, data/hora de `createdAt`, quantidade, valor autorizado e badge de
+status, preservando Pendente diferente de Confirmada e a apresentação segura
+de Revisão necessária.
+
+Conta/Empresa agora hierarquiza conta conectada, empresa atual e acesso
+disponível com dados existentes. A revisão transversal adicionou tooltips às
+ações iconográficas de Vendas e ao retorno de Conta; os testes preparam 320 px
+com scaler 2.0 para ambas as superfícies. Nenhum contrato ou comportamento de
+negócio foi alterado.
+
+Validation: `NOT_RUN`. Gate consolidado 5–8: `FAIL / pending revalidation`. Fase 9:
+`NÃO AUTORIZADA`.
+
+### Estabilização de Sales — Gate consolidado 5–8
+
+O `AppSegmentedControl` já materializa Nova venda e Histórico com rótulos
+semânticos; o `Text` interno não é o contrato correto para interação de teste.
+Sales não sofreu alteração de produção. O teste compacto agora só toca
+Selecionar cliente depois de rolar o scroll principal da página e confirmar a
+visibilidade; também confirma que o picker abriu. O gate segue `FAIL / pending
+revalidation` até execução humana.
 
 ## Residual risks
 

@@ -119,9 +119,12 @@ class ProductCard extends StatelessWidget {
                 tone: AppStatusTone.restricted,
               ),
             if (product.price != null)
-              StatusBadge(
-                label: AppCurrencyFormatter.format(product.price!),
-                tone: AppStatusTone.success,
+              Text(
+                AppCurrencyFormatter.format(product.price!),
+                style: context.textTheme.titleSmall?.copyWith(
+                  color: context.colors.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
               )
             else
               const StatusBadge(

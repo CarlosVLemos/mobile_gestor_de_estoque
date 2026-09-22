@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_theme_context.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
@@ -12,7 +13,8 @@ import '../../../../shared/ui_states/view_status.dart';
 import '../../../../shared/widgets/animated_state_switcher.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
-import '../../../../shared/widgets/kpi_card.dart';
+import '../../../../shared/widgets/app_metric_card.dart';
+import '../../../../shared/widgets/app_sync_indicator.dart';
 import '../../../../shared/widgets/offline_state_banner.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
@@ -129,11 +131,22 @@ class DashboardPage extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sectionGap),
         ],
-        const SectionHeader(title: 'Indicadores'),
+        _DashboardHero(overview: overview),
+        const SizedBox(height: AppSpacing.sectionGap),
+        const SectionHeader(
+          title: 'Indicadores',
+          subtitle: 'Leitura rápida da operação atual',
+        ),
         const SizedBox(height: AppSpacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
-            final cardWidth = (constraints.maxWidth - AppSpacing.md) / 2;
+            final compact = constraints.maxWidth < 380 ||
+                MediaQuery.textScalerOf(context).scale(1) > 1.3;
+            final wide = constraints.maxWidth >= 720 && !compact;
+            final columns = compact ? 1 : (wide ? 3 : 2);
+            final cardWidth =
+                (constraints.maxWidth - (AppSpacing.md * (columns - 1))) /
+                columns;
 
             return Wrap(
               spacing: AppSpacing.md,
@@ -142,15 +155,18 @@ class DashboardPage extends ConsumerWidget {
                 for (final kpi in overview.kpis)
                   SizedBox(
                     width: cardWidth,
-                    child: KpiCard(
+                    child: AppMetricCard(
                       label: kpi.label,
                       value: _formatKpiValue(kpi),
                       subtitle: kpi.subtitle,
                       tone: kpi.isRestricted
-                          ? KpiTone.restricted
+                          ? AppMetricTone.restricted
                           : (kpi.isHighlighted
-                                ? KpiTone.critical
-                                : KpiTone.neutral),
+                                ? AppMetricTone.critical
+                                : AppMetricTone.neutral),
+                      emphasis: kpi.isHighlighted
+                          ? AppMetricEmphasis.primary
+                          : AppMetricEmphasis.secondary,
                     ),
                   ),
               ],
@@ -158,38 +174,9 @@ class DashboardPage extends ConsumerWidget {
           },
         ),
         const SizedBox(height: AppSpacing.md),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final stacked = constraints.maxWidth < 320 ||
-                MediaQuery.textScalerOf(context).scale(1) > 1.3;
-            final cardWidth = stacked
-                ? constraints.maxWidth
-                : (constraints.maxWidth - AppSpacing.md) / 2;
-            return Wrap(
-              spacing: AppSpacing.md,
-              runSpacing: AppSpacing.md,
-              children: [
-                SizedBox(
-                  width: cardWidth,
-                  child: KpiCard(
-                    label: 'Sincronizado em',
-                    value: overview.syncedAt == null
-                        ? '—'
-                        : AppDateFormatter.date(overview.syncedAt!),
-                  ),
-                ),
-                SizedBox(
-                  width: cardWidth,
-                  child: KpiCard(
-                    label: 'Sincronizado às',
-                    value: overview.syncedAt == null
-                        ? '—'
-                        : AppDateFormatter.time(overview.syncedAt!),
-                  ),
-                ),
-              ],
-            );
-          },
+        AppSyncIndicator(
+          label: 'Atualizado',
+          value: _syncLabel(overview),
         ),
         const SizedBox(height: AppSpacing.sectionGap),
         const SectionHeader(title: 'Meta operacional'),
@@ -352,6 +339,88 @@ class DashboardPage extends ConsumerWidget {
 
     final parsed = double.tryParse(value);
     return parsed == null ? value : AppCurrencyFormatter.format(parsed);
+  }
+
+  String _syncLabel(DashboardOverview overview) {
+    final syncedAt = overview.syncedAt;
+    if (syncedAt == null) return overview.updatedAtLabel;
+    return '${AppDateFormatter.date(syncedAt)} • ${AppDateFormatter.time(syncedAt)}';
+  }
+}
+
+class _DashboardHero extends StatelessWidget {
+  const _DashboardHero({required this.overview});
+
+  final DashboardOverview overview;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: AppDecorations.hero(context),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 340 ||
+                MediaQuery.textScalerOf(context).scale(1) > 1.3;
+            final heading = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'VISÃO GERAL',
+                  style: context.textTheme.labelMedium?.copyWith(
+                    color: context.colors.onPrimary.withValues(alpha: 0.78),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Acompanhe sua operação\nde forma rápida.',
+                  style: context.textTheme.headlineSmall?.copyWith(
+                    color: context.colors.onPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Indicadores, alertas e movimentos em uma leitura objetiva.',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: context.colors.onPrimary.withValues(alpha: 0.82),
+                  ),
+                ),
+              ],
+            );
+            final icon = DecoratedBox(
+              decoration: BoxDecoration(
+                color: context.colors.onPrimary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Icon(
+                  AppIcons.insights,
+                  size: 28,
+                  color: context.colors.onPrimary,
+                ),
+              ),
+            );
+
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [heading, const SizedBox(height: AppSpacing.lg), icon],
+              );
+            }
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [Expanded(child: heading), icon],
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
+import 'package:gestor_de_estoque/shared/widgets/app_sync_indicator.dart';
 import 'package:gestor_de_estoque/features/dashboard/dashboard_providers.dart';
 import 'package:gestor_de_estoque/features/dashboard/data/local/dashboard_fixture.dart';
 import 'package:gestor_de_estoque/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -18,7 +19,7 @@ class MockDashboardRepository implements DashboardRepository {
 
 void main() {
   testWidgets(
-    'dashboard renderiza card de atualização, gráficos e restrição financeira',
+    'dashboard renderiza metadados de sincronização, gráficos e restrição financeira',
     (tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -37,10 +38,14 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Atualização'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Atualizado: 12/06/2026 • 09:40'),
+        findsOneWidget,
+      );
+      expect(find.byType(AppSyncIndicator), findsOneWidget);
       expect(find.text('Meta operacional'), findsOneWidget);
       expect(find.text('Nível de estoque'), findsOneWidget);
-      expect(find.text('Financeiro restrito'), findsNWidgets(2));
+      expect(find.text('Financeiro restrito'), findsOneWidget);
       expect(find.text('Movimentos'), findsOneWidget);
       expect(find.text('KPIs resumidos'), findsNothing);
       expect(find.text('Movimentos recentes'), findsNothing);
@@ -74,6 +79,30 @@ void main() {
 
     await tester.pumpAndSettle();
 
+    expect(find.text('VISÃO GERAL'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dashboard reorganiza métricas em viewport ampla', (tester) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dashboardRepositoryProvider.overrideWithValue(
+            const MockDashboardRepository(),
+          ),
+        ],
+        child: MaterialApp(theme: AppTheme.light, home: const DashboardPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
     expect(find.text('Indicadores'), findsOneWidget);
+    expect(find.byType(AppSyncIndicator), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

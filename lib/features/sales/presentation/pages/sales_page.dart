@@ -6,6 +6,8 @@ import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../shared/formatters/app_currency_formatter.dart';
+import '../../../../shared/formatters/app_date_formatter.dart';
+import '../../../../shared/widgets/app_segmented_control.dart';
 import '../../../../shared/widgets/empty_state_card.dart';
 import '../../../../shared/widgets/failure_state_card.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
@@ -18,11 +20,18 @@ import '../../sales_providers.dart';
 import '../controllers/sales_controller.dart';
 import '../state/sales_state.dart';
 
-class SalesPage extends ConsumerWidget {
+class SalesPage extends ConsumerStatefulWidget {
   const SalesPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SalesPage> createState() => _SalesPageState();
+}
+
+class _SalesPageState extends ConsumerState<SalesPage> {
+  bool _showHistory = false;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(salesControllerProvider);
     final controller = ref.read(salesControllerProvider.notifier);
     final persistedSales = ref.watch(persistedSalesProvider);
@@ -36,6 +45,7 @@ class SalesPage extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       appBar: const OperationalTopBar(title: 'Vendas'),
       body: ListView(
+        key: const ValueKey('sales-page-scroll'),
         padding: AppSpacing.screenPadding,
         children: [
           if (!features.contains('sales') || !canCreateSales)
@@ -44,6 +54,30 @@ class SalesPage extends ConsumerWidget {
               message: 'Seu perfil ainda não pode registrar vendas no app.',
             )
           else ...[
+            AppSegmentedControl<bool>(
+              semanticLabel: 'Área de vendas',
+              segments: const [
+                AppSegment(
+                  value: false,
+                  label: 'Nova venda',
+                  key: ValueKey('sales-segment-new'),
+                ),
+                AppSegment(
+                  value: true,
+                  label: 'Histórico',
+                  key: ValueKey('sales-segment-history'),
+                ),
+              ],
+              selected: _showHistory,
+              onSelected: (value) => setState(() => _showHistory = value),
+            ),
+            const SizedBox(height: AppSpacing.sectionGap),
+            if (!_showHistory) ...[
+            const SectionHeader(
+              title: 'Venda em andamento',
+              subtitle: 'Selecione o cliente e busque os produtos da venda.',
+            ),
+            const SizedBox(height: AppSpacing.md),
             if (state.referenceFailure != null) ...[
               FailureStateCard(
                 title: 'Vendas indisponíveis',
@@ -57,7 +91,7 @@ class SalesPage extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.sectionGap),
             SectionHeader(
-              title: 'Carrinho',
+              title: 'Produtos da venda',
               action: TextButton.icon(
                 onPressed: () => _showProductPicker(context, state, controller),
                 icon: const Icon(AppIcons.products, size: 18),
@@ -67,8 +101,8 @@ class SalesPage extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             if (state.cartItems.isEmpty)
               const EmptyStateCard(
-                title: 'Carrinho vazio',
-                message: 'Selecione um cliente e adicione itens.',
+                title: 'Nenhum produto adicionado',
+                message: 'Busque um produto para começar esta venda.',
               )
             else
               _CartItemsCard(
@@ -103,7 +137,9 @@ class SalesPage extends ConsumerWidget {
                     }
                   : null,
             ),
+            ],
             const SizedBox(height: AppSpacing.sectionGap),
+            if (_showHistory)
             persistedSales.when(
               data: (sales) => _PersistedSalesSection(
                 sales: sales,
@@ -405,6 +441,7 @@ class _CartItemsCard extends StatelessWidget {
                         ),
                       ),
                       IconButton(
+                        tooltip: 'Remover produto',
                         icon: const Icon(AppIcons.removeItem),
                         onPressed: () => onRemove(items[index].productId),
                       ),
@@ -420,28 +457,30 @@ class _CartItemsCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
+                            tooltip: 'Diminuir quantidade',
                             icon: const Icon(AppIcons.decreaseQuantity),
                             onPressed: () =>
                                 onDecrement(items[index].productId),
                           ),
                           Text('${items[index].quantity}'),
                           IconButton(
+                            tooltip: 'Aumentar quantidade',
                             icon: const Icon(AppIcons.increaseQuantity),
                             onPressed: () =>
                                 onIncrement(items[index].productId),
                           ),
                         ],
                       ),
-                      _ValueChip(
-                        label: canViewFinancial
-                            ? _unitPriceLabel(items[index].unitPrice)
-                            : 'Financeiro restrito',
-                      ),
-                      _ValueChip(
-                        label: canViewFinancial
-                            ? _subtotalLabel(items[index].subtotal)
-                            : 'Subtotal restrito',
-                      ),
+                      if (canViewFinancial)
+                        _ItemValues(
+                          unitPriceLabel: _unitPriceLabel(items[index].unitPrice),
+                          subtotalLabel: _subtotalLabel(items[index].subtotal),
+                        )
+                      else
+                        const StatusBadge(
+                          label: 'Financeiro restrito',
+                          tone: AppStatusTone.restricted,
+                        ),
                     ],
                   ),
                 ],
@@ -488,7 +527,10 @@ class _SummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeader(title: 'Rascunho da sessão'),
+            const SectionHeader(
+              title: 'Resumo da venda',
+              subtitle: 'Revise os itens antes de registrar.',
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               _totalLabel(),
@@ -497,7 +539,9 @@ class _SummaryCard extends StatelessWidget {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text('A venda será persistida e enviada pela outbox.'),
+            Text(
+              'A venda será registrada neste dispositivo e seguirá para processamento.',
+            ),
             const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
@@ -548,14 +592,14 @@ class _PersistedSalesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (sales.isEmpty) {
       return const EmptyStateCard(
-        title: 'Nenhuma venda registrada',
-        message: 'As vendas persistidas aparecerão aqui.',
+        title: 'Nenhuma venda registrada ainda',
+        message: 'As vendas criadas aparecerão aqui.',
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'Vendas persistidas'),
+        const SectionHeader(title: 'Histórico de vendas'),
         const SizedBox(height: AppSpacing.md),
         for (final sale in sales) ...[
           DecoratedBox(
@@ -575,12 +619,18 @@ class _PersistedSalesSection extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${AppDateFormatter.date(sale.createdAt)} • '
+                    '${AppDateFormatter.time(sale.createdAt)}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
                   Text('${sale.itemCount} item(ns)'),
                   if (canViewFinancial && sale.totalAmount != null)
                     Text(AppCurrencyFormatter.format(sale.totalAmount!)),
                   if (sale.proposalJson != null) ...[
                     const SizedBox(height: AppSpacing.sm),
-                    Text('Proposta do servidor: ${sale.proposalJson}'),
+                    const Text('Revisão necessária'),
                   ],
                   if (sale.status == SaleSyncStatus.requiresAcceptance) ...[
                     const SizedBox(height: AppSpacing.md),
@@ -601,7 +651,8 @@ class _PersistedSalesSection extends StatelessWidget {
                       child: const Text('Aceitar proposta'),
                     ),
                   ],
-                  if (sale.lastError != null) Text('Erro: ${sale.lastError}'),
+                  if (sale.lastError != null)
+                    const Text('Não foi possível concluir esta operação.'),
                 ],
               ),
             ),
@@ -640,7 +691,7 @@ class _SaleStatusBadge extends StatelessWidget {
       tone: AppStatusTone.error,
     ),
     SaleSyncStatus.requiresAcceptance => const StatusBadge(
-      label: 'Requer aceite',
+      label: 'Revisão necessária',
       tone: AppStatusTone.restricted,
     ),
     SaleSyncStatus.cancelled => const StatusBadge(
@@ -650,22 +701,22 @@ class _SaleStatusBadge extends StatelessWidget {
   };
 }
 
-class _ValueChip extends StatelessWidget {
-  const _ValueChip({required this.label});
+class _ItemValues extends StatelessWidget {
+  const _ItemValues({required this.unitPriceLabel, required this.subtotalLabel});
 
-  final String label;
+  final String unitPriceLabel;
+  final String subtotalLabel;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: AppDecorations.tonalBadge(context, AppStatusTone.restricted),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        child: Text(label),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(unitPriceLabel, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(subtotalLabel, style: Theme.of(context).textTheme.bodySmall),
+      ],
     );
   }
 }

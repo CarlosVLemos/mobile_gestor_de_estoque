@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/theme/app_theme.dart';
 import 'package:gestor_de_estoque/features/dashboard/dashboard_providers.dart';
+import 'package:gestor_de_estoque/shared/widgets/app_sync_indicator.dart';
 import 'package:gestor_de_estoque/features/dashboard/data/local/dashboard_fixture.dart';
 import 'package:gestor_de_estoque/features/dashboard/domain/entities/dashboard_overview.dart';
 import 'package:gestor_de_estoque/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -44,17 +45,18 @@ void main() {
     expect(find.text('Meta operacional'), findsOneWidget);
   });
 
-  testWidgets('separa data e hora da atualização em dois cartões', (tester) async {
+  testWidgets('expõe atualização como metadata, não como KPI', (tester) async {
     await _pumpDashboard(
       tester,
       DashboardLoadResult.ready(buildDashboardFixture()),
     );
 
-    expect(find.text('12/06/2026'), findsOneWidget);
-    expect(find.text('09:40'), findsOneWidget);
-    expect(find.text('SINCRONIZADO EM'), findsOneWidget);
-    expect(find.text('SINCRONIZADO ÀS'), findsOneWidget);
-    expect(find.textContaining('09:40:'), findsNothing);
+    expect(find.byType(AppSyncIndicator), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Atualizado: 12/06/2026 • 09:40'),
+      findsOneWidget,
+    );
+    expect(find.text('SINCRONIZADO EM'), findsNothing);
   });
 
   testWidgets('mostra estado vazio sem montar indicadores', (tester) async {

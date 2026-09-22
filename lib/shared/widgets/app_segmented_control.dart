@@ -7,11 +7,17 @@ import '../../app/theme/app_spacing.dart';
 import '../../app/theme/app_theme_context.dart';
 
 class AppSegment<T> {
-  const AppSegment({required this.value, required this.label, this.icon});
+  const AppSegment({
+    required this.value,
+    required this.label,
+    this.icon,
+    this.key,
+  });
 
   final T value;
   final String label;
   final IconData? icon;
+  final Key? key;
 }
 
 /// Controle segmentado responsivo para alternar visões da mesma rota.
@@ -33,6 +39,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
+      explicitChildNodes: true,
       label: semanticLabel,
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -104,6 +111,8 @@ class _SegmentButton<T> extends StatelessWidget {
         : context.appColors.onSurfaceMuted;
 
     return Semantics(
+      key: segment.key,
+      container: true,
       button: true,
       selected: selected,
       label: segment.label,

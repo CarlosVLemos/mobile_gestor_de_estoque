@@ -1,8 +1,14 @@
 # Tasks — Spec 014
 
-Status: `IN_PROGRESS — GATE 2 FAIL, CORRECTIONS PREPARED`
+Status: `IN_PROGRESS — GATE 2 PASS; GATE CONSOLIDADO 5–8 FAIL / pending revalidation`
 Execution mode: `SINGLE_WRITER`
 Validation mode: `FULL` no fechamento, sempre sujeito à autorização explícita
+
+Estabilização atual: segmentos de Sales usam Keys de presentation no elemento
+interativo (`sales-segment-new` e `sales-segment-history`); Semantics é
+validada isoladamente no design system. O fluxo compacto usa `ensureVisible` e
+`hitTestable`, sem resolver Scrollable ou coordenadas manualmente. Gate
+consolidado 5–8 permanece `FAIL / pending revalidation`.
 
 ## Ownership
 
@@ -100,66 +106,119 @@ Entregue nesta fase:
 
 ### Estabilização do Gate 2
 
+Gate 2: `FAIL / pending revalidation`. Nenhuma validação foi executada nesta
+retomada.
+Validation: `NOT_RUN`.
+
 - [x] Classificar a falha responsiva de Mais como teste frágil (`C`).
 - [x] Fazer o teste rolar até a ação real `Sair` antes da asserção.
-- [x] Classificar a expectativa `ATUALIZAÇÃO` como teste obsoleto (`B`).
-- [x] Alinhar o teste do Dashboard à copy semântica `Atualização`.
+- [x] Classificar a expectativa `Atualização` como teste obsoleto (`B`): a UI
+  atual apresenta a sincronização em dois cards, não sob esse rótulo histórico.
+- [x] Alinhar o teste do Dashboard aos metadados semânticos do fixture:
+  `Sincronizado em, 12/06/2026` e `Sincronizado às, 09:40`.
+- [x] Corrigir a restrição financeira para uma ocorrência: o fixture possui um
+  único KPI financeiro restrito.
 - [x] Remover o import de `AppIcons` não utilizado no Dashboard.
 - [x] Classificar o finder global de ícone em Vendas como frágil (`C`).
 - [x] Provar estruturalmente que `Scaffold.drawer` é nulo.
-- [x] Levar `Adicionar produto` à viewport antes dos taps dos testes.
+- [x] Rolar explicitamente o `ListView` compacto até `Adicionar produto`,
+  usando o `Scrollable` descendente de `SalesPage`; confirmar visibilidade,
+  tocar e confirmar que o picker abriu.
 - [ ] Reexecutar o Gate 2 completo com autorização humana.
 
 ## Fase 3 — Auth
 
-- [ ] Revitalizar Startup sem mudar restauração/retry.
-- [ ] Criar composição visual coerente entre Login e Change Password.
-- [ ] Adicionar show/hide de senha com semântica adequada.
-- [ ] Configurar foco, teclado e autofill aplicáveis.
-- [ ] Preservar campos, validações, loading, erro, logout e fluxo obrigatório.
+- [x] Revitalizar Startup sem mudar restauração/retry.
+- [x] Criar composição visual coerente entre Login e Change Password.
+- [x] Adicionar show/hide de senha com semântica adequada.
+- [x] Configurar foco, teclado e autofill aplicáveis.
+- [x] Preservar campos, validações, loading, erro, logout e fluxo obrigatório.
+
+Estado: `IMPLEMENTADA`.
+Validation: `NOT_RUN`.
+Gate 3: `FAIL / pending revalidation`.
+
+Estabilização do Gate 3: removido `const` inválido de `Semantics`, substituído
+o hint inexistente de senha atual por `AutofillHints.password` e estabilizados
+os testes de visibilidade com Keys de presentation e `EditableText`.
+
+Revalidação humana encontrou taps fora da viewport, reutilização indevida do
+double entre estados e overflow dos CTAs em scaler alto. A correção preparada
+recria o `ProviderScope` por cenário, torna os taps visíveis e permite que o
+texto ocupado do CTA se contraia sem overflow.
+
+Estabilização sintática: fechado corretamente o `Text`, o `Flexible` e o `Row`
+do CTA ocupado de Change Password. Gate 3 permanece pendente de revalidação.
+Uma vírgula de fechamento excedente foi removida após a evidência do analyzer.
 
 ## Fase 4 — Dashboard
 
-- [ ] Criar hero navy usando somente dados existentes.
-- [ ] Reorganizar KPIs e seções na hierarquia contratada.
-- [ ] Converter última sincronização em metadata.
-- [ ] Preservar restrição financeira e estados local-first.
-- [ ] Não inventar tendências, metas, valores ou comparações.
+- [x] Criar hero navy usando somente dados existentes.
+- [x] Reorganizar KPIs e seções na hierarquia contratada.
+- [x] Converter última sincronização em metadata.
+- [x] Preservar restrição financeira e estados local-first.
+- [x] Não inventar tendências, metas, valores ou comparações.
+
+Estado: `IMPLEMENTADA`.
+Gate 4: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+Evidência humana posterior: Fase 4 `VALIDADA`; Gate 4: `PASS`.
 
 ## Fase 5 — Catálogo
 
-- [ ] Refinar busca/filtros/chips sem mudar comportamento.
-- [ ] Recompor `ProductCard` para separar estado de informação.
-- [ ] Preservar `price = null`, estoque, venda disponível e permissões.
-- [ ] Preservar conteúdo local em offline/refresh/failure.
+- [x] Refinar busca/filtros/chips sem mudar comportamento.
+- [x] Recompor `ProductCard` para separar estado de informação.
+- [x] Preservar `price = null`, estoque, venda disponível e permissões.
+- [x] Preservar conteúdo local em offline/refresh/failure.
+
+Estado: `IMPLEMENTADA`.
+Gate 5: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+Cadência humana aprovada: Fases 5–8 seguem sequencialmente sem gates
+individuais; a validação ocorrerá no gate consolidado após a Fase 8.
+
+## Fases 6–8 — batch de revitalização
+
+- [x] Humanizar resumo/histórico de Vendas e ocultar JSON/erros técnicos.
+- [x] Humanizar Conta/Empresa e remover módulos sem utilidade operacional.
+- [x] Preservar estados semânticos compartilhados nas superfícies alteradas.
+
+Estado da primeira execução: `PARCIAL`.
+Validação consolidada 5–8: `NOT_RUN`.
+
+Motivo do estado parcial: a primeira execução privilegiou microcopy, remoção
+de jargão e ocultação segura de dados técnicos, mas não completou as superfícies
+operacionais de Vendas, Conta/Empresa e acessibilidade.
 
 ## Fase 6 — Vendas
 
-- [ ] Recompor o fluxo de criação pela sequência do vendedor.
-- [ ] Distinguir Nova venda e Histórico dentro da rota atual.
-- [ ] Usar controle segmentado e preservar draft durante a alternância.
-- [ ] Exibir `createdAt` já disponível no histórico.
-- [ ] Refinar pickers de cliente/produto.
-- [ ] Remover linguagem `outbox`.
-- [ ] Mapear status para copy operacional sem alterar enum/semântica.
-- [ ] Substituir JSON/erro cru por “Revisão necessária” e explicação genérica aprovada.
-- [ ] Preservar aceite com revisão vigente e sem autoaceite.
-- [ ] Preservar o use case, persistência, outbox e confirmação remota.
+- [x] Recompor o fluxo de criação pela sequência do vendedor.
+- [x] Distinguir Nova venda e Histórico dentro da rota atual.
+- [x] Usar controle segmentado e preservar draft durante a alternância.
+- [x] Exibir `createdAt` já disponível no histórico.
+- [x] Refinar pickers de cliente/produto.
+- [x] Remover linguagem `outbox`.
+- [x] Mapear status para copy operacional sem alterar enum/semântica.
+- [x] Substituir JSON/erro cru por “Revisão necessária” e explicação genérica aprovada.
+- [x] Preservar aceite com revisão vigente e sem autoaceite.
+- [x] Preservar o use case, persistência, outbox e confirmação remota.
 
 ## Fase 7 — Conta / Empresa
 
-- [ ] Refinar Conta/Empresa sobre a estrutura consolidada em Mais.
-- [ ] Traduzir tenant/features/servidor para linguagem de produto.
-- [ ] Preservar dados reais e regras de permissão.
+- [x] Refinar Conta/Empresa sobre a estrutura consolidada em Mais.
+- [x] Traduzir tenant/features/servidor para linguagem de produto.
+- [x] Preservar dados reais e regras de permissão.
 
 ## Fase 8 — Estados e acessibilidade
 
-- [ ] Avaliar skeletons em Dashboard, Catálogo, Histórico e Conta.
-- [ ] Cobrir todos os estados aplicáveis sem esconder cache válido.
-- [ ] Revisar 320x700 e text scaler 2.0.
-- [ ] Revisar light/dark, contraste e semântica além da cor.
-- [ ] Revisar foco, teclado, scroll, tooltips e touch targets.
-- [ ] Aplicar motion apenas a transições funcionais.
+- [x] Avaliar skeletons em Dashboard, Catálogo, Histórico e Conta; não foi criada abstração nova sem reuso comprovado.
+- [x] Cobrir todos os estados aplicáveis sem esconder cache válido.
+- [x] Revisar 320x700 e text scaler 2.0.
+- [x] Revisar light/dark, contraste e semântica além da cor.
+- [x] Revisar foco, teclado, scroll, tooltips e touch targets.
+- [x] Aplicar motion apenas a transições funcionais.
 
 ## Fase 9 — Goldens / QA
 
@@ -214,6 +273,28 @@ contrato FROZEN v1
 -> veredito
 -> fechamento por Jarvis
 ```
+
+## Retomada das Fases 6–8 — 2026-09-22
+
+A primeira execução do batch foi registrada como `PARCIAL`: predominavam
+microcopy e remoção de jargão, sem completar os objetivos de UX operacional.
+Nesta retomada, Vendas passou a usar `AppSegmentedControl` para separar Nova
+venda e Histórico na mesma rota, preservando o draft no controller existente.
+Histórico passa a apresentar `createdAt`; Conta/Empresa foi reorganizada em
+identidade, empresa atual e acesso; e tooltips foram adicionados às ações por
+ícone de Vendas e Conta. Testes focados foram atualizados, mas não executados.
+
+Estado após a implementação: Fases 6–8 `IMPLEMENTADAS / pending validation`.
+Gate consolidado 5–8: `FAIL / pending revalidation`. Fase 9 permanece `NÃO AUTORIZADA`.
+
+### Estabilização do Gate consolidado 5–8
+
+Resultado humano: `FAIL / pending revalidation`, limitado a dois cenários de
+Sales. A opção Histórico estava renderizada pelo controle segmentado, mas os
+testes dependiam de seu `Text` interno; foram migrados para o rótulo semântico
+do segmento. O cenário 320x700 agora rola o `Scrollable` descendente único de
+`SalesPage` até Selecionar cliente, confirma que o alvo está na viewport, toca
+e verifica a abertura do picker antes de continuar.
 
 ## Handoffs
 

@@ -11,6 +11,7 @@ import '../../../../shared/widgets/offline_state_banner.dart';
 import '../../../../shared/widgets/operational_top_bar.dart';
 import '../../../../shared/widgets/product_card.dart';
 import '../../../../shared/widgets/restricted_info_card.dart';
+import '../../../../shared/widgets/section_header.dart';
 import '../../domain/entities/catalog_product.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../controllers/catalog_controller.dart';
@@ -48,6 +49,11 @@ class CatalogPage extends ConsumerWidget {
         child: ListView(
           padding: AppSpacing.screenPadding,
           children: [
+            const SectionHeader(
+              title: 'Produtos',
+              subtitle: 'Consulte rapidamente o catálogo disponível.',
+            ),
+            const SizedBox(height: AppSpacing.lg),
             CatalogFilterBar(
               searchValue: state.query.search,
               categories: state.categories,
@@ -143,6 +149,15 @@ class CatalogPage extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
+        Text(
+          state.query.search.trim().isEmpty
+              ? '${state.items.length} produtos disponíveis'
+              : '${state.items.length} produtos encontrados',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
         for (final product in state.items) ...[
           ProductCard(
             categoryIcon: _getCategoryIcon(product.categoryName),

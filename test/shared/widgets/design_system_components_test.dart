@@ -174,29 +174,59 @@ void main() {
     testWidgets('alterna seleção e preserva responsabilidade no consumidor', (
       tester,
     ) async {
-      var selected = 'new';
+      final semantics = tester.ensureSemantics();
+      try {
+        var selected = 'new';
 
-      await tester.pumpWidget(
-        buildApp(
-          StatefulBuilder(
-            builder: (context, setState) {
-              return AppSegmentedControl<String>(
-                segments: const [
-                  AppSegment(value: 'new', label: 'Nova venda'),
-                  AppSegment(value: 'history', label: 'Histórico'),
-                ],
-                selected: selected,
-                onSelected: (value) => setState(() => selected = value),
-              );
-            },
+        await tester.pumpWidget(
+          buildApp(
+            StatefulBuilder(
+              builder: (context, setState) {
+                return AppSegmentedControl<String>(
+                  segments: const [
+                    AppSegment(
+                      value: 'new',
+                      label: 'Nova venda',
+                      key: ValueKey('segment-new-sale'),
+                    ),
+                    AppSegment(
+                      value: 'history',
+                      label: 'Histórico',
+                      key: ValueKey('segment-history'),
+                    ),
+                  ],
+                  selected: selected,
+                  onSelected: (value) => setState(() => selected = value),
+                );
+              },
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Histórico'));
-      await tester.pumpAndSettle();
+        final newSale = find.byKey(const ValueKey('segment-new-sale'));
+        final history = find.byKey(const ValueKey('segment-history'));
+        expect(newSale, findsOneWidget);
+        expect(history, findsOneWidget);
+        expect(
+          tester.getSemantics(newSale),
+          isSemantics(label: 'Nova venda', isSelected: true, isButton: true),
+        );
+        expect(
+          tester.getSemantics(history),
+          isSemantics(label: 'Histórico', isSelected: false, isButton: true),
+        );
 
-      expect(selected, 'history');
+        await tester.tap(history);
+        await tester.pumpAndSettle();
+
+        expect(selected, 'history');
+        expect(
+          tester.getSemantics(history),
+          isSemantics(label: 'Histórico', isSelected: true, isButton: true),
+        );
+      } finally {
+        semantics.dispose();
+      }
     });
 
     testWidgets('empilha em 320px com text scaler 2.0', (tester) async {

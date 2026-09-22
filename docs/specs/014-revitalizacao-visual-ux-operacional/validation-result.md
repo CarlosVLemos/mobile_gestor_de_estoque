@@ -1,6 +1,12 @@
 # Validation Result — Spec 014
 
-Status: `GATE 2 FAIL — CORRECTIONS PREPARED, REVALIDATION PENDING`
+Status: `Gate 2: PASS; Gate consolidado 5–8: FAIL / pending revalidation`
+Validation: `NOT_RUN`
+
+Estabilização atual: a segmentação mantém correção de acessibilidade, mas a
+interação funcional foi separada para Keys de presentation. A API obsoleta
+`SemanticsFlag`/`hasFlag` foi removida dos testes; Semantics é avaliada por
+`isSemantics`. O gate permanece `FAIL / pending revalidation`.
 
 ## Environment
 
@@ -75,16 +81,104 @@ Veredito Mefisto do Gate 1.5: `passed`. Resultado operacional do gate: `PASS`.
 | --- | --- | --- | --- |
 | Shared widgets | `PASS` (`+25`) | — | nenhuma |
 | Settings responsivo | `FAIL` | `C` — finder antes da materialização | rolagem até `Sair` com `scrollUntilVisible` |
-| Dashboard copy | `FAIL` | `B` — expectativa visual obsoleta | expectativa semântica `Atualização` |
+| Dashboard sync/restrição | `FAIL` | `B` — expectativa obsoleta | labels semânticos dos cards `Sincronizado em, 12/06/2026` e `Sincronizado às, 09:40`; um único `Financeiro restrito`, pois só `Receita prevista` é restrita no fixture |
 | Sales — ícone | `FAIL` | `C` — `IconData` compartilhado | verificação estrutural de `Scaffold.drawer` |
-| Sales — viewport | warning | `C` — tap fora da viewport | `ensureVisible` antes de `Adicionar produto` |
+| Sales — viewport | `FAIL` | `C` — finder de scroll incorreto | `scrollUntilVisible` no `Scrollable` descendente de `SalesPage`, confirmação do centro na viewport e de abertura do picker antes do tap |
 | Catálogo | `PASS` (`+27`) | — | nenhuma |
 | Analyze | `FAIL` por warning | `A` — import morto | import removido |
 
 As correções acima permanecem `NOT_RUN` nesta execução. O Gate 2
 continua `FAIL / pending revalidation`; nenhum PASS foi inferido.
 
+## Fase 3 — Auth implementation handoff
+
+Status: `IMPLEMENTADA`.
+Validation: `NOT_RUN`.
+Gate 3: `FAIL / pending revalidation`.
+
+- Startup preserva `restore()` e retry, com marca, superfície de loading e
+  `AppStatePanel` de falha;
+- Login e Change Password compartilham `AuthShell`, preservando controller,
+  payloads, validações, loading e mensagens seguras de falha;
+- visibilidade de senha é estado local de presentation; autofill, ordem de
+  teclado e scroll responsivo foram preparados;
+- nenhuma alteração ocorreu em router, domain, application, data, core, sync,
+  persistência ou contrato.
+- Estabilização pendente de revalidação: correções restritas à constness do
+  Startup, hint oficial de autofill e compilação/observação dos testes Auth.
+- Evidência humana posterior: `test/app` e `flutter analyze --no-pub` passaram;
+  `test/features/auth` falhou por três problemas de teste/reflow. Esta retomada
+  prepara remount do double, rolagem antes de taps e CTA ocupado responsivo.
+  Gate 3 continua `FAIL / pending revalidation`.
+- O compilador posteriormente apontou fechamento sintático ausente no
+  `Flexible` do CTA ocupado de Change Password; a estrutura foi restaurada e
+  não recebeu nova execução nesta retomada.
+- A primeira restauração deixou uma vírgula excedente na lista `children`; ela
+  foi removida. Validation permanece `NOT_RUN` após essa correção.
+
+## Fase 4 — Dashboard implementation handoff
+
+Estado: `IMPLEMENTADA`.
+Gate 4: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+- hero navy compacto apresenta a leitura operacional sem nova dependência de
+  contexto ou dado;
+- KPIs usam `AppMetricCard` com ênfase primary/secondary e se adaptam a uma,
+  duas ou três colunas conforme constraints;
+- data/hora de sincronização migraram para `AppSyncIndicator`, sem inventar
+  estado de sync; gráficos, restrições, alertas, movimentos e estados foram
+  preservados;
+- nenhum path funcional, domínio, dado, sync, router ou contrato foi alterado.
+
+## Fase 5 — Catálogo implementation handoff
+
+Estado: `IMPLEMENTADA`.
+Gate 5: `NOT_RUN / pending validation`.
+Validation: `NOT_RUN`.
+
+- Gate 4: `PASS` por evidência humana; Fase 4 validada;
+- busca/controller, estados e dados locais foram preservados;
+- `ProductCard` apresenta preço permitido como informação tipográfica e mantém
+  `price == null` como restrição explícita; estoque só permanece por ser dado
+  formal do modelo de Catálogo;
+- nenhuma camada funcional ou contrato foi alterado.
+
+## Retomada das Fases 6–8 — 2026-09-22
+
+Primeira execução do batch: `PARCIAL`, por concentrar-se em microcopy e na
+remoção de jargão sem concluir a experiência operacional pedida para Vendas,
+Conta/Empresa e acessibilidade.
+
+Nova execução: implementação e testes focados preparados, sem execução de
+testes, analyze, format, build ou goldens. A inspeção estática confirma que as
+mudanças permanecem em presentation e testes; contrato, router, domain,
+application, data, Drift, outbox e sync não foram alterados.
+
+Validação: `NOT_RUN`.
+Gate consolidado 5–8: `FAIL / pending revalidation`.
+Fase 9: `NÃO AUTORIZADA`.
+
+### Estabilização de Sales — Gate consolidado 5–8
+
+Evidência humana: Catálogo, Settings, shared widgets, App e analyze passaram;
+Sales falhou em finders de interação. A inspeção confirmou que a segmentação
+existe e que a falha era de finder (`C`), não de produção. O toque compacto
+também falhava antes da rolagem até o alvo. Correções preparadas apenas em
+`sales_page_test.dart`; validação permanece `NOT_RUN`.
+
+Gate consolidado 5–8: `FAIL / pending revalidation`.
+
 ## Residual risks
+
+## Batch Fases 5–8 handoff
+
+Validação consolidada: `NOT_RUN`.
+
+- decisão humana registra ausência de gates individuais entre as fases;
+- Vendas preserva estados e aceite reais, ocultando JSON e erros técnicos;
+- Conta/Empresa preserva contexto e permissões, com linguagem operacional;
+- nenhum contrato, rota, domínio, dados ou sync foi alterado.
 
 - proposta estruturada não está disponível ao presentation; risco conhecido
   aceito como `DEBT-014-01` e não bloqueia a 014;

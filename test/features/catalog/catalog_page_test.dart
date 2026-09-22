@@ -27,6 +27,8 @@ void main() {
 
     await tester.pumpAndSettle();
 
+    expect(find.text('Consulte rapidamente o catálogo disponível.'), findsOneWidget);
+    expect(find.textContaining('produtos disponíveis'), findsOneWidget);
     expect(find.text('Capacete Trail Pro'), findsOneWidget);
     expect(find.text('Preço restrito'), findsWidgets);
     expect(find.text('Kit Sinalização LED'), findsOneWidget);
