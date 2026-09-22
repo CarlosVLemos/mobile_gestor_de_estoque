@@ -2,7 +2,7 @@
 
 Status: `Gate consolidado 5–8: PASS; Fase 9: PASS WITH RESTRICTION`
 Execução final: 18 goldens comparados, análise estática e suíte completa aprovados
-Validation: `PASS`
+Validation: `PASS WITH RESTRICTION`
 
 ## Fase 9 — Golden suite validada
 

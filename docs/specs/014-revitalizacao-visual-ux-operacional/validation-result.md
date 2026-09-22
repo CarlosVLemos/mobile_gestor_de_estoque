@@ -192,27 +192,25 @@ também falhava antes da rolagem até o alvo. Correções preparadas apenas em
 Resultado histórico daquela tentativa: Gate consolidado 5–8 `FAIL / pending
 revalidation`, superado pelo `PASS` final.
 
-## Residual risks
+## Histórico — Batch Fases 5–8 handoff
 
-## Batch Fases 5–8 handoff
-
-Validação consolidada: `NOT_RUN`.
+Validação consolidada naquele momento: `NOT_RUN`.
 
 - decisão humana registra ausência de gates individuais entre as fases;
 - Vendas preserva estados e aceite reais, ocultando JSON e erros técnicos;
 - Conta/Empresa preserva contexto e permissões, com linguagem operacional;
 - nenhum contrato, rota, domínio, dados ou sync foi alterado.
 
+## Residual risks atuais
+
 - proposta estruturada não está disponível ao presentation; risco conhecido
   aceito como `DEBT-014-01` e não bloqueia a 014;
 - estoque não está disponível no modelo atual do picker de produto;
-- resolvido na Fase 9: o golden do Dashboard foi regenerado e aprovado após a
-  correção de contraste com `onSurfaceHero`;
 - TalkBack e ordem de foco ainda exigem validação manual em aparelho/emulador;
-- arquivos históricos possuem alguns comentários/copies obsoletos que não provam o estado funcional atual;
-- contraste e superfícies consumidoras foram aprovados; TalkBack manual
-  permanece como restrição residual documentada;
-- `ProductCard` ainda usa badge para preço no baseline; a correção pertence à
-  Fase 5 e não foi antecipada nesta entrega;
-- Fase 2 foi implementada, mas permanece sem evidência runtime até o QA
-  explicitamente autorizado.
+
+## Itens resolvidos na Fase 9
+
+- o golden do Dashboard foi regenerado e aprovado após a correção de contraste
+  com `onSurfaceHero`;
+- contraste e superfícies consumidoras foram aprovados na revisão visual e na
+  suíte final.
