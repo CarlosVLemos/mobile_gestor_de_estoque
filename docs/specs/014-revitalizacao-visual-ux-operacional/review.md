@@ -1,11 +1,11 @@
 # Review — Spec 014
 
-Status: `IN_PROGRESS — Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
-Validation: `NOT_RUN`
+Status: `DONE — Gate consolidado 5–8: PASS; Fase 9: PASS`
+Validation: `PASS`
 
-## Fase 9 — Review de preparação
+## Fase 9 — Review final
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `IMPLEMENTADA / NOT_RUN`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS`.
 
 O harness de golden foi ampliado para exatamente 18 superfícies em 390×844,
 cobrindo Shell, Auth, Dashboard, Catálogo, Vendas nova/histórico, Mais e
@@ -13,15 +13,17 @@ Conta/Empresa nos dois temas. A composição usa fixtures e overrides determiní
 nenhuma UI de produção, contrato, rota, domínio, dados, Drift, sync ou outbox
 foi modificada nesta fase.
 
-Não há veredito visual final: PNGs não foram gerados/alterados e nenhuma
-validação foi executada. O próximo gate é humano: gerar baselines, inspecionar
-as 18 imagens, rodar golden compare, suíte completa e analyze. Menções anteriores
-a `FAIL / pending revalidation` ficam preservadas como histórico das Fases 5–8.
+Os 18 PNGs foram gerados/comparados e aprovados em revisão humana. O contraste
+do hero dark e a captura do CTA de Nova venda foram corrigidos. Golden suite,
+analyze e suíte completa passaram. Mefisto emite `passed`; Jarvis fecha a Spec.
+
+## Registro histórico de estabilização — não autoritativo
 
 Estabilização atual: Sales interage por Keys explícitas dos segmentos, enquanto
 o design system valida Semantics por `isSemantics`. O fluxo compacto substituiu
 `scrollUntilVisible` e cálculo de viewport por `ensureVisible` seguido de
-`hitTestable`. Gate consolidado 5–8: `FAIL / pending revalidation`.
+`hitTestable`. Naquela tentativa, o Gate consolidado 5–8 ainda estava
+`FAIL / pending revalidation`.
 
 ## Implementation handoff
 
@@ -255,8 +257,8 @@ ações iconográficas de Vendas e ao retorno de Conta; os testes preparam 320 p
 com scaler 2.0 para ambas as superfícies. Nenhum contrato ou comportamento de
 negócio foi alterado.
 
-Validation: `NOT_RUN`. Gate consolidado 5–8: `FAIL / pending revalidation`. Fase 9:
-`NÃO AUTORIZADA`.
+Registro histórico: Validation `NOT_RUN`; Gate consolidado 5–8 `FAIL / pending
+revalidation`; Fase 9 ainda não autorizada. Estado superado pelo `PASS` final.
 
 ### Estabilização de Sales — Gate consolidado 5–8
 
@@ -264,8 +266,8 @@ O `AppSegmentedControl` já materializa Nova venda e Histórico com rótulos
 semânticos; o `Text` interno não é o contrato correto para interação de teste.
 Sales não sofreu alteração de produção. O teste compacto agora só toca
 Selecionar cliente depois de rolar o scroll principal da página e confirmar a
-visibilidade; também confirma que o picker abriu. O gate segue `FAIL / pending
-revalidation` até execução humana.
+visibilidade; também confirma que o picker abriu. Naquela tentativa, o gate
+seguia `FAIL / pending revalidation`; o resultado foi superado pelo `PASS` final.
 
 ## Residual risks
 
@@ -278,12 +280,10 @@ revalidation` até execução humana.
 
 ## Jarvis closure
 
-`in_progress`
+`done`
 
 Próximo gate:
 
 ```text
-autorização explícita
--> Mefisto: review e testes focados da Fase 2
--> handoff para Van Gogh: Fase 3 — Auth
+nenhum — Spec 014 encerrada após veredito Mefisto `passed`
 ```

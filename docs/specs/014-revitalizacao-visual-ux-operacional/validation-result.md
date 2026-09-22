@@ -1,28 +1,31 @@
 # Validation Result — Spec 014
 
-Status: `Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
-Validation: `NOT_RUN`
+Status: `Gate consolidado 5–8: PASS; Fase 9: PASS`
+Validation: `PASS`
 
-## Fase 9 — Handoff de validação final
+## Fase 9 — Resultado final
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `IMPLEMENTADA / NOT_RUN`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS`.
 
-Preparação concluída: foram declarados 18 goldens estáveis em 390×844 para as
-nove superfícies aprovadas em claro/escuro. As dependências são substituídas por
-fixtures e overrides locais. Não houve geração/atualização de PNG, execução de
-testes, analyze, format, build ou alteração de produção/contrato.
+Foram comparados e aprovados 18 goldens estáveis em 390×844 para as nove
+superfícies em claro/escuro. A revisão humana confirmou o contraste corrigido
+do hero do Dashboard e a presença do CTA no golden de Nova venda.
 
-Próxima evidência necessária: gerar os baselines sob autorização, revisar
-visualmente cada imagem, executar a comparação golden, a suíte completa e a
-análise estática. Warnings Drift preexistentes não fazem parte desta Fase.
+Golden suite, `flutter analyze --no-pub` e suíte completa: `PASS`. A evidência
+final combina execução autorizada e resultado humano informado pelo responsável.
+Warnings Drift preexistentes não bloquearam a validação.
 
 Os blocos anteriores de `FAIL / pending revalidation` são histórico de
 estabilizações anteriores e não substituem este status.
 
+Mefisto verdict: `passed`.
+
+## Registro histórico de estabilização — não autoritativo
+
 Estabilização atual: a segmentação mantém correção de acessibilidade, mas a
 interação funcional foi separada para Keys de presentation. A API obsoleta
 `SemanticsFlag`/`hasFlag` foi removida dos testes; Semantics é avaliada por
-`isSemantics`. O gate permanece `FAIL / pending revalidation`.
+`isSemantics`. Naquela tentativa, o gate permanecia `FAIL / pending revalidation`.
 
 ## Environment
 
@@ -171,9 +174,8 @@ testes, analyze, format, build ou goldens. A inspeção estática confirma que a
 mudanças permanecem em presentation e testes; contrato, router, domain,
 application, data, Drift, outbox e sync não foram alterados.
 
-Validação: `NOT_RUN`.
-Gate consolidado 5–8: `FAIL / pending revalidation`.
-Fase 9: `NÃO AUTORIZADA`.
+Registro histórico: validação `NOT_RUN`; Gate consolidado 5–8 `FAIL / pending
+revalidation`; Fase 9 ainda não autorizada. Estado superado pelo `PASS` final.
 
 ### Estabilização de Sales — Gate consolidado 5–8
 
@@ -183,7 +185,8 @@ existe e que a falha era de finder (`C`), não de produção. O toque compacto
 também falhava antes da rolagem até o alvo. Correções preparadas apenas em
 `sales_page_test.dart`; validação permanece `NOT_RUN`.
 
-Gate consolidado 5–8: `FAIL / pending revalidation`.
+Resultado histórico daquela tentativa: Gate consolidado 5–8 `FAIL / pending
+revalidation`, superado pelo `PASS` final.
 
 ## Residual risks
 

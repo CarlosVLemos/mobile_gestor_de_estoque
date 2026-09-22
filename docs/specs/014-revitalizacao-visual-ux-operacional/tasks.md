@@ -1,28 +1,33 @@
 # Tasks — Spec 014
 
-Status: `IN_PROGRESS — Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
+Status: `DONE — Gate consolidado 5–8: PASS; Fase 9: PASS`
 Execution mode: `SINGLE_WRITER`
 
-## Handoff atual — Fase 9
+## Fechamento autoritativo — Fase 9
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`. Fase 9 `IMPLEMENTADA / NOT_RUN`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`. Fase 9 `PASS`.
 
 - O harness em `test/goldens/visual_goldens_test.dart` declara exatamente 18
   superfícies em 390×844: Shell, Login, Troca de senha, Dashboard, Catálogo,
   Nova venda, Histórico, Mais e Conta/Empresa, cada uma em claro e escuro.
 - As superfícies usam fixtures e overrides estáveis. Startup, pickers e
   estados transitórios permanecem fora de golden.
-- Nenhum PNG, golden baseline ou comando de validação foi atualizado/executado.
+- Os 18 baselines foram gerados, comparados e aprovados em revisão humana.
+- O hero do Dashboard usa `onSurfaceHero` e Nova venda evidencia cliente,
+  produtos, resumo e CTA no golden.
+- Golden suite, análise estática e suíte completa: `PASS`.
 
 As entradas anteriores de `FAIL / pending revalidation` registram tentativas
 históricas das Fases 5–8 e são preservadas como histórico, não como estado atual.
 Validation mode: `FULL` no fechamento, sempre sujeito à autorização explícita
 
-Estabilização atual: segmentos de Sales usam Keys de presentation no elemento
+## Registro histórico de estabilização — não autoritativo
+
+Na estabilização anterior, segmentos de Sales passaram a usar Keys de presentation no elemento
 interativo (`sales-segment-new` e `sales-segment-history`); Semantics é
 validada isoladamente no design system. O fluxo compacto usa `ensureVisible` e
 `hitTestable`, sem resolver Scrollable ou coordenadas manualmente. Gate
-consolidado 5–8 permanece `FAIL / pending revalidation`.
+consolidado 5–8 estava `FAIL / pending revalidation` naquela tentativa.
 
 ## Ownership
 
@@ -239,24 +244,24 @@ operacionais de Vendas, Conta/Empresa e acessibilidade.
 - [x] Consolidar o harness determinístico de 18 goldens em 390×844: nove superfícies em claro/escuro.
 - [x] Cobrir Shell, Login, Troca de senha, Dashboard, Catálogo, Nova venda, Histórico, Mais e Conta/Empresa.
 - [x] Usar fixtures e overrides locais; pickers, Startup e estados transitórios seguem como widget/manual checks, não goldens.
-- [x] Preservar os seis baselines existentes; os 12 novos PNGs continuam pendentes de geração humana autorizada.
-- [x] Não executar nem atualizar goldens nesta preparação.
-- [ ] Executar os gates de `test.md` somente quando autorizados.
+- [x] Gerar os 18 baselines e revisar visualmente todas as superfícies.
+- [x] Corrigir o contraste do hero do Dashboard e capturar o CTA de Nova venda.
+- [x] Executar golden suite, análise estática e suíte completa com resultado `PASS`.
 
 ## Fase 10 — Review e fechamento
 
-- [ ] Van Gogh entrega handoff curto com paths, decisões e riscos.
-- [ ] Mefisto compara diff contra o contrato FROZEN.
-- [ ] Mefisto registra resultados reais em `validation-result.md`.
-- [ ] Mefisto emite `passed`, `failed`, `blocked` ou `passed_with_restrictions`.
-- [ ] Jarvis registra riscos residuais e fecha somente após o veredito.
+- [x] Van Gogh entrega handoff curto com paths, decisões e riscos.
+- [x] Mefisto compara diff contra o contrato FROZEN.
+- [x] Mefisto registra resultados reais em `validation-result.md`.
+- [x] Mefisto emite `passed`.
+- [x] Jarvis registra riscos residuais e fecha a Spec após o veredito.
 
-## Parallel now
+## Histórico — Parallel now
 
 Fase 2 implementada em `SINGLE_WRITER`. Nenhuma outra fase de implementação
 deve avançar sobre os mesmos paths antes do handoff/review desta fase.
 
-## Blocked by handoff
+## Histórico — Blocked by handoff
 
 - Fase 2 aguarda revisão e validação autorizada por Mefisto;
 - detalhes estruturados da proposta permanecem dívida funcional aceita, não
@@ -295,8 +300,9 @@ Histórico passa a apresentar `createdAt`; Conta/Empresa foi reorganizada em
 identidade, empresa atual e acesso; e tooltips foram adicionados às ações por
 ícone de Vendas e Conta. Testes focados foram atualizados, mas não executados.
 
-Estado após a implementação: Fases 6–8 `IMPLEMENTADAS / pending validation`.
-Gate consolidado 5–8: `FAIL / pending revalidation`. Fase 9 permanece `NÃO AUTORIZADA`.
+Estado histórico após aquela implementação: Fases 6–8 `IMPLEMENTADAS / pending validation`.
+Naquele momento, o Gate consolidado 5–8 estava `FAIL / pending revalidation`
+e a Fase 9 não estava autorizada. Estado superado pelo `PASS` final.
 
 ### Estabilização do Gate consolidado 5–8
 

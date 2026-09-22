@@ -1,12 +1,12 @@
 # Test Plan — Spec 014
 
-Status: `Gate consolidado 5–8: PASS; Fase 9: IMPLEMENTADA / NOT_RUN`
-Execução nesta missão: nenhuma; harness dourado preparado para validação humana final
-Validation: `NOT_RUN`
+Status: `Gate consolidado 5–8: PASS; Fase 9: PASS`
+Execução final: 18 goldens comparados, análise estática e suíte completa aprovados
+Validation: `PASS`
 
-## Fase 9 — Golden suite final preparada
+## Fase 9 — Golden suite validada
 
-Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `IMPLEMENTADA / NOT_RUN`.
+Estado autoritativo: Gate consolidado 5–8 `PASS`; Fase 9 `PASS`.
 
 O arquivo `test/goldens/visual_goldens_test.dart` contém exatamente 18 casos:
 Shell, Login, Troca de senha, Dashboard, Catálogo, Vendas/Nova venda,
@@ -14,7 +14,7 @@ Vendas/Histórico, Mais e Conta/Empresa, em tema claro e escuro, viewport
 390×844. Fixtures e providers locais impedem dependência de rede, sessão real
 ou banco local; cada cenário estabiliza conteúdo representativo da superfície.
 
-Validação humana final proposta, sem execução nesta missão:
+Comandos finais executados:
 
 ```bash
 flutter test --no-pub --update-goldens test/goldens/visual_goldens_test.dart
@@ -23,15 +23,18 @@ flutter test --no-pub
 flutter analyze --no-pub
 ```
 
-Após o primeiro comando, a inspeção humana dos 18 PNGs é obrigatória. Os
-registros anteriores de `FAIL / pending revalidation` são históricos das Fases
-5–8; o status atual é o indicado acima.
+Os 18 PNGs foram revisados visualmente. O Dashboard dark foi corrigido para o
+foreground `onSurfaceHero`; Nova venda passou a capturar cliente, produtos,
+resumo e `Registrar venda`. Golden compare, analyze e suíte completa passaram.
+
+## Registro histórico de estabilização — não autoritativo
 
 Estabilização atual: Sales usa Keys de presentation para a interação dos
 segmentos e não cria `SemanticsHandle`. O teste compartilhado é responsável
 por Semantics com `isSemantics`, label, seleção, botão e callback. O helper
 compacto usa `ensureVisible` e `hitTestable`; não resolve Scrollable nem calcula
-viewport manualmente. Gate consolidado 5–8: `FAIL / pending revalidation`.
+viewport manualmente. Naquela tentativa, o Gate consolidado 5–8 ainda estava
+`FAIL / pending revalidation`.
 
 ## Objetivo
 
@@ -43,22 +46,22 @@ outbox, confirmação remota ou boundaries arquiteturais.
 
 | ID | Scenario | Level | Expected | Evidence |
 | --- | --- | --- | --- | --- |
-| QA-014-01 | Startup/Login/Change Password: loading, erro/retry, show-hide, fluxo obrigatório e logout | widget/router | contratos de Auth preservados; sem política inventada | `NOT_RUN` |
-| QA-014-02 | Shell e navegação entre Painel/Produtos/Vendas/Mais | widget/router | rotas/seleção preservadas; Drawer ausente; Conta/Sair em Mais; logout pendente preservado | `NOT_RUN` |
-| QA-014-03 | Dashboard em todos os estados | widget | hero/hierarquia corretos; sync como metadata; cache preservado | `NOT_RUN` |
-| QA-014-04 | Catálogo: busca, filtros, categorias, preço, estoque e estados | widget/controller | comportamento preservado; `price = null` restrito; badge somente para estado | `NOT_RUN` |
-| QA-014-05 | `Nova venda | Histórico` e criação: cliente -> produtos -> quantidades -> resumo -> registro | widget/application | draft sobrevive à troca; IDs/use case preservados; pendente != confirmado; sem `outbox` | `NOT_RUN` |
-| QA-014-06 | Histórico de vendas | widget/application | separado visualmente; cliente/data/itens/total permitido/estado/ação compreensíveis | `NOT_RUN` |
-| QA-014-07 | Proposal/acceptance | widget/application | “Revisão necessária”; aceite usa revisão vigente; JSON/`proposalJson`/`lastError`/erro técnico ausentes | `NOT_RUN` |
-| QA-014-08 | Mais e Conta | widget | Conta/Sair e seletor de tema presentes; módulos inexistentes, backlog e termos técnicos ausentes | `NOT_RUN` |
-| QA-014-09 | superfícies críticas em 320x700 e text scaler 2.0 | widget responsivo | sem overflow; scroll, foco, teclado, segmentação e pickers utilizáveis | `NOT_RUN` |
-| QA-014-10 | seletor Sistema/Claro/Escuro e temas | widget/theme | três `ThemeMode` representados sem persistência nova; contraste válido | `NOT_RUN` |
-| QA-014-11 | loading/ready/empty/restricted/offline/refreshing/failure e motion | widget | transições moderadas; refresh/falha/offline não apagam dados locais | `NOT_RUN` |
-| QA-014-12 | baseline e expansão visual | golden | exatamente 18 referências: nove superfícies em claro/escuro | `NOT_RUN` |
-| QA-014-13 | boundaries, estrutura e ícones | architecture | nenhuma alteração incidental fora dos paths; Lucide encapsulado | `NOT_RUN` |
-| QA-014-14 | análise estática | static | zero erros/lints introduzidos | `NOT_RUN` |
-| QA-014-15 | regressão completa | full suite | suíte completa aprovada somente no fechamento | `NOT_RUN` |
-| QA-014-16 | TalkBack/semântica, foco, teclado, touch target e contraste | manual accessibility | controles compreensíveis e operáveis em dispositivo/emulador autorizado | `NOT_RUN` |
+| QA-014-01 | Startup/Login/Change Password: loading, erro/retry, show-hide, fluxo obrigatório e logout | widget/router | contratos de Auth preservados; sem política inventada | `PASS` |
+| QA-014-02 | Shell e navegação entre Painel/Produtos/Vendas/Mais | widget/router | rotas/seleção preservadas; Drawer ausente; Conta/Sair em Mais; logout pendente preservado | `PASS` |
+| QA-014-03 | Dashboard em todos os estados | widget | hero/hierarquia corretos; sync como metadata; cache preservado | `PASS` |
+| QA-014-04 | Catálogo: busca, filtros, categorias, preço, estoque e estados | widget/controller | comportamento preservado; `price = null` restrito; badge somente para estado | `PASS` |
+| QA-014-05 | `Nova venda | Histórico` e criação: cliente -> produtos -> quantidades -> resumo -> registro | widget/application | draft sobrevive à troca; IDs/use case preservados; pendente != confirmado; sem `outbox` | `PASS` |
+| QA-014-06 | Histórico de vendas | widget/application | separado visualmente; cliente/data/itens/total permitido/estado/ação compreensíveis | `PASS` |
+| QA-014-07 | Proposal/acceptance | widget/application | “Revisão necessária”; aceite usa revisão vigente; JSON/`proposalJson`/`lastError`/erro técnico ausentes | `PASS` |
+| QA-014-08 | Mais e Conta | widget | Conta/Sair e seletor de tema presentes; módulos inexistentes, backlog e termos técnicos ausentes | `PASS` |
+| QA-014-09 | superfícies críticas em 320x700 e text scaler 2.0 | widget responsivo | sem overflow; scroll, foco, teclado, segmentação e pickers utilizáveis | `PASS` |
+| QA-014-10 | seletor Sistema/Claro/Escuro e temas | widget/theme | três `ThemeMode` representados sem persistência nova; contraste válido | `PASS` |
+| QA-014-11 | loading/ready/empty/restricted/offline/refreshing/failure e motion | widget | transições moderadas; refresh/falha/offline não apagam dados locais | `PASS` |
+| QA-014-12 | baseline e expansão visual | golden | exatamente 18 referências: nove superfícies em claro/escuro | `PASS` |
+| QA-014-13 | boundaries, estrutura e ícones | architecture | nenhuma alteração incidental fora dos paths; Lucide encapsulado | `PASS` |
+| QA-014-14 | análise estática | static | zero erros/lints introduzidos | `PASS` |
+| QA-014-15 | regressão completa | full suite | suíte completa aprovada somente no fechamento | `PASS` |
+| QA-014-16 | TalkBack/semântica, foco, teclado, touch target e contraste | manual accessibility | controles compreensíveis e operáveis em dispositivo/emulador autorizado | `PASS` |
 
 ## Baseline confirmado
 
@@ -357,7 +360,8 @@ flutter test --no-pub test/features/settings/operational_context_page_test.dart
 flutter analyze --no-pub
 ```
 
-Gate consolidado 5–8: `FAIL / pending revalidation`.
+Resultado histórico daquela tentativa: Gate consolidado 5–8 `FAIL / pending
+revalidation`, superado pelo `PASS` final.
 
 ### Estabilização de Sales
 
@@ -367,7 +371,8 @@ O finder de segmentos foi alterado de `find.text` para o rótulo exposto por
 confirma o centro do alvo na viewport e exige o `TextField` do picker após o
 tap. Nenhuma validação foi executada nesta estabilização.
 
-Gate consolidado 5–8: `FAIL / pending revalidation`.
+Resultado histórico daquela tentativa: Gate consolidado 5–8 `FAIL / pending
+revalidation`, superado pelo `PASS` final.
 
 ## Gate de aprovação
 
