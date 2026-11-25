@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -288,6 +290,40 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('desabilita registro e edição enquanto a venda é salva', (tester) async {
+    final repository = _Repository()..pending = Completer<String>();
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(_page(
+      repository,
+      home: const MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(2)),
+        child: SalesPage(),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await _ensureVisibleAndTap(tester, find.text('Selecionar cliente'));
+    await _ensureVisibleAndTap(tester, find.text('Cliente Real'));
+    await _materializeAndTap(tester, find.text('Adicionar produto'));
+    await _ensureVisibleAndTap(tester, find.text('Produto Drift').last);
+    await _materializeAndTap(tester, find.text('Registrar venda'));
+
+    final progress = find.text('Registrando venda…');
+    expect(progress, findsOneWidget);
+    final button = tester.widget<FilledButton>(find.ancestor(
+      of: progress,
+      matching: find.byType(FilledButton),
+    ).first);
+    expect(button.onPressed, isNull);
+    expect(repository.calls, 1);
+    expect(tester.takeException(), isNull);
+    repository.pending!.complete('11111111-2222-4333-8444-555555555555');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('registrada localmente'), findsOneWidget);
+  });
+
   testWidgets('bloqueia formulário sem feature ou permissão', (tester) async {
     await tester.pumpWidget(_page(_Repository(), allowed: false));
     await tester.pumpAndSettle();
@@ -425,6 +461,8 @@ ShellProfile _profile({bool allowed = true}) => ShellProfile(
 
 class _Repository implements SalesRepository {
   SaleDraft? draft;
+  int calls = 0;
+  Completer<String>? pending;
   @override
   Future<String> register({
     required String localSaleId,
@@ -432,7 +470,9 @@ class _Repository implements SalesRepository {
     required SaleDraft draft,
     required DateTime createdAt,
   }) async {
+    calls++;
     this.draft = draft;
-    return localSaleId;
+    final operation = pending;
+    return operation == null ? localSaleId : await operation.future;
   }
 }
