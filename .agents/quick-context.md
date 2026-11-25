@@ -1,6 +1,6 @@
 # Contexto Rápido
 
-Checkpoint documental: 25/11/2026 — base de planejamento `6fec45ed`. Não é resultado de nova execução de QA.
+Checkpoint documental: 25/11/2026 — planejamento em `6fec45ed`, atualização sobre `805873f`. Não é resultado de nova execução de QA.
 
 - Specs 007, 008, 008B, 009A/B/C, 010, 012, 013 e 013D: entregues segundo evidência histórica de setembro; suite/analyze históricos, não atestado da revisão atual.
 - Spec 014: DONE com restrições; goldens e QA automatizada históricos, TalkBack/foco manual NOT_RUN, DEBT-014-01 (proposta estruturada) pendente.
