@@ -1,4 +1,5 @@
 import '../../domain/entities/sale_reference_data.dart';
+import 'sale_submission_gate.dart';
 
 class SalesState {
   SalesState({
@@ -7,6 +8,7 @@ class SalesState {
     required Map<String, SaleCartItem> cartItems,
     this.selectedClient,
     this.referenceFailure,
+    this.submissionStatus = SaleSubmissionStatus.idle,
   }) : clients = List.unmodifiable(clients),
        products = List.unmodifiable(products),
        cartItems = Map.unmodifiable(cartItems);
@@ -16,8 +18,11 @@ class SalesState {
   final Map<String, SaleCartItem> cartItems;
   final SaleClientOption? selectedClient;
   final String? referenceFailure;
+  final SaleSubmissionStatus submissionStatus;
 
-  bool get canRegister => selectedClient != null && cartItems.isNotEmpty;
+  bool get isSubmissionBlocked => submissionStatus != SaleSubmissionStatus.idle;
+
+  bool get canRegister => !isSubmissionBlocked && selectedClient != null && cartItems.isNotEmpty;
 
   bool get hasPendingPrice =>
       cartItems.values.any((item) => item.unitPrice == null);
@@ -30,6 +35,7 @@ class SalesState {
     bool clearSelectedClient = false,
     String? referenceFailure,
     bool clearReferenceFailure = false,
+    SaleSubmissionStatus? submissionStatus,
   }) {
     return SalesState(
       clients: clients ?? this.clients,
@@ -41,6 +47,7 @@ class SalesState {
       referenceFailure: clearReferenceFailure
           ? null
           : (referenceFailure ?? this.referenceFailure),
+      submissionStatus: submissionStatus ?? this.submissionStatus,
     );
   }
 }
