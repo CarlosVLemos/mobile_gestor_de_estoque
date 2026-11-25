@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/composition/local_context_composition.dart';
 import '../../../../app/shell/shell_profile.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_icons.dart';
@@ -19,6 +20,7 @@ import '../../domain/entities/sale_sync.dart';
 import '../../sales_providers.dart';
 import '../controllers/sales_controller.dart';
 import '../state/sales_state.dart';
+import '../state/sale_submission_gate.dart';
 
 class SalesPage extends ConsumerStatefulWidget {
   const SalesPage({super.key});
@@ -85,15 +87,18 @@ class _SalesPageState extends ConsumerState<SalesPage> {
               ),
               const SizedBox(height: AppSpacing.sectionGap),
             ],
-            _ClientCard(
+            IgnorePointer(
+              ignoring: state.isSubmissionBlocked,
+              child: _ClientCard(
               selectedClient: state.selectedClient,
               onSelect: () => _showClientPicker(context, state, controller),
+              ),
             ),
             const SizedBox(height: AppSpacing.sectionGap),
             SectionHeader(
               title: 'Produtos da venda',
               action: TextButton.icon(
-                onPressed: () => _showProductPicker(context, state, controller),
+                onPressed: state.isSubmissionBlocked ? null : () => _showProductPicker(context, state, controller),
                 icon: const Icon(AppIcons.products, size: 18),
                 label: const Text('Adicionar produto'),
               ),
@@ -105,12 +110,15 @@ class _SalesPageState extends ConsumerState<SalesPage> {
                 message: 'Busque um produto para começar esta venda.',
               )
             else
-              _CartItemsCard(
+              IgnorePointer(
+                ignoring: state.isSubmissionBlocked,
+                child: _CartItemsCard(
                 items: state.cartItems.values.toList(growable: false),
                 canViewFinancial: canViewFinancial,
                 onIncrement: controller.incrementQuantity,
                 onDecrement: controller.decrementQuantity,
                 onRemove: controller.removeItem,
+                ),
               ),
             const SizedBox(height: AppSpacing.sectionGap),
             _SummaryCard(
@@ -118,9 +126,10 @@ class _SalesPageState extends ConsumerState<SalesPage> {
               canViewFinancial: canViewFinancial,
               onRegister: state.canRegister
                   ? () async {
+                      final saleContext = ref.read(activeSyncContextProvider);
                       try {
                         final saleId = await controller.registerSale();
-                        if (!context.mounted) return;
+                        if (!context.mounted || ref.read(activeSyncContextProvider) != saleContext) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
@@ -128,15 +137,33 @@ class _SalesPageState extends ConsumerState<SalesPage> {
                             ),
                           ),
                         );
-                      } catch (error) {
-                        if (!context.mounted) return;
+                      } catch (_) {
+                        if (!context.mounted || ref.read(activeSyncContextProvider) != saleContext) return;
                         ScaffoldMessenger.of(
                           context,
-                        ).showSnackBar(SnackBar(content: Text('$error')));
+                        ).showSnackBar(const SnackBar(content: Text(
+                          'Não foi possível concluir o registro. Verifique o estado da venda antes de tentar novamente.',
+                        )));
                       }
                     }
                   : null,
             ),
+            if (state.submissionStatus == SaleSubmissionStatus.uncertain)
+              TextButton(
+                onPressed: () async {
+                  final result = await controller.reconcileSubmission();
+                  if (!context.mounted) return;
+                  final message = result == null
+                      ? 'Ainda não foi possível verificar o registro.'
+                      : result
+                          ? 'Venda registrada neste dispositivo.'
+                          : 'Registro não encontrado. Você pode tentar novamente.';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                },
+                child: const Text('Verificar registro'),
+              ),
             ],
             const SizedBox(height: AppSpacing.sectionGap),
             if (_showHistory)
@@ -547,7 +574,9 @@ class _SummaryCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: onRegister,
-                child: const Text('Registrar venda'),
+                child: Text(state.submissionStatus == SaleSubmissionStatus.registering
+                    ? 'Registrando venda…'
+                    : 'Registrar venda'),
               ),
             ),
           ],
