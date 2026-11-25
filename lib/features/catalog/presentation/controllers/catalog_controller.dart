@@ -7,6 +7,7 @@ import '../../../../core/sync/sync_state.dart';
 import '../../../../core/sync/sync_exception.dart';
 import '../../catalog_providers.dart';
 import '../../domain/repositories/catalog_repository.dart';
+import '../../domain/value_objects/catalog_query.dart';
 import '../state/catalog_state.dart';
 
 final catalogControllerProvider =
@@ -15,6 +16,8 @@ final catalogControllerProvider =
 class CatalogController extends Notifier<CatalogState> {
   var _initialized = false;
   var _requestSequence = 0;
+  var _queryRevision = 0;
+  var _watchRevision = 0;
   StreamSubscription<CatalogLoadResult>? _localSubscription;
 
   @override
@@ -22,16 +25,25 @@ class CatalogController extends Notifier<CatalogState> {
     if (!_initialized) {
       _initialized = true;
       Future<void>.microtask(() async {
-        await _watchLocal();
-        await load();
+        if (!ref.mounted) return;
+        final revision = _queryRevision;
+        await _watchLocal(state.query, revision);
+        if (ref.mounted && revision == _queryRevision) await load();
       });
-      ref.onDispose(() => _localSubscription?.cancel());
+      ref.onDispose(() {
+        _queryRevision++;
+        _watchRevision++;
+        final subscription = _localSubscription;
+        _localSubscription = null;
+        if (subscription != null) unawaited(subscription.cancel());
+      });
     }
     return CatalogState.initial();
   }
 
   Future<void> load() async {
     final requestId = ++_requestSequence;
+    final queryRevision = _queryRevision;
     final query = state.query;
     state = state.copyWith(
       status: state.items.isEmpty ? ViewStatus.loading : ViewStatus.refreshing,
@@ -39,12 +51,12 @@ class CatalogController extends Notifier<CatalogState> {
     );
     try {
       final result = await ref.read(loadCatalogUseCaseProvider).call(query);
-      if (requestId != _requestSequence) {
+      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
         return;
       }
       _applyResult(result);
     } on Object {
-      if (requestId != _requestSequence) {
+      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
         return;
       }
       _applyUnexpectedFailure();
@@ -53,6 +65,7 @@ class CatalogController extends Notifier<CatalogState> {
 
   Future<void> refresh() async {
     final requestId = ++_requestSequence;
+    final queryRevision = _queryRevision;
     final query = state.query;
     state = state.copyWith(status: ViewStatus.refreshing, clearMessage: true);
     try {
@@ -60,6 +73,7 @@ class CatalogController extends Notifier<CatalogState> {
       final outcome = engine == null
           ? SyncOutcome.succeeded
           : await engine.sync(trigger: SyncTrigger.manual);
+      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) return;
       final loaded = await ref.read(loadCatalogUseCaseProvider).call(query);
       final result = outcome == SyncOutcome.succeeded || outcome == SyncOutcome.busy
           ? loaded
@@ -80,12 +94,12 @@ class CatalogController extends Notifier<CatalogState> {
               items: loaded.items,
               categories: loaded.categories,
             );
-      if (requestId != _requestSequence) {
+      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
         return;
       }
       _applyResult(result);
     } on Object {
-      if (requestId != _requestSequence) {
+      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
         return;
       }
       _applyUnexpectedFailure();
@@ -93,27 +107,46 @@ class CatalogController extends Notifier<CatalogState> {
   }
 
   Future<void> updateSearch(String search) async {
+    final revision = ++_queryRevision;
+    _requestSequence++;
     state = state.copyWith(query: state.query.copyWith(search: search));
-    await _watchLocal();
-    await load();
+    await _watchLocal(state.query, revision);
+    if (ref.mounted && revision == _queryRevision) await load();
   }
 
   Future<void> updateCategory(String category) async {
+    final revision = ++_queryRevision;
+    _requestSequence++;
     state = state.copyWith(
       query: state.query.copyWith(
         category: category == 'Todos' ? null : category,
         clearCategory: category == 'Todos',
       ),
     );
-    await _watchLocal();
-    await load();
+    await _watchLocal(state.query, revision);
+    if (ref.mounted && revision == _queryRevision) await load();
   }
 
-  Future<void> _watchLocal() async {
-    await _localSubscription?.cancel();
+  Future<void> _watchLocal(CatalogQuery query, int queryRevision) async {
+    final watchRevision = ++_watchRevision;
+    final previous = _localSubscription;
+    _localSubscription = null;
+    if (previous != null) await previous.cancel();
+    if (!ref.mounted || watchRevision != _watchRevision || queryRevision != _queryRevision) return;
     final repository = ref.read(catalogRepositoryProvider);
     if (repository is! ReactiveCatalogRepository) return;
-    _localSubscription = repository.watch(state.query).listen(_applyResult);
+    _localSubscription = repository.watch(query).listen(
+      (result) {
+        if (ref.mounted && watchRevision == _watchRevision && queryRevision == _queryRevision) {
+          _applyResult(result);
+        }
+      },
+      onError: (Object _, StackTrace __) {
+        if (ref.mounted && watchRevision == _watchRevision && queryRevision == _queryRevision) {
+          _applyUnexpectedFailure();
+        }
+      },
+    );
   }
 
   void _applyResult(CatalogLoadResult result) {

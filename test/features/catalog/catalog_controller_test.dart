@@ -66,6 +66,7 @@ void main() {
     await _flush();
 
     final firstSearch = controller.updateSearch('primeira');
+    await _waitForCalls(repository, 2);
     final secondSearch = controller.updateSearch('segunda');
     await _waitForCalls(repository, 3);
     expect(
@@ -135,6 +136,48 @@ void main() {
     await cleared;
 
     expect(container.read(catalogControllerProvider).query.category, isNull);
+  });
+
+  test('cancelamento antigo não reinstala observação de consulta obsoleta', () async {
+    final repository = _ReactiveCatalogRepository();
+    final container = ProviderContainer(overrides: [
+      catalogRepositoryProvider.overrideWithValue(repository),
+    ]);
+    addTearDown(container.dispose);
+    final controller = container.read(catalogControllerProvider.notifier);
+    await _flush();
+    await _flush();
+    expect(repository.watched.map((query) => query.search), ['']);
+
+    final oldSearch = controller.updateSearch('antiga');
+    final newSearch = controller.updateSearch('nova');
+    await newSearch;
+    expect(repository.watched.map((query) => query.search), ['', 'nova']);
+    repository.completeFirstCancellation();
+    await oldSearch;
+    expect(repository.watched.map((query) => query.search), ['', 'nova']);
+    repository.emitLatest(const CatalogLoadResult.ready(
+      items: [_newestProduct],
+      categories: ['Todos'],
+    ));
+    await _flush();
+    expect(container.read(catalogControllerProvider).query.search, 'nova');
+    expect(container.read(catalogControllerProvider).items.single.id, 'newest');
+  });
+
+  test('descarte durante cancelamento não recria assinatura', () async {
+    final repository = _ReactiveCatalogRepository();
+    final container = ProviderContainer(overrides: [
+      catalogRepositoryProvider.overrideWithValue(repository),
+    ]);
+    final controller = container.read(catalogControllerProvider.notifier);
+    await _flush();
+    await _flush();
+    final pending = controller.updateSearch('pendente');
+    container.dispose();
+    repository.completeFirstCancellation();
+    await pending;
+    expect(repository.watched.map((query) => query.search), ['']);
   });
 
   test('converte exceção inesperada em falha sem descartar cache', () async {
@@ -207,6 +250,30 @@ class _QueuedCatalogRepository implements CatalogRepository {
   void completeErrorAt(int index, Object error) {
     _completers[index].completeError(error);
   }
+}
+
+class _ReactiveCatalogRepository implements ReactiveCatalogRepository {
+  final watched = <CatalogQuery>[];
+  final streams = <StreamController<CatalogLoadResult>>[];
+  final _firstCancellation = Completer<void>();
+
+  @override
+  Future<CatalogLoadResult> load(CatalogQuery query) async =>
+      const CatalogLoadResult.ready(items: [_product], categories: ['Todos']);
+
+  @override
+  Stream<CatalogLoadResult> watch(CatalogQuery query) {
+    final isFirst = watched.isEmpty;
+    watched.add(query);
+    final stream = StreamController<CatalogLoadResult>(
+      onCancel: isFirst ? () => _firstCancellation.future : null,
+    );
+    streams.add(stream);
+    return stream.stream;
+  }
+
+  void completeFirstCancellation() => _firstCancellation.complete();
+  void emitLatest(CatalogLoadResult result) => streams.last.add(result);
 }
 
 const _product = CatalogProduct(
