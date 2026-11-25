@@ -177,6 +177,26 @@ void main() {
     expect(repository.calls, 2);
   });
 
+  test('verificação posterior libera tentativa somente após consulta válida', () async {
+    final repository = _RecoveringRepository()
+      ..pending = Completer<String>()
+      ..readUnavailable = true;
+    final container = createContainer(repository);
+    final controller = await ready(container);
+    controller.selectClient(client);
+    controller.addProduct(product);
+    final first = controller.registerSale();
+    final failure = expectLater(first, throwsStateError);
+    repository.pending!.completeError(StateError('resultado desconhecido'));
+    await failure;
+    expect(await controller.reconcileSubmission(), isNull);
+    expect(container.read(salesControllerProvider).isSubmissionBlocked, isTrue);
+    repository.readUnavailable = false;
+    expect(await controller.reconcileSubmission(), isFalse);
+    expect(container.read(salesControllerProvider).isSubmissionBlocked, isFalse);
+    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+  });
+
   test('reconcilia commit com retorno perdido sem registrar novamente', () async {
     final repository = _RecoveringRepository()
       ..pending = Completer<String>()
@@ -248,9 +268,11 @@ class _SalesRepository implements SalesRepository {
 
 class _RecoveringRepository extends _SalesRepository implements SaleOutboxStore {
   bool committed = false;
+  bool readUnavailable = false;
 
   @override
   Future<OutboxSale?> read(String id) async {
+    if (readUnavailable) throw StateError('banco indisponível');
     if (!committed) return null;
     return OutboxSale(
       id: id,
