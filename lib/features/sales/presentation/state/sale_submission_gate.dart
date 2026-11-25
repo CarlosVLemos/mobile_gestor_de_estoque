@@ -14,13 +14,24 @@ class SaleSubmissionAttempt {
 /// Survives controller invalidation and keeps each account's attempt isolated.
 class SaleSubmissionGate extends ChangeNotifier {
   final Map<LocalContext?, SaleSubmissionAttempt> _attempts = {};
+  bool _disposed = false;
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   SaleSubmissionAttempt? attempt(LocalContext? context) => _attempts[context];
 
   bool begin(LocalContext? context, String id) {
     if (_attempts.containsKey(context)) return false;
     _attempts[context] = SaleSubmissionAttempt(id);
-    notifyListeners();
+    _notify();
     return true;
   }
 
@@ -28,12 +39,12 @@ class SaleSubmissionGate extends ChangeNotifier {
     final current = _attempts[context];
     if (current?.id != id) return;
     current!.status = SaleSubmissionStatus.uncertain;
-    notifyListeners();
+    _notify();
   }
 
   void finish(LocalContext? context, String id) {
     if (_attempts[context]?.id != id) return;
     _attempts.remove(context);
-    notifyListeners();
+    _notify();
   }
 }
