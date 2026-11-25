@@ -193,6 +193,28 @@ void main() {
     expect(find.textContaining('internal failure'), findsNothing);
   });
 
+  testWidgets('falha no aceite orienta sem expor a exceção', (tester) async {
+    await tester.pumpWidget(_page(
+      _Repository(),
+      persistedSales: [
+        PersistedSaleSummary(
+          localSaleId: 'sale-review',
+          clientName: 'Cliente em Revisão',
+          createdAt: DateTime(2026, 9, 20, 8),
+          status: SaleSyncStatus.requiresAcceptance,
+          itemCount: 1,
+          proposalRevision: 2,
+        ),
+      ],
+    ));
+    await tester.pumpAndSettle();
+    await _ensureVisibleAndTap(tester, _salesSegment('Histórico'));
+    await _materializeAndTap(tester, find.text('Aceitar proposta'));
+    expect(find.textContaining('Não foi possível aceitar o ajuste'), findsOneWidget);
+    expect(find.textContaining('Sincronização de vendas indisponível'), findsNothing);
+    expect(find.textContaining('Bad state'), findsNothing);
+  });
+
   testWidgets('fechar seletor não altera cliente nem carrinho', (tester) async {
     await tester.pumpWidget(_page(_Repository(), references: _searchReferences()));
     await tester.pumpAndSettle();
