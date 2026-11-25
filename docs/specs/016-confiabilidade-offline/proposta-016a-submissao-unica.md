@@ -1,8 +1,8 @@
 # Proposta 016A — proteção contra submissão duplicada
 
-Status: `DRAFT` | Modo: `CRITICAL` | Base: `805873f6832c33a7213ceaaf52500c544a7829e4`
+Status: `FROZEN` | Modo: `CRITICAL` | Base: `805873f6832c33a7213ceaaf52500c544a7829e4`
 Rastreio: [issue #1](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues/1), REQ-016-01 e QA-016-01.
-Aprovação do recorte: pendente. Este documento não congela a Spec 016 inteira.
+Aprovação humana do recorte: 25/11/2026, nesta conversa. Este documento não congela a Spec 016 inteira.
 
 ## Problema e evidência
 
@@ -75,7 +75,7 @@ Paths definitivos e interface de consulta dependem de inspeção; sem alteraçã
 
 ## Gates
 
-Contrato permanece DRAFT até aprovação humana explícita do recorte. Preparar testes
+Recorte 016A aprovado e FROZEN em 25/11/2026. Preparar testes
 focados, widget e persistência, além de análise; não executar sem autorização
 específica. A Spec 015 para merge e o veredito de revisão continuam pendentes.
 Esta proposta não afirma execução de testes nem fechamento da issue.
