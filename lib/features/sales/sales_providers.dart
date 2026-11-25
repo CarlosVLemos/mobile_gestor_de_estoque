@@ -12,6 +12,13 @@ import 'data/repositories/drift_sales_repository.dart';
 import 'domain/entities/sale_reference_data.dart';
 import 'domain/entities/sale_sync.dart';
 import 'domain/repositories/sales_draft_repository.dart';
+import 'presentation/state/sale_submission_gate.dart';
+
+final saleSubmissionGateProvider = Provider<SaleSubmissionGate>((ref) {
+  final gate = SaleSubmissionGate();
+  ref.onDispose(gate.dispose);
+  return gate;
+});
 
 final salesDraftRepositoryProvider = Provider<SalesDraftRepository>((ref) {
   final database = ref.watch(operationalDatabaseProvider);
