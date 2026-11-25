@@ -9,14 +9,29 @@ import '../../sales_providers.dart';
 import '../../domain/entities/sale_reference_data.dart';
 import '../../domain/entities/sale_sync.dart';
 import '../state/sales_state.dart';
+import '../state/sale_submission_gate.dart';
 
 final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
   SalesController.new,
 );
 
 class SalesController extends Notifier<SalesState> {
+  int _generation = 0;
+
   @override
   SalesState build() {
+    _generation++;
+    final context = ref.watch(activeSyncContextProvider);
+    final gate = ref.read(saleSubmissionGateProvider);
+    void refreshSubmission() {
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        submissionStatus: gate.attempt(context)?.status ?? SaleSubmissionStatus.idle,
+      );
+    }
+    gate.addListener(refreshSubmission);
+    ref.onDispose(() => gate.removeListener(refreshSubmission));
+    final submissionStatus = gate.attempt(context)?.status ?? SaleSubmissionStatus.idle;
     ref.listen(salesDraftSeedProvider, (_, next) {
       next.when(
         data: _replaceReferences,
@@ -32,17 +47,20 @@ class SalesController extends Notifier<SalesState> {
         clients: seed.clients,
         products: seed.products,
         cartItems: const {},
+        submissionStatus: submissionStatus,
       ),
       error: (_, _) => SalesState(
         clients: const [],
         products: const [],
         cartItems: const {},
+        submissionStatus: submissionStatus,
         referenceFailure: 'Dados locais de clientes/produtos indisponíveis.',
       ),
       loading: () => SalesState(
         clients: const [],
         products: const [],
         cartItems: const {},
+        submissionStatus: submissionStatus,
       ),
     );
   }
@@ -56,10 +74,12 @@ class SalesController extends Notifier<SalesState> {
   }
 
   void selectClient(SaleClientOption client) {
+    if (state.isSubmissionBlocked) return;
     state = state.copyWith(selectedClient: client);
   }
 
   void addProduct(SaleProductOption product) {
+    if (state.isSubmissionBlocked) return;
     final current = state.cartItems[product.id];
     final nextItems = Map<String, SaleCartItem>.from(state.cartItems);
 
@@ -77,6 +97,7 @@ class SalesController extends Notifier<SalesState> {
   }
 
   void incrementQuantity(String productId) {
+    if (state.isSubmissionBlocked) return;
     final current = state.cartItems[productId];
     if (current == null) {
       return;
@@ -91,6 +112,7 @@ class SalesController extends Notifier<SalesState> {
   }
 
   void decrementQuantity(String productId) {
+    if (state.isSubmissionBlocked) return;
     final current = state.cartItems[productId];
     if (current == null || current.quantity <= 1) {
       return;
@@ -105,12 +127,19 @@ class SalesController extends Notifier<SalesState> {
   }
 
   void removeItem(String productId) {
+    if (state.isSubmissionBlocked) return;
     final nextItems = Map<String, SaleCartItem>.from(state.cartItems)
       ..remove(productId);
     state = state.copyWith(cartItems: nextItems);
   }
 
   Future<String> registerSale() async {
+    final generation = _generation;
+    final context = ref.read(activeSyncContextProvider);
+    final gate = ref.read(saleSubmissionGateProvider);
+    if (gate.attempt(context) != null) {
+      throw StateError('Já existe uma venda em processamento.');
+    }
     final client = state.selectedClient;
     if (client == null || state.cartItems.isEmpty) {
       throw StateError(
@@ -130,12 +159,8 @@ class SalesController extends Notifier<SalesState> {
       throw StateError('Infraestrutura persistente de vendas indisponível.');
     }
     final profile = ref.read(shellProfileProvider);
-    final saleId = await useCase.call(
-      access: SaleAccess(
-        hasSalesFeature: profile.features.contains('sales'),
-        canCreateSales: profile.permissions['sales_create'] == true,
-      ),
-      draft: SaleDraft(
+    final engine = ref.read(contextSyncEngineProvider);
+    final draft = SaleDraft(
         clientId: client.id,
         clientName: client.name,
         items: [
@@ -150,12 +175,67 @@ class SalesController extends Notifier<SalesState> {
         ],
         soldAt: ref.read(salesClockProvider)(),
         timezone: timezone,
-      ),
     );
-    state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
-    final engine = ref.read(contextSyncEngineProvider);
-    if (engine != null) unawaited(engine.sync(trigger: SyncTrigger.manual));
+    final attemptId = useCase.newAttemptId();
+    if (!gate.begin(context, attemptId)) {
+      throw StateError('Já existe uma venda em processamento.');
+    }
+    String saleId;
+    try {
+      saleId = await useCase.call(
+      attemptId: attemptId,
+      access: SaleAccess(
+        hasSalesFeature: profile.features.contains('sales'),
+        canCreateSales: profile.permissions['sales_create'] == true,
+      ),
+      draft: draft,
+    );
+    } catch (_) {
+      final registered = await useCase.isRegistered(attemptId);
+      if (registered == null) {
+        gate.uncertain(context, attemptId);
+        throw StateError('Não foi possível verificar o registro. Consulte o histórico antes de tentar novamente.');
+      }
+      if (!registered) {
+        gate.finish(context, attemptId);
+        rethrow;
+      }
+      saleId = attemptId;
+    }
+    if (ref.mounted && _generation == generation && ref.read(activeSyncContextProvider) == context) {
+      state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
+      if (engine != null) {
+        try {
+          unawaited(engine.sync(trigger: SyncTrigger.manual).then<void>(
+            (_) {},
+            onError: (Object _, StackTrace __) {},
+          ));
+        } catch (_) {
+          // Local persistence already succeeded; the outbox can sync later.
+        }
+      }
+    }
+    gate.finish(context, attemptId);
     return saleId;
+  }
+
+  Future<bool?> reconcileSubmission() async {
+    final generation = _generation;
+    final context = ref.read(activeSyncContextProvider);
+    final gate = ref.read(saleSubmissionGateProvider);
+    final attempt = gate.attempt(context);
+    final useCase = ref.read(registerSaleUseCaseProvider);
+    if (attempt == null ||
+        attempt.status != SaleSubmissionStatus.uncertain ||
+        useCase == null) return null;
+    final registered = await useCase.isRegistered(attempt.id);
+    if (registered == null) return null;
+    if (!identical(gate.attempt(context), attempt)) return null;
+    if (registered && ref.mounted && _generation == generation && ref.read(activeSyncContextProvider) == context) {
+      state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
+    }
+    gate.finish(context, attempt.id);
+    return registered;
   }
 
   Future<void> acceptProposal(String saleId, int proposalRevision) async {
