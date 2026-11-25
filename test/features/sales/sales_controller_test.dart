@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/app/local_context_lifecycle.dart';
 import 'package:gestor_de_estoque/app/shell/shell_profile.dart';
+import 'package:gestor_de_estoque/core/database/local_context.dart';
 import 'package:gestor_de_estoque/features/sales/application/use_cases/register_sale_use_case.dart';
 import 'package:gestor_de_estoque/features/sales/domain/entities/sale_reference_data.dart';
 import 'package:gestor_de_estoque/features/sales/domain/entities/sale_sync.dart';
@@ -30,7 +31,7 @@ void main() {
   );
 
   ProviderContainer createContainer(
-    _SalesRepository repository, {
+    SalesRepository repository, {
     String? timezone = 'America/Belem',
   }) {
     final useCase = RegisterSaleUseCase(
@@ -122,30 +123,94 @@ void main() {
     );
   });
 
-  test('impede registro concorrente e preserva snapshot do carrinho', () async {
-    final repository = _SalesRepository();
-    repository.pending = Completer<String>();
+  test('bloqueia duas chamadas e edição enquanto salva', () async {
+    final repository = _SalesRepository()..pending = Completer<String>();
     final container = createContainer(repository);
     final controller = await ready(container);
     controller.selectClient(client);
     controller.addProduct(product);
 
     final first = controller.registerSale();
-    final second = controller.registerSale();
-    // Attach an error handler immediately, before completing the first call.
-    final rejected = expectLater(second, throwsA(anything));
-
+    final rejected = expectLater(controller.registerSale(), throwsStateError);
     expect(repository.calls, 1);
     controller.incrementQuantity(product.id);
     controller.removeItem(product.id);
     expect(container.read(salesControllerProvider).cartItems[product.id]?.quantity, 1);
     expect(repository.draft?.items.single.quantity, 1);
-
     repository.pending!.complete('11111111-2222-4333-8444-555555555555');
     await first;
     await rejected;
     expect(repository.calls, 1);
     expect(container.read(salesControllerProvider).cartItems, isEmpty);
+  });
+
+  test('mantém a venda bloqueada quando o resultado não pode ser verificado', () async {
+    final repository = _SalesRepository()..pending = Completer<String>();
+    final container = createContainer(repository);
+    final controller = await ready(container);
+    controller.selectClient(client);
+    controller.addProduct(product);
+    final first = controller.registerSale();
+    final failure = expectLater(first, throwsStateError);
+    repository.pending!.completeError(StateError('resultado desconhecido'));
+    await failure;
+    expect(container.read(salesControllerProvider).isSubmissionBlocked, isTrue);
+    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+    await expectLater(controller.registerSale(), throwsStateError);
+    expect(repository.calls, 1);
+  });
+
+  test('libera nova tentativa apenas quando ausência da outbox é verificada', () async {
+    final repository = _RecoveringRepository()..pending = Completer<String>();
+    final container = createContainer(repository);
+    final controller = await ready(container);
+    controller.selectClient(client);
+    controller.addProduct(product);
+    final first = controller.registerSale();
+    final failure = expectLater(first, throwsStateError);
+    repository.pending!.completeError(StateError('falha no registro'));
+    await failure;
+    expect(container.read(salesControllerProvider).isSubmissionBlocked, isFalse);
+    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+    repository.pending = null;
+    await controller.registerSale();
+    expect(repository.calls, 2);
+  });
+
+  test('reconcilia commit com retorno perdido sem registrar novamente', () async {
+    final repository = _RecoveringRepository()
+      ..pending = Completer<String>()
+      ..committed = true;
+    final container = createContainer(repository);
+    final controller = await ready(container);
+    controller.selectClient(client);
+    controller.addProduct(product);
+    final first = controller.registerSale();
+    repository.pending!.completeError(StateError('retorno perdido'));
+    expect(await first, '11111111-2222-4333-8444-555555555555');
+    expect(repository.calls, 1);
+    expect(container.read(salesControllerProvider).cartItems, isEmpty);
+  });
+
+  test('retorno antigo não limpa carrinho de outro contexto', () async {
+    final repository = _SalesRepository()..pending = Completer<String>();
+    final container = createContainer(repository);
+    container.read(activeSyncContextProvider.notifier).state =
+        const LocalContext(userId: '1', tenantId: '1');
+    final firstController = await ready(container);
+    firstController.selectClient(client);
+    firstController.addProduct(product);
+    final first = firstController.registerSale();
+
+    container.read(activeSyncContextProvider.notifier).state =
+        const LocalContext(userId: '2', tenantId: '2');
+    final nextController = await ready(container);
+    nextController.selectClient(client);
+    nextController.addProduct(product);
+    repository.pending!.complete('11111111-2222-4333-8444-555555555555');
+    await first;
+    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+    expect(container.read(salesControllerProvider).selectedClient, client);
   });
 
   test('gerador padrão produz UUID v4', () {
@@ -179,6 +244,33 @@ class _SalesRepository implements SalesRepository {
     final operation = pending;
     return operation == null ? localSaleId : await operation.future;
   }
+}
+
+class _RecoveringRepository extends _SalesRepository implements SaleOutboxStore {
+  bool committed = false;
+
+  @override
+  Future<OutboxSale?> read(String id) async {
+    if (!committed) return null;
+    return OutboxSale(
+      id: id,
+      localSaleId: id,
+      clientRequestId: id,
+      payload: SaleIntentPayload(
+        clientRequestId: id,
+        clientId: 201,
+        items: const [SaleIntentItem(productId: 101, quantity: 1)],
+        soldAt: '2026-09-11T09:00:00-03:00',
+        timezone: 'America/Belem',
+      ),
+      status: SaleSyncStatus.pending,
+      attempts: 0,
+      operation: SaleOutboxOperation.createIntent,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 final _profile = ShellProfile(
