@@ -1,0 +1,29 @@
+# Template ilustrativo; valores devem ser preenchidos e aprovados.
+task_id: null
+spec_id: null
+base_sha: null
+contract:
+  path: null
+  version: null
+  blob_sha: null
+  status: DRAFT
+  human_approval_ref: null
+risk: CRITICAL
+owner: null
+reviewer: null
+execution_mode: SINGLE_WRITER
+objective: null
+allowed_paths: []
+forbidden_paths: []
+requirements: []
+acceptance_criteria: []
+invariants: []
+context_refs: []
+skills: []
+stop_conditions: [contract_conflict, unexpected_path_overlap, missing_permission, unknown_remote_contract]
+max_rework_rounds: 2
+permissions:
+  local_validation: explicit_current_approval_required
+  remote_ci: approved_workflow_only_after_015
+  remote_write: explicit_approval_required
+  skill_activation: human_approval_required

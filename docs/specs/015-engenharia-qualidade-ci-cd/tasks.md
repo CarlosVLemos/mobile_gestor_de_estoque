@@ -16,3 +16,11 @@ Estado: `draft` | nenhuma implementação iniciada neste pacote.
 
 ## Sequenciamento
 Nenhum trabalho dependente de contrato DRAFT pode alterar schema/API/segurança. Se houver conflito com outra spec, interromper o path compartilhado e registrar Change Request/ownership.
+
+## Extensão 015A/B/D — DRAFT
+- [ ] Jarvis: revisar proposta harness v2, alinhar task packets, ownership e estados; obter aprovação humana do contrato.
+- [ ] Van Gogh: integrar adaptadores nativos, regras de descoberta e portabilidade MCP; não alterar runtime do app.
+- [ ] Jarvis/Mefisto: aprovar matriz de permissões, sessão principal e credenciais; validar perfis sem execução local não autorizada.
+- [ ] Todos: propor melhorias de skills com evidência; Mefisto (ou revisor independente se autor) revisa; Jarvis coordena ativação humana.
+- [ ] Mefisto: executar evals apenas em ambiente aprovado, coletar traces redigidos, comparar baseline e candidato; registrar NOT_RUN até evidência.
+- [ ] Jarvis: verificar 015C CI e manter veredito pendente até gates comprovados.

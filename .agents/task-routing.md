@@ -83,3 +83,10 @@ Leia `para mobile/07-uso-de-mcps.md` somente quando a tarefa exigir MCP/configur
 - inventar endpoint, tipo, permissão ou paginação;
 - usar fixture como prova de contrato remoto;
 - executar suíte completa durante cada iteração de implementação.
+
+## Refinamento 015–023 e aprendizagem
+- Use `REFINAMENTO.md` e `docs/specs/roadmap-refinamento-015-023.md` para identificar spec, dependências e issues. Leia só spec/contrato/tarefa relevantes. Todas as propostas novas dependentes de contrato precisam de aprovação antes de implementação CRITICAL.
+- UX operacional: `docs/product/product-principles.md`, `docs/design/operational-design-system.md` e `operational-ux`.
+- Flex: `023` e `financial-flex-contract`; Maquiavel confirma backend e decisões comerciais, sem inventar endpoints ou saldo.
+- CI/revisão de agentes: `015`, `docs/engineering/quality-gates.md` e `agent-evidence-review`.
+- Criar ou alterar skill: `skill-evolution`, `.agents/policies/skill-lifecycle.md` e template de proposta. Não instale skills de terceiros automaticamente.

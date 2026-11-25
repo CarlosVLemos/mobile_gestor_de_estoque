@@ -40,3 +40,6 @@ description: Use para implementação ou revisão Flutter do Arara-Gastos Mobile
 ## Terminal
 
 Siga `.agents/rules/terminal-budget.md`. Dart MCP > shell quando ambos respondem à pergunta.
+
+## Refinamento v2
+Antes de editar, confirme packet/paths, contrato e REQs. Use `operational-ux` para o fluxo comercial. Escreva testes e registre NOT_RUN; nenhum comando de validação local sem autorização. Aprendizado não altera skills ativas no diff funcional.

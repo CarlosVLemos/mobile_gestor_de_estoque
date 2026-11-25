@@ -51,3 +51,6 @@ Known gaps:
 - nunca invente endpoint faltante;
 - se houver gap que bloqueia o MVP, proponha uma spec backend separada;
 - GitHub read é preferível a shell para inspeção cross-repo.
+
+## Refinamento v2
+Inclua SHA, paths/símbolos e status CONFIRMADO/PROPOSTO/DESCONHECIDO por campo. Não salve resposta remota bruta em skill; registre somente padrão verificado e referências. Flex exige `financial-flex-contract` e spec 023.

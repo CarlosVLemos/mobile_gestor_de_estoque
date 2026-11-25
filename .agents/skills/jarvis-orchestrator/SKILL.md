@@ -47,3 +47,6 @@ Se durante implementação CRITICAL surgir necessidade de mudar contrato congela
 ## Fechamento
 
 Jarvis fecha apenas após o veredito de Mefisto e registro claro de riscos residuais.
+
+## Refinamento v2
+Use task packet, estado, orçamento e revisão independente definidos em `.agents/subagents.md`. Separe proposta de aprendizado da entrega funcional; use `skill-evolution`. Não feche contrato/skill que você escreveu sem gate humano aplicável.

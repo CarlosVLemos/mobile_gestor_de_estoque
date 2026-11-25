@@ -33,3 +33,11 @@ Issues existentes relacionadas: 16, 17 (reconciliação de branches em conjunto 
 
 ## Fechamento
 Contrato aprovado; tarefas e critérios atendidos; evidência de CI do SHA candidato, checks manuais quando aplicáveis e veredito de Mefisto. Jarvis registra fechamento somente após gate humano. Nenhum teste local sem autorização explícita atual.
+
+## Extensão proposta — Harness v2 (015A/B/D)
+- **REQ-015-09** — Quatro agentes canônicos, adaptadores nativos Codex/Antigravity, contextos e handoffs por tarefa, revisão independente; máximo de dois writers disjuntos, sem delegação recursiva; teto inicial de duas rodadas de rework.
+- **REQ-015-10** — Evolução supervisionada de skills: autoria por qualquer papel, propostas não ativas, fonte/evidência, revisão independente, gate de ativação humano, rollback e registro. Nenhuma skill altera permissões ou contratos; scripts e ferramentas exigem análise separada.
+- **REQ-015-11** — Shell desabilitado por padrão nos perfis suportados; sessão principal, MCPs, sandbox e tokens com privilégio mínimo; não presumir que instruções textuais ou allowlist isolada sejam controle completo. Provar descoberta e comportamento nas versões reais; nenhum comando local de validação sem autorização.
+- **REQ-015-12** — Evals em fixtures sintéticas, comparando baseline/candidato no mesmo ambiente e modelo; verificar resultado, ações e violações, não só resposta. Zero violações de política crítica em cenários de referência; resultado ausente é NOT_RUN. Métricas de sucesso, rework e custo são observacionais, sem meta inventada.
+
+A extensão é DRAFT; não altera os requisitos CI já propostos nem constitui autorização para executar testes. Fases 015A (harness e contexto), 015B (permissões), 015C (CI/CD), 015D (evals e evolução).

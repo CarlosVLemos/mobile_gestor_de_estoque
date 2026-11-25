@@ -32,3 +32,6 @@ Defina:
 - testes de reinício/offline/reconciliação.
 
 Se o contrato remoto não confirmar esses campos, pare e acione Maquiavel.
+
+## Refinamento v2
+Inclua concorrência de submissão, replay após timeout, reconexão repetida, logout/revogação e cold start offline. Não assuma política de sessão offline ou reserva Flex aprovada. Toda mudança de protocolo exige contrato e CR.

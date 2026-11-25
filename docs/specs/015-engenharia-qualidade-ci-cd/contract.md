@@ -43,3 +43,16 @@ PR exibe resultado dos jobs, logs redigidos, relatório de testes e cobertura, d
 - [ ] Aprovar política de branches e gatilhos, runner, baseline de formatação inicial e checks obrigatórios.
 - [ ] Aprovar a exceção de CI no AGENTS.md e nas regras de terminal/teste; não presumir autorização para comandos locais.
 - [ ] Registrar SHA/base, paths definitivos, matriz de testes, riscos, responsável e aprovação humana.
+
+## Extensão proposta — Harness v2 (015A/B/D)
+- **REQ-015-09** — Quatro agentes canônicos, adaptadores nativos Codex/Antigravity, contextos e handoffs por tarefa, revisão independente; máximo de dois writers disjuntos, sem delegação recursiva; teto inicial de duas rodadas de rework.
+- **REQ-015-10** — Evolução supervisionada de skills: autoria por qualquer papel, propostas não ativas, fonte/evidência, revisão independente, gate de ativação humano, rollback e registro. Nenhuma skill altera permissões ou contratos; scripts e ferramentas exigem análise separada.
+- **REQ-015-11** — Shell desabilitado por padrão nos perfis suportados; sessão principal, MCPs, sandbox e tokens com privilégio mínimo; não presumir que instruções textuais ou allowlist isolada sejam controle completo. Provar descoberta e comportamento nas versões reais; nenhum comando local de validação sem autorização.
+- **REQ-015-12** — Evals em fixtures sintéticas, comparando baseline/candidato no mesmo ambiente e modelo; verificar resultado, ações e violações, não só resposta. Zero violações de política crítica em cenários de referência; resultado ausente é NOT_RUN. Métricas de sucesso, rework e custo são observacionais, sem meta inventada.
+
+### Paths adicionais propostos (não autorizam execução)
+`.agents/agents/**`, `.agents/skills/**`, `.agents/policies/**`, `.agents/templates/**`, `.agents/learning/**`, `.agents/task-routing.md`, `.agents/subagents.md`, `.agents/quick-context.md`, `.agents/README.md`, `.codex/agents/**`, `.codex/config.toml`, `docs/engineering/agent-*.md`.
+
+### Freeze adicional
+- [ ] Validar versões Codex/Antigravity, descoberta, permissões herdadas, ferramentas disponíveis e bloqueio local; aprovar modelo/effort e mecanismo de ativação de skills.
+- [ ] Aprovar extensão e artefatos; registrar SHA e responsável. Até lá não executar gates automaticamente nem ativar novas permissões.

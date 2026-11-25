@@ -1,0 +1,16 @@
+# Evidência factual, não preencher PASS por inferência.
+task_id: null
+base_sha: null
+candidate_sha: null
+contract_blob_sha: null
+role: null
+state: BLOCKED
+changed_paths: []
+requirements_addressed: []
+findings: [] # severity, path, line/symbol, impact, evidence, recommendation
+validation: [] # scenario_id, PASS|FAIL|BLOCKED|NOT_RUN, SHA, source, evidence
+residual_risks: []
+learning_proposals: []
+next_action: null
+verdict: null # Mefisto: passed|failed|blocked|passed_with_restrictions
+human_approval_ref: null

@@ -25,3 +25,6 @@ description: Use ao criar ou alterar Drift/SQLite, schemaVersion, migrações, D
 - documentar rollback/limite quando aplicável.
 
 Não rode geração/build em loop; agrupe mudanças e deixe o gate para Mefisto.
+
+## Refinamento v2
+Prove upgrade de banco realista com outbox pendente, valores restritos, índices e troca de contexto; jamais destruição como fallback. Codegen local também exige autorização explícita. Registre versão de schema de origem/destino e evidência.
