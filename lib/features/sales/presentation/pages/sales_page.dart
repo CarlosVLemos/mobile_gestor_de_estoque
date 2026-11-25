@@ -190,6 +190,8 @@ class _SalesPageState extends ConsumerState<SalesPage> {
     SalesState state,
     SalesController controller,
   ) async {
+    final initialContext = ref.read(activeSyncContextProvider);
+    final initialRevision = controller.revision;
     if (state.clients.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -225,7 +227,10 @@ class _SalesPageState extends ConsumerState<SalesPage> {
       ),
     );
 
-    if (selected != null) {
+    if (selected != null &&
+        context.mounted &&
+        controller.isCurrentRevision(initialRevision) &&
+        ref.read(activeSyncContextProvider) == initialContext) {
       controller.selectClient(selected);
     }
   }
@@ -235,6 +240,8 @@ class _SalesPageState extends ConsumerState<SalesPage> {
     SalesState state,
     SalesController controller,
   ) async {
+    final initialContext = ref.read(activeSyncContextProvider);
+    final initialRevision = controller.revision;
     final selected = await showModalBottomSheet<SaleProductOption>(
       context: context,
       isScrollControlled: true,
@@ -266,7 +273,10 @@ class _SalesPageState extends ConsumerState<SalesPage> {
       ),
     );
 
-    if (selected != null) {
+    if (selected != null &&
+        context.mounted &&
+        controller.isCurrentRevision(initialRevision) &&
+        ref.read(activeSyncContextProvider) == initialContext) {
       controller.addProduct(selected);
     }
   }
