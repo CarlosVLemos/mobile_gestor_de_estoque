@@ -122,6 +122,32 @@ void main() {
     );
   });
 
+  test('impede registro concorrente e preserva snapshot do carrinho', () async {
+    final repository = _SalesRepository();
+    repository.pending = Completer<String>();
+    final container = createContainer(repository);
+    final controller = await ready(container);
+    controller.selectClient(client);
+    controller.addProduct(product);
+
+    final first = controller.registerSale();
+    final second = controller.registerSale();
+    // Attach an error handler immediately, before completing the first call.
+    final rejected = expectLater(second, throwsA(anything));
+
+    expect(repository.calls, 1);
+    controller.incrementQuantity(product.id);
+    controller.removeItem(product.id);
+    expect(container.read(salesControllerProvider).cartItems[product.id]?.quantity, 1);
+    expect(repository.draft?.items.single.quantity, 1);
+
+    repository.pending!.complete('11111111-2222-4333-8444-555555555555');
+    await first;
+    await rejected;
+    expect(repository.calls, 1);
+    expect(container.read(salesControllerProvider).cartItems, isEmpty);
+  });
+
   test('gerador padrão produz UUID v4', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
@@ -138,6 +164,8 @@ void main() {
 
 class _SalesRepository implements SalesRepository {
   SaleDraft? draft;
+  int calls = 0;
+  Completer<String>? pending;
 
   @override
   Future<String> register({
@@ -146,8 +174,10 @@ class _SalesRepository implements SalesRepository {
     required SaleDraft draft,
     required DateTime createdAt,
   }) async {
+    calls++;
     this.draft = draft;
-    return localSaleId;
+    final operation = pending;
+    return operation == null ? localSaleId : await operation.future;
   }
 }
 
