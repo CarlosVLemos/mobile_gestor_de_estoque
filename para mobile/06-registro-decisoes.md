@@ -52,10 +52,10 @@ afetados.
 
 | ID | Tema | Dependência | Regra até decidir |
 | --- | --- | --- | --- |
-| DEP-001 | Login mobile | REQ-046 v2 materializado no backend | Consumir login, `/me`, logout e troca de senha sem inventar refresh token |
+| DEP-001 | Login mobile | Integração histórica da Spec 008 entregue; ver [contexto](00-contexto-operacional.md) | Continuar consumindo o contrato existente; não inventar refresh token. Política de restauração offline permanece aberta ([#3](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues/3)) |
 | DEP-002 | Renovação de sessão | Política de token | Não implementar refresh presumido |
-| DEP-003 | Venda offline | Contrato de intenção e confirmação | Modelar somente quando entrar no escopo |
-| DEP-004 | Cursor de sync | Contrato remoto estável | Repositório esconde o formato do cursor |
+| DEP-003 | Venda offline | Contrato [010 v2](../docs/specs/010-outbox-vendas/contract.md) e evidências de implementação | Venda local + outbox e aceite estão no fluxo histórico; proposta detalhada segue pendente ([#2](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues/2)). Não apresentar pendência como confirmação |
+| DEP-004 | Cursor de sync | Contrato [010 v2](../docs/specs/010-outbox-vendas/contract.md): snapshot de clientes com cursor opaco | Repositório esconde o formato do cursor; não presumir o mesmo contrato para outros recursos |
 | DEP-005 | Relatórios mobile | Endpoints e permissões | Não incluir como módulo funcional |
 | DEP-006 | Área admin mobile | Escopo de produto | Manter apenas referência visual |
 
