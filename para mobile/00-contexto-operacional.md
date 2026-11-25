@@ -4,7 +4,7 @@
 
 Esta é a porta de entrada canônica para o estado comprovado do Arara-Gastos Mobile. Documentação descreve intenção; código, contrato implementado, testes e evidências comprovam o estado real.
 
-## Estado atual — 11 de setembro de 2026
+## Estado histórico — checkpoint de setembro de 2026
 
 ```text
 007  Core de rede                         ✅ entregue
@@ -21,7 +21,14 @@ Esta é a porta de entrada canônica para o estado comprovado do Arara-Gastos Mo
 Release                                   ⏭ pendente
 ```
 
-A suíte Flutter completa e o `flutter analyze --no-pub` passaram sem falhas, erros ou lints. Os testes golden visuais de Shell, Dashboard e Catálogo também foram aprovados (6/6).
+Nesse checkpoint, a suíte Flutter completa e o `flutter analyze --no-pub` passaram; os goldens de Shell, Dashboard e Catálogo foram aprovados (6/6). Esses resultados são históricos e não atestam o SHA atual.
+
+## Atualização documental — 25 de novembro de 2026
+
+- Spec 014 concluída com restrições: gate final `passed_with_restrictions`; 18 goldens, suíte e analyze constam como aprovados na [evidência histórica](../docs/specs/014-revitalizacao-visual-ux-operacional/validation-result.md). TalkBack e ordem de foco seguem `NOT_RUN` ([#18](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues/18)).
+- A proposta de ajuste ainda não é explicada de forma estruturada antes do aceite (DEBT-014-01, [#2](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues/2)); não confundir aceite disponível com revisão detalhada implementada.
+- As Specs [015–023](../docs/specs/roadmap-refinamento-015-023.md) estão em planejamento; contratos DRAFT não comprovam implementação ou CI. As [issues abertas](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues) registram pendências e riscos de auditoria, alguns ainda não reproduzidos.
+- Esta atualização é documental: não houve nova execução de testes, análise, build ou QA de dispositivo.
 
 ## Verticais reais
 
@@ -65,9 +72,9 @@ O núcleo, a tela persistente e o runtime demo estão conectados e validados. Op
 
 ## Próximo caminho crítico
 
-1. adicionar UX de offline/connectivity e hardening operacional;
-2. configurar release, HTTPS/VPS e identidade do app;
-3. executar smoke E2E em ambiente/dispositivo alvo.
+1. Refinar e aprovar a [Spec 015](../docs/specs/015-engenharia-qualidade-ci-cd/spec.md) para estabelecer gates verificáveis; CI ainda não é um gate comprovado.
+2. Trabalhar confiabilidade offline, segurança e acessibilidade nas Specs 016, 020 e 017; registro, busca e gestão seguem dependências dos respectivos contratos.
+3. Preparar homologação e executar smoke E2E apenas após atender aos gates aplicáveis da Spec 021. Consulte o [roadmap](../docs/specs/roadmap-refinamento-015-023.md) para dependências e issues; TalkBack e proposta detalhada seguem pendentes.
 
 ## Como escolher o que ler
 
