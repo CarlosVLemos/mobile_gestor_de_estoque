@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/composition/local_context_composition.dart';
 import '../../../../app/shell/shell_profile.dart';
 import '../../../../core/sync/sync_state.dart';
+import '../../../../core/sync/sync_engine.dart';
 import '../../sales_providers.dart';
 import '../../domain/entities/sale_reference_data.dart';
 import '../../domain/entities/sale_sync.dart';
@@ -207,16 +208,7 @@ class SalesController extends Notifier<SalesState> {
     }
     if (ref.mounted && _generation == generation && ref.read(activeSyncContextProvider) == context) {
       state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
-      if (engine != null) {
-        try {
-          unawaited(engine.sync(trigger: SyncTrigger.manual).then<void>(
-            (_) {},
-            onError: (Object _, StackTrace __) {},
-          ));
-        } catch (_) {
-          // Local persistence already succeeded; the outbox can sync later.
-        }
-      }
+      _requestSync(engine);
     }
     gate.finish(context, attemptId);
     return saleId;
@@ -226,6 +218,7 @@ class SalesController extends Notifier<SalesState> {
     final generation = _generation;
     final context = ref.read(activeSyncContextProvider);
     final gate = ref.read(saleSubmissionGateProvider);
+    final engine = ref.read(contextSyncEngineProvider);
     final attempt = gate.attempt(context);
     final useCase = ref.read(registerSaleUseCaseProvider);
     if (attempt == null ||
@@ -236,9 +229,22 @@ class SalesController extends Notifier<SalesState> {
     if (!identical(gate.attempt(context), attempt)) return null;
     if (registered && ref.mounted && _generation == generation && ref.read(activeSyncContextProvider) == context) {
       state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
+      _requestSync(engine);
     }
     gate.finish(context, attempt.id);
     return registered;
+  }
+
+  void _requestSync(SyncEngine? engine) {
+    if (engine == null) return;
+    try {
+      unawaited(engine.sync(trigger: SyncTrigger.manual).then<void>(
+        (_) {},
+        onError: (Object _, StackTrace __) {},
+      ));
+    } catch (_) {
+      // Local persistence already succeeded; the outbox can sync later.
+    }
   }
 
   Future<void> acceptProposal(String saleId, int proposalRevision) async {
