@@ -18,6 +18,9 @@ final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
 class SalesController extends Notifier<SalesState> {
   int _generation = 0;
 
+  int get revision => _generation;
+  bool isCurrentRevision(int value) => ref.mounted && _generation == value;
+
   @override
   SalesState build() {
     _generation++;
