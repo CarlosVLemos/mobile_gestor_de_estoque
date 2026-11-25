@@ -32,3 +32,6 @@ instalação limpa
 ```
 
 Build/deploy e processos persistentes dependentes de ambiente local só devem ser executados com pedido explícito do usuário.
+
+## Refinamento v2
+Valide assinatura real, compatibilidade de atualização e preservação de dados/outbox; se assinatura debug anterior for incompatível, documente migração e não prometa atualização direta. CI de release somente em ambiente protegido, após aprovação. Não solicite chaves em chat nem versione segredos.

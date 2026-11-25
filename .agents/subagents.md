@@ -51,3 +51,10 @@ Jarvis deve sempre distinguir:
 - trabalho que pode seguir agora;
 - trabalho bloqueado por handoff;
 - caminho crítico até o aceite.
+
+## Handoff e estado v2
+- Use `.agents/templates/task-packet.yaml` e `.agents/templates/agent-result.yaml`. O pacote de tarefa é uma cápsula de contexto, não autorização; o SHA do contrato deve corresponder ao documento aprovado.
+- Estados de tarefa (não substituem lifecycle de spec): PLANNING → AWAITING_APPROVAL → IMPLEMENTING → REVIEWING → AWAITING_CI → READY_FOR_MERGE; BLOCKED, FAILED e NEEDS_CHANGE_REQUEST são saídas explícitas. Somente após aprovação humana é integrado.
+- Mefisto revisa em contexto independente, preferencialmente read-only. Um agente que implementou não pode ser seu próprio avaliador. Se runtime não oferecer subagentes, use sessões separadas ou revisão humana e declare a limitação.
+- Limite inicial: duas rodadas de rework por tarefa; excedeu, replanejar. Sem swarm ou delegação recursiva. Paralelismo read-only é permitido conforme orçamento; no máximo dois writers disjuntos com contrato congelado.
+- Aprendizados podem ser propostos por todos. Jarvis coordena revisão e ativação conforme política; autor não aprova sua própria skill.

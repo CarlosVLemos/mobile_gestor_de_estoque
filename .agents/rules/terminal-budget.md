@@ -1,6 +1,6 @@
 ---
 description: Política de economia de terminal, latência, tokens e autorização de validação
-alwaysApply: true
+trigger: always_on
 ---
 
 # Terminal Budget
@@ -106,3 +106,8 @@ Quando autorizado:
 Quando leitura estática, diagnostics do MCP ou inspeção do código já fornecerem evidência suficiente para continuar implementando, não use terminal.
 
 Terminal serve para confirmar hipóteses, não para substituir raciocínio ou inspeção estática.
+
+## Harness
+- Não contorne o gate por subagentes, skills, MCPs, scripts, hook, plugin, runner externo ou `/boost`/`/swarm`.
+- CI aprovado será exceção somente após aprovação e freeze da 015, exclusivamente para gatilhos e comandos contratados.
+- Falta de ferramenta é bloqueio, não autorização para habilitá-la por conta própria.

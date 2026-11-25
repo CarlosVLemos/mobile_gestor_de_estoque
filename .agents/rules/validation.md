@@ -1,9 +1,7 @@
 ---
 description: Regras de validação e QA
-paths:
-  - "test/**"
-  - "integration_test/**"
-  - "docs/specs/**"
+trigger: glob
+globs: "test/**, integration_test/**, docs/specs/**"
 ---
 
 - Teste deve provar comportamento, não apenas executar caminho feliz.
@@ -12,3 +10,6 @@ paths:
 - Auth, tenant isolation, migração, sync e outbox exigem cenários de erro.
 - Não remova teste antigo só porque a arquitetura mudou; migre a premissa quando o comportamento válido mudou.
 - Suíte completa é gate final, não loop de implementação.
+
+- Evidência de CI deve corresponder ao SHA candidato; nenhum teste ausente é PASS.
+- Alteração de skill não pode reduzir critérios de aceite nem alterar baseline sem aprovação.

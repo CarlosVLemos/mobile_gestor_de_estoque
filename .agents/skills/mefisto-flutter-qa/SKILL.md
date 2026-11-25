@@ -60,3 +60,6 @@ Não cole logs inteiros.
 ## Veredito
 
 `passed`, `failed`, `blocked` ou `passed_with_restrictions`.
+
+## Refinamento v2
+Use `agent-evidence-review`. Revise o SHA efetivo, não resumo; diferencie falha reproduzida e risco. CI aprovado da 015 poderá executar gates contratados; enquanto não aprovado, regra de autorização atual permanece. Revise skills independentemente e não aprove a própria alteração.

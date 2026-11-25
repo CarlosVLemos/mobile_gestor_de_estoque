@@ -1,7 +1,7 @@
 ---
 description: Arquitetura Flutter e boundaries do projeto
-paths:
-  - "lib/**/*.dart"
+trigger: glob
+globs: "lib/**/*.dart"
 ---
 
 - Fluxo: Page -> Controller -> UseCase -> Repository -> DAO/API.

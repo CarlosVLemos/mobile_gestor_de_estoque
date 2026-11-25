@@ -2,7 +2,7 @@
 # Segredos devem vir do ambiente/local config; nunca versionar valores reais.
 
 [mcp_servers.dart]
-command = "C:\\Users\\carlos.silva\\src\\flutter\\bin\\cache\\dart-sdk\\bin\\dart.exe"
+command = "dart"
 args = ["mcp-server", "--force-roots-fallback"]
 startup_timeout_sec = 30
 tool_timeout_sec = 120
@@ -35,16 +35,15 @@ env_http_headers = { X_GOOG_API_KEY = "GOOGLE_DEVELOPER_KNOWLEDGE_API_KEY" }
 # reduzir latência/contexto. Ative somente se uma investigação específica
 # demonstrar benefício.
 [mcp_servers.sequential-thinking]
-command = "C:\\Windows\\System32\\cmd.exe"
-args = [
-  "/c",
-  "C:\\Users\\carlos.silva\\AppData\\Roaming\\nodejs\\npx.cmd",
-  "-y",
-  "@modelcontextprotocol/server-sequential-thinking",
-]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
 startup_timeout_sec = 60
 tool_timeout_sec = 120
 enabled = false
 
 [mcp_servers.sequential-thinking.env]
 DISABLE_THOUGHT_LOGGING = "true"
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
