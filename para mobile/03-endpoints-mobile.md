@@ -15,8 +15,7 @@ Autenticacao e middleware:
   `throttle:60,1`;
 - rotas que dependem de tenant tambem usam `tenant.initialize`,
   `tenant.access` e `tenant.active`;
-- o fluxo Sanctum ja existe no backend `dev`, mas ainda nao esta integrado ao
-  Flutter. Contrato implementado nao significa feature mobile pronta.
+- o fluxo Sanctum está integrado ao Flutter segundo o [contexto operacional](00-contexto-operacional.md) e as evidências históricas da Spec 008. Isso não comprova restauração de sessão em cold start offline, pendente na [issue #3](https://github.com/CarlosVLemos/mobile_gestor_de_estoque/issues/3).
 
 ## 1. Autenticacao implementada
 
