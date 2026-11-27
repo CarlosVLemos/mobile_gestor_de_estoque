@@ -1,13 +1,17 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/database/local_context.dart';
+import '../../domain/entities/sale_reference_data.dart';
+import 'sales_state.dart';
 
-enum SaleSubmissionStatus { idle, registering, uncertain }
+export 'sales_state.dart' show SaleSubmissionStatus;
 
 class SaleSubmissionAttempt {
-  SaleSubmissionAttempt(this.id);
+  SaleSubmissionAttempt(this.id, {this.client, this.cartItems = const {}});
 
   final String id;
+  final SaleClientOption? client;
+  final Map<String, SaleCartItem> cartItems;
   SaleSubmissionStatus status = SaleSubmissionStatus.registering;
 }
 
@@ -28,9 +32,18 @@ class SaleSubmissionGate extends ChangeNotifier {
 
   SaleSubmissionAttempt? attempt(LocalContext? context) => _attempts[context];
 
-  bool begin(LocalContext? context, String id) {
+  bool begin(
+    LocalContext? context,
+    String id, {
+    SaleClientOption? client,
+    Map<String, SaleCartItem> cartItems = const {},
+  }) {
     if (_attempts.containsKey(context)) return false;
-    _attempts[context] = SaleSubmissionAttempt(id);
+    _attempts[context] = SaleSubmissionAttempt(
+      id,
+      client: client,
+      cartItems: cartItems,
+    );
     _notify();
     return true;
   }

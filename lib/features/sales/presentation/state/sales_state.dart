@@ -1,5 +1,6 @@
 import '../../domain/entities/sale_reference_data.dart';
-import 'sale_submission_gate.dart';
+
+enum SaleSubmissionStatus { idle, registering, uncertain }
 
 class SalesState {
   SalesState({
@@ -22,7 +23,8 @@ class SalesState {
 
   bool get isSubmissionBlocked => submissionStatus != SaleSubmissionStatus.idle;
 
-  bool get canRegister => !isSubmissionBlocked && selectedClient != null && cartItems.isNotEmpty;
+  bool get canRegister =>
+      !isSubmissionBlocked && selectedClient != null && cartItems.isNotEmpty;
 
   bool get hasPendingPrice =>
       cartItems.values.any((item) => item.unitPrice == null);

@@ -20,7 +20,6 @@ import '../../domain/entities/sale_sync.dart';
 import '../../sales_providers.dart';
 import '../controllers/sales_controller.dart';
 import '../state/sales_state.dart';
-import '../state/sale_submission_gate.dart';
 
 class SalesPage extends ConsumerStatefulWidget {
   const SalesPage({super.key});
@@ -75,110 +74,124 @@ class _SalesPageState extends ConsumerState<SalesPage> {
             ),
             const SizedBox(height: AppSpacing.sectionGap),
             if (!_showHistory) ...[
-            const SectionHeader(
-              title: 'Venda em andamento',
-              subtitle: 'Selecione o cliente e busque os produtos da venda.',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (state.referenceFailure != null) ...[
-              FailureStateCard(
-                title: 'Vendas indisponíveis',
-                message: state.referenceFailure!,
+              const SectionHeader(
+                title: 'Venda em andamento',
+                subtitle: 'Selecione o cliente e busque os produtos da venda.',
               ),
-              const SizedBox(height: AppSpacing.sectionGap),
-            ],
-            IgnorePointer(
-              ignoring: state.isSubmissionBlocked,
-              child: _ClientCard(
-              selectedClient: state.selectedClient,
-              onSelect: () => _showClientPicker(context, state, controller),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sectionGap),
-            SectionHeader(
-              title: 'Produtos da venda',
-              action: TextButton.icon(
-                onPressed: state.isSubmissionBlocked ? null : () => _showProductPicker(context, state, controller),
-                icon: const Icon(AppIcons.products, size: 18),
-                label: const Text('Adicionar produto'),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (state.cartItems.isEmpty)
-              const EmptyStateCard(
-                title: 'Nenhum produto adicionado',
-                message: 'Busque um produto para começar esta venda.',
-              )
-            else
+              const SizedBox(height: AppSpacing.md),
+              if (state.referenceFailure != null) ...[
+                FailureStateCard(
+                  title: 'Vendas indisponíveis',
+                  message: state.referenceFailure!,
+                ),
+                const SizedBox(height: AppSpacing.sectionGap),
+              ],
               IgnorePointer(
                 ignoring: state.isSubmissionBlocked,
-                child: _CartItemsCard(
-                items: state.cartItems.values.toList(growable: false),
-                canViewFinancial: canViewFinancial,
-                onIncrement: controller.incrementQuantity,
-                onDecrement: controller.decrementQuantity,
-                onRemove: controller.removeItem,
+                child: _ClientCard(
+                  selectedClient: state.selectedClient,
+                  onSelect: () => _showClientPicker(context, state, controller),
                 ),
               ),
-            const SizedBox(height: AppSpacing.sectionGap),
-            _SummaryCard(
-              state: state,
-              canViewFinancial: canViewFinancial,
-              onRegister: state.canRegister
-                  ? () async {
-                      final saleContext = ref.read(activeSyncContextProvider);
-                      try {
-                        final saleId = await controller.registerSale();
-                        if (!context.mounted || ref.read(activeSyncContextProvider) != saleContext) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Venda ${saleId.substring(0, 8)} registrada localmente.',
-                            ),
-                          ),
-                        );
-                      } catch (_) {
-                        if (!context.mounted || ref.read(activeSyncContextProvider) != saleContext) return;
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(const SnackBar(content: Text(
-                          'Não foi possível concluir o registro. Verifique o estado da venda antes de tentar novamente.',
-                        )));
-                      }
-                    }
-                  : null,
-            ),
-            if (state.submissionStatus == SaleSubmissionStatus.uncertain)
-              TextButton(
-                onPressed: () async {
-                  final result = await controller.reconcileSubmission();
-                  if (!context.mounted) return;
-                  final message = result == null
-                      ? 'Ainda não foi possível verificar o registro.'
-                      : result
-                          ? 'Venda registrada neste dispositivo.'
-                          : 'Registro não encontrado. Você pode tentar novamente.';
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
-                },
-                child: const Text('Verificar registro'),
+              const SizedBox(height: AppSpacing.sectionGap),
+              SectionHeader(
+                title: 'Produtos da venda',
+                action: TextButton.icon(
+                  onPressed: state.isSubmissionBlocked
+                      ? null
+                      : () => _showProductPicker(context, state, controller),
+                  icon: const Icon(AppIcons.products, size: 18),
+                  label: const Text('Adicionar produto'),
+                ),
               ),
+              const SizedBox(height: AppSpacing.md),
+              if (state.cartItems.isEmpty)
+                const EmptyStateCard(
+                  title: 'Nenhum produto adicionado',
+                  message: 'Busque um produto para começar esta venda.',
+                )
+              else
+                IgnorePointer(
+                  ignoring: state.isSubmissionBlocked,
+                  child: _CartItemsCard(
+                    items: state.cartItems.values.toList(growable: false),
+                    canViewFinancial: canViewFinancial,
+                    onIncrement: controller.incrementQuantity,
+                    onDecrement: controller.decrementQuantity,
+                    onRemove: controller.removeItem,
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.sectionGap),
+              _SummaryCard(
+                state: state,
+                canViewFinancial: canViewFinancial,
+                onRegister: state.canRegister
+                    ? () async {
+                        final revision = controller.revision;
+                        try {
+                          final saleId = await controller.registerSale();
+                          if (!context.mounted ||
+                              !controller.isCurrentRevision(revision)) {
+                            return;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Venda ${saleId.substring(0, 8)} registrada localmente.',
+                              ),
+                            ),
+                          );
+                        } catch (_) {
+                          if (!context.mounted ||
+                              !controller.isCurrentRevision(revision)) {
+                            return;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Não foi possível concluir o registro. Verifique o estado da venda antes de tentar novamente.',
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    : null,
+              ),
+              if (state.submissionStatus == SaleSubmissionStatus.uncertain)
+                TextButton(
+                  onPressed: () async {
+                    final revision = controller.revision;
+                    final result = await controller.reconcileSubmission();
+                    if (!context.mounted ||
+                        !controller.isCurrentRevision(revision)) {
+                      return;
+                    }
+                    final message = result == null
+                        ? 'Ainda não foi possível verificar o registro.'
+                        : result
+                        ? 'Venda registrada neste dispositivo.'
+                        : 'Registro não encontrado. Você pode tentar novamente.';
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(message)));
+                  },
+                  child: const Text('Verificar registro'),
+                ),
             ],
             const SizedBox(height: AppSpacing.sectionGap),
             if (_showHistory)
-            persistedSales.when(
-              data: (sales) => _PersistedSalesSection(
-                sales: sales,
-                canViewFinancial: canViewFinancial,
-                onAccept: controller.acceptProposal,
+              persistedSales.when(
+                data: (sales) => _PersistedSalesSection(
+                  sales: sales,
+                  canViewFinancial: canViewFinancial,
+                  onAccept: controller.acceptProposal,
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, _) => const FailureStateCard(
+                  title: 'Histórico indisponível',
+                  message: 'Não foi possível ler as vendas persistidas.',
+                ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, _) => const FailureStateCard(
-                title: 'Histórico indisponível',
-                message: 'Não foi possível ler as vendas persistidas.',
-              ),
-            ),
           ],
         ],
       ),
@@ -280,7 +293,6 @@ class _SalesPageState extends ConsumerState<SalesPage> {
       controller.addProduct(selected);
     }
   }
-
 }
 
 class _SearchablePickerSheet<T> extends StatefulWidget {
@@ -334,7 +346,7 @@ class _SearchablePickerSheetState<T> extends State<_SearchablePickerSheet<T>> {
                   ),
                   IconButton(
                     tooltip: 'Fechar',
-              icon: const Icon(AppIcons.close),
+                    icon: const Icon(AppIcons.close),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -510,7 +522,9 @@ class _CartItemsCard extends StatelessWidget {
                       ),
                       if (canViewFinancial)
                         _ItemValues(
-                          unitPriceLabel: _unitPriceLabel(items[index].unitPrice),
+                          unitPriceLabel: _unitPriceLabel(
+                            items[index].unitPrice,
+                          ),
                           subtotalLabel: _subtotalLabel(items[index].subtotal),
                         )
                       else
@@ -584,9 +598,11 @@ class _SummaryCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: onRegister,
-                child: Text(state.submissionStatus == SaleSubmissionStatus.registering
-                    ? 'Registrando venda…'
-                    : 'Registrar venda'),
+                child: Text(
+                  state.submissionStatus == SaleSubmissionStatus.registering
+                      ? 'Registrando venda…'
+                      : 'Registrar venda',
+                ),
               ),
             ),
           ],
@@ -741,7 +757,10 @@ class _SaleStatusBadge extends StatelessWidget {
 }
 
 class _ItemValues extends StatelessWidget {
-  const _ItemValues({required this.unitPriceLabel, required this.subtotalLabel});
+  const _ItemValues({
+    required this.unitPriceLabel,
+    required this.subtotalLabel,
+  });
 
   final String unitPriceLabel;
   final String subtotalLabel;
