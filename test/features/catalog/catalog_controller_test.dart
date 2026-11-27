@@ -138,38 +138,46 @@ void main() {
     expect(container.read(catalogControllerProvider).query.category, isNull);
   });
 
-  test('cancelamento antigo não reinstala observação de consulta obsoleta', () async {
-    final repository = _ReactiveCatalogRepository();
-    final container = ProviderContainer(overrides: [
-      catalogRepositoryProvider.overrideWithValue(repository),
-    ]);
-    addTearDown(container.dispose);
-    final controller = container.read(catalogControllerProvider.notifier);
-    await _flush();
-    await _flush();
-    expect(repository.watched.map((query) => query.search), ['']);
+  test(
+    'cancelamento antigo não reinstala observação de consulta obsoleta',
+    () async {
+      final repository = _ReactiveCatalogRepository();
+      final container = ProviderContainer(
+        overrides: [catalogRepositoryProvider.overrideWithValue(repository)],
+      );
+      addTearDown(container.dispose);
+      final controller = container.read(catalogControllerProvider.notifier);
+      await _flush();
+      await _flush();
+      expect(repository.watched.map((query) => query.search), ['']);
 
-    final oldSearch = controller.updateSearch('antiga');
-    final newSearch = controller.updateSearch('nova');
-    await newSearch;
-    expect(repository.watched.map((query) => query.search), ['', 'nova']);
-    repository.completeFirstCancellation();
-    await oldSearch;
-    expect(repository.watched.map((query) => query.search), ['', 'nova']);
-    repository.emitLatest(const CatalogLoadResult.ready(
-      items: [_newestProduct],
-      categories: ['Todos'],
-    ));
-    await _flush();
-    expect(container.read(catalogControllerProvider).query.search, 'nova');
-    expect(container.read(catalogControllerProvider).items.single.id, 'newest');
-  });
+      final oldSearch = controller.updateSearch('antiga');
+      final newSearch = controller.updateSearch('nova');
+      await newSearch;
+      expect(repository.watched.map((query) => query.search), ['', 'nova']);
+      repository.completeFirstCancellation();
+      await oldSearch;
+      expect(repository.watched.map((query) => query.search), ['', 'nova']);
+      repository.emitLatest(
+        const CatalogLoadResult.ready(
+          items: [_newestProduct],
+          categories: ['Todos'],
+        ),
+      );
+      await _flush();
+      expect(container.read(catalogControllerProvider).query.search, 'nova');
+      expect(
+        container.read(catalogControllerProvider).items.single.id,
+        'newest',
+      );
+    },
+  );
 
   test('descarte durante cancelamento não recria assinatura', () async {
     final repository = _ReactiveCatalogRepository();
-    final container = ProviderContainer(overrides: [
-      catalogRepositoryProvider.overrideWithValue(repository),
-    ]);
+    final container = ProviderContainer(
+      overrides: [catalogRepositoryProvider.overrideWithValue(repository)],
+    );
     final controller = container.read(catalogControllerProvider.notifier);
     await _flush();
     await _flush();
@@ -187,10 +195,7 @@ void main() {
 
     await _waitForCalls(repository, 1);
     repository.completeNext(
-      const CatalogLoadResult.ready(
-        items: [_product],
-        categories: ['Todos'],
-      ),
+      const CatalogLoadResult.ready(items: [_product], categories: ['Todos']),
     );
     await _flush();
 

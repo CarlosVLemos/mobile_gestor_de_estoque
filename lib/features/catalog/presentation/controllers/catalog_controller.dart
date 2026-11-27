@@ -51,12 +51,16 @@ class CatalogController extends Notifier<CatalogState> {
     );
     try {
       final result = await ref.read(loadCatalogUseCaseProvider).call(query);
-      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
+      if (!ref.mounted ||
+          requestId != _requestSequence ||
+          queryRevision != _queryRevision) {
         return;
       }
       _applyResult(result);
     } on Object {
-      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
+      if (!ref.mounted ||
+          requestId != _requestSequence ||
+          queryRevision != _queryRevision) {
         return;
       }
       _applyUnexpectedFailure();
@@ -73,9 +77,14 @@ class CatalogController extends Notifier<CatalogState> {
       final outcome = engine == null
           ? SyncOutcome.succeeded
           : await engine.sync(trigger: SyncTrigger.manual);
-      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) return;
+      if (!ref.mounted ||
+          requestId != _requestSequence ||
+          queryRevision != _queryRevision) {
+        return;
+      }
       final loaded = await ref.read(loadCatalogUseCaseProvider).call(query);
-      final result = outcome == SyncOutcome.succeeded || outcome == SyncOutcome.busy
+      final result =
+          outcome == SyncOutcome.succeeded || outcome == SyncOutcome.busy
           ? loaded
           : engine?.state.failureKind == SyncFailureKind.forbidden
           ? CatalogLoadResult.restricted(
@@ -90,16 +99,21 @@ class CatalogController extends Notifier<CatalogState> {
               categories: loaded.categories,
             )
           : CatalogLoadResult.offline(
-              message: 'Não foi possível atualizar o catálogo. Exibindo os dados locais.',
+              message:
+                  'Não foi possível atualizar o catálogo. Exibindo os dados locais.',
               items: loaded.items,
               categories: loaded.categories,
             );
-      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
+      if (!ref.mounted ||
+          requestId != _requestSequence ||
+          queryRevision != _queryRevision) {
         return;
       }
       _applyResult(result);
     } on Object {
-      if (!ref.mounted || requestId != _requestSequence || queryRevision != _queryRevision) {
+      if (!ref.mounted ||
+          requestId != _requestSequence ||
+          queryRevision != _queryRevision) {
         return;
       }
       _applyUnexpectedFailure();
@@ -132,21 +146,31 @@ class CatalogController extends Notifier<CatalogState> {
     final previous = _localSubscription;
     _localSubscription = null;
     if (previous != null) await previous.cancel();
-    if (!ref.mounted || watchRevision != _watchRevision || queryRevision != _queryRevision) return;
+    if (!ref.mounted ||
+        watchRevision != _watchRevision ||
+        queryRevision != _queryRevision) {
+      return;
+    }
     final repository = ref.read(catalogRepositoryProvider);
     if (repository is! ReactiveCatalogRepository) return;
-    _localSubscription = repository.watch(query).listen(
-      (result) {
-        if (ref.mounted && watchRevision == _watchRevision && queryRevision == _queryRevision) {
-          _applyResult(result);
-        }
-      },
-      onError: (Object _, StackTrace __) {
-        if (ref.mounted && watchRevision == _watchRevision && queryRevision == _queryRevision) {
-          _applyUnexpectedFailure();
-        }
-      },
-    );
+    _localSubscription = repository
+        .watch(query)
+        .listen(
+          (result) {
+            if (ref.mounted &&
+                watchRevision == _watchRevision &&
+                queryRevision == _queryRevision) {
+              _applyResult(result);
+            }
+          },
+          onError: (Object _, StackTrace _) {
+            if (ref.mounted &&
+                watchRevision == _watchRevision &&
+                queryRevision == _queryRevision) {
+              _applyUnexpectedFailure();
+            }
+          },
+        );
   }
 
   void _applyResult(CatalogLoadResult result) {
