@@ -37,4 +37,19 @@ base. A matriz QA-015 continua `NOT_RUN`.
 Começar com dois níveis propostos no contrato: validação rápida para push e
 gate completo para PR. Antes do freeze, resolver a plataforma dos goldens, a
 regularização da formatação e a disponibilidade de checks obrigatórios. A
-implementação de CI segue pendente de aprovação do contrato.
+execução dos novos gates será registrada por SHA na seção do piloto.
+
+
+## Piloto 015C
+
+A aprovação do usuário habilitou o workflow candidato no PR #28. O contrato
+fixa Windows Server 2022 para a suíte visual e Ubuntu 24.04 para os demais
+checks. O workflow mantém as comparações golden e disponibiliza as diferenças
+como artefatos. O resultado histórico no Windows não estabelece que o runner
+hospedado reproduz as imagens.
+
+- Sintaxe e expressões do workflow: `actionlint 1.7.11` passou.
+- Execução no GitHub Actions, comparação visual no runner, codegen, APK,
+  proteção de branches e scanner de dependências: evidência pendente.
+- Um check vermelho continua vermelho. A instalação dos checks como
+  obrigatórios e o aceite da Spec 015 dependem da validação do piloto.
