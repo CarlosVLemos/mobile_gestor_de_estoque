@@ -28,12 +28,22 @@ void main() {
     await tester.tap(find.byTooltip('Limpar busca'));
     await tester.pump();
     expect(changes, ['SKU-123', '']);
-    expect(tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text, '');
-    expect(tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Proteção')).selected, isTrue);
+    expect(
+      tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text,
+      '',
+    );
+    expect(
+      tester
+          .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Proteção'))
+          .selected,
+      isTrue,
+    );
     expect(categories, isEmpty);
   });
 
-  testWidgets('sincroniza alteração externa e trata largura compacta', (tester) async {
+  testWidgets('sincroniza alteração externa e trata largura compacta', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(320, 700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -57,7 +67,10 @@ void main() {
 
     await tester.pumpWidget(build('anterior'));
     await tester.pumpWidget(build('novo'));
-    expect(tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text, 'novo');
+    expect(
+      tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text,
+      'novo',
+    );
     expect(find.text('Buscar produtos'), findsOneWidget);
     expect(find.byTooltip('Limpar busca'), findsOneWidget);
     expect(tester.takeException(), isNull);
