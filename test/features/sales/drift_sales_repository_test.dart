@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gestor_de_estoque/core/database/app_database.dart';
+import 'package:gestor_de_estoque/features/sales/application/use_cases/register_sale_use_case.dart';
 import 'package:gestor_de_estoque/features/sales/data/repositories/drift_sales_repository.dart';
 import 'package:gestor_de_estoque/features/sales/domain/entities/sale_sync.dart';
 
@@ -57,6 +58,24 @@ void main() {
     expect(outbox?.payload.soldAt, matches(RegExp(r'[+-]\d{2}:\d{2}$')));
   });
 
+  test('consulta presença da tentativa no banco contextual', () async {
+    const id = '11111111-2222-4333-8444-555555555555';
+    final useCase = RegisterSaleUseCase(
+      repository: repository,
+      idGenerator: () => id,
+      clock: () => now,
+    );
+    expect(await useCase.isRegistered(id), isFalse);
+    await useCase.call(
+      attemptId: id,
+      draft: draft(),
+      access: const SaleAccess(hasSalesFeature: true, canCreateSales: true),
+    );
+    expect(await useCase.isRegistered(id), isTrue);
+    expect(await database.select(database.localSalesTable).get(), hasLength(1));
+    expect(await database.select(database.syncOutbox).get(), hasLength(1));
+  });
+
   test('rejeita IDs de fixture antes de persistir qualquer linha', () async {
     await expectLater(
       repository.register(
@@ -96,6 +115,12 @@ void main() {
     expect(await database.select(database.localSalesTable).get(), isEmpty);
     expect(await database.select(database.localSaleItemsTable).get(), isEmpty);
     expect(await database.select(database.syncOutbox).get(), isEmpty);
+    final useCase = RegisterSaleUseCase(
+      repository: repository,
+      idGenerator: () => '11111111-2222-4333-8444-555555555555',
+      clock: () => now,
+    );
+    expect(await useCase.isRegistered('sale'), isFalse);
   });
 
   test('recupera syncing sem trocar identidade, payload ou operação', () async {

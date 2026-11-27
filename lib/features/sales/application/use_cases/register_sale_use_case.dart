@@ -11,19 +11,29 @@ class RegisterSaleUseCase {
     required SaleClock clock,
   }) : this._(repository, idGenerator, clock);
 
-  const RegisterSaleUseCase._(
-    this._repository,
-    this._idGenerator,
-    this._clock,
-  );
+  const RegisterSaleUseCase._(this._repository, this._idGenerator, this._clock);
 
   final SalesRepository _repository;
   final SaleIdGenerator _idGenerator;
   final SaleClock _clock;
 
+  String newAttemptId() => _idGenerator();
+
+  /// Null means that the outcome could not be verified safely.
+  Future<bool?> isRegistered(String id) async {
+    final Object repository = _repository;
+    if (repository is! SaleOutboxStore) return null;
+    try {
+      return await repository.read(id) != null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String> call({
     required SaleDraft draft,
     required SaleAccess access,
+    String? attemptId,
   }) async {
     if (!access.allowsCreate) {
       throw const SaleRegistrationException(
@@ -37,7 +47,7 @@ class RegisterSaleUseCase {
         'A venda exige ao menos um item com quantidade válida.',
       );
     }
-    final id = _idGenerator();
+    final id = attemptId ?? _idGenerator();
     final now = _clock();
     return _repository.register(
       localSaleId: id,
