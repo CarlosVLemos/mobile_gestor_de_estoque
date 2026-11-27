@@ -1,0 +1,143 @@
+name: Flutter quality
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [dev, main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-quality-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.44.1'
+  FLUTTER_SUPPRESS_ANALYTICS: 'true'
+  DART_SUPPRESS_ANALYTICS: 'true'
+  PUB_CACHE: ${{ github.workspace }}/.ci-pub-cache
+
+jobs:
+  static:
+    name: Flutter static checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ runner.arch }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+      - run: flutter pub get --enforce-lockfile
+      - name: Check formatting of changed Dart files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null ||
+             ! git merge-base --is-ancestor "$BASE_SHA" HEAD; then
+            BASE_SHA=$(git merge-base origin/dev HEAD)
+          fi
+          git diff --name-only --diff-filter=ACMRT -z "$BASE_SHA" HEAD -- lib test > "$RUNNER_TEMP/changed-files"
+          files=()
+          while IFS= read -r -d '' file; do
+            if [[ "$file" == *.dart && "$file" != *.g.dart ]]; then
+              files+=("$file")
+            fi
+          done < "$RUNNER_TEMP/changed-files"
+          if (( ${#files[@]} > 0 )); then
+            dart format --output=none --set-exit-if-changed "${files[@]}"
+          fi
+      - run: flutter analyze --no-pub
+      - name: Run push smoke suite
+        if: github.event_name == 'push'
+        run: flutter test --no-pub test/architecture test/core
+
+  tests:
+    name: Flutter full suite
+    if: github.event_name == 'pull_request'
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ runner.arch }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter test --no-pub --coverage --reporter expanded
+      - name: Upload coverage and visual diffs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: flutter-test-evidence
+          path: |
+            coverage/lcov.info
+            test/goldens/failures/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  android:
+    name: Drift codegen and Android debug build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ env.PUB_CACHE }}
+          key: pub-${{ runner.os }}-${{ runner.arch }}-${{ env.FLUTTER_VERSION }}-${{ hashFiles('pubspec.lock') }}
+      - run: flutter pub get --enforce-lockfile
+      - name: Verify generated Drift code
+        run: |
+          dart run build_runner build
+          git diff --exit-code -- lib
+          untracked=$(git ls-files --others --exclude-standard -- lib)
+          if [[ -n "$untracked" ]]; then
+            printf 'Untracked generated files:\n%s\n' "$untracked"
+            exit 1
+          fi
+      - name: Install Android SDK packages
+        run: |
+          packages=()
+          if [[ ! -f "$ANDROID_HOME/platforms/android-36/android.jar" ]]; then
+            packages+=("platforms;android-36")
+          fi
+          if [[ ! -f "$ANDROID_HOME/ndk/28.2.13676358/source.properties" ]]; then
+            packages+=("ndk;28.2.13676358")
+          fi
+          if (( ${#packages[@]} > 0 )); then
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" "${packages[@]}"
+          fi
+      - name: Build debug APK
+        run: flutter build apk --debug --no-pub
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7

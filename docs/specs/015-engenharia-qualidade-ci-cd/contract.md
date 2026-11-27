@@ -1,6 +1,8 @@
 # Contract — Spec 015
 
-Status: `DRAFT` | Version: 1 | Mode: `CRITICAL` | Human approval: pendente
+Status da 015C: `FROZEN` para o piloto de CI | Version: 1 | Mode: `CRITICAL` | Human approval: registrada na conversa de implementação
+
+A extensão 015A/B/D permanece `DRAFT`.
 
 Execution mode: `SINGLE_WRITER` para schema, contratos, auth/sync/outbox e arquivos compartilhados. `PARALLEL_SAFE` apenas com ownership explícito e até dois writers em paths distintos.
 
@@ -39,10 +41,31 @@ PR exibe resultado dos jobs, logs redigidos, relatório de testes e cobertura, d
 - Nunca apagar pendências ou tratar intenção local como confirmada. Migration, ownership, rota, protocolo e contrato congelado só mudam via Change Request.
 - Sem execução local de testes/analyze/format/build/codegen ou equivalentes sem autorização explícita. CI aprovado executa apenas comandos e gatilhos definidos na 015.
 
+## Escopo congelado do piloto 015C
+
+- Base de integração: `dev` em `805873f6832c33a7213ceaaf52500c544a7829e4`.
+- Flutter 3.44.1 e Dart 3.12.1 pelo SDK fixado, resolução com `--enforce-lockfile`
+  e cache de pacotes identificado por SO, arquitetura, SDK e lockfile.
+- O check `Flutter static checks` roda em Ubuntu 24.04. Na fase piloto, o
+  formatador verifica os arquivos Dart modificados em `lib/` e `test/`,
+  com codegen verificado à parte. A formatação histórica da base será
+  regularizada separadamente. O push também roda a suíte rápida de arquitetura
+  e core.
+- PRs para `dev` e `main` acrescentam `Flutter full suite` no Windows Server 2022,
+  referência histórica dos goldens, e `Drift codegen and Android debug build`
+  no Ubuntu 24.04. A suíte completa inclui cobertura e diffs visuais para revisão.
+  O APK usa configuração de debug, com JDK 17 e sem credenciais de produção.
+- Gatilhos e comandos definidos em `.github/workflows/flutter-quality.yml`
+  são autorizados para o piloto. O gate de autorização da validação local continua aplicável.
+- Tornar os três checks obrigatórios depende de evidência de execução no GitHub
+  e de confirmação das regras de proteção. A varredura da REQ-015-07 segue
+  pendente de prova de suporte ao lockfile Dart e revisão da integração.
+
 ## Freeze checklist
-- [ ] Aprovar política de branches e gatilhos, runner, baseline de formatação inicial e checks obrigatórios.
-- [ ] Aprovar a exceção de CI no AGENTS.md e nas regras de terminal/teste; não presumir autorização para comandos locais.
-- [ ] Registrar SHA/base, paths definitivos, matriz de testes, riscos, responsável e aprovação humana.
+- [x] Aprovar política, runners e formatação incremental para o piloto.
+- [ ] Confirmar execução nos runners e tornar checks obrigatórios após validação.
+- [x] Autorizar a exceção do workflow piloto, conforme escopo congelado.
+- [x] Registrar base, paths, matriz planejada e autorização do piloto no contrato e na evidência da Spec 015.
 
 ## Extensão proposta — Harness v2 (015A/B/D)
 - **REQ-015-09** — Quatro agentes canônicos, adaptadores nativos Codex/Antigravity, contextos e handoffs por tarefa, revisão independente; máximo de dois writers disjuntos, sem delegação recursiva; teto inicial de duas rodadas de rework.
