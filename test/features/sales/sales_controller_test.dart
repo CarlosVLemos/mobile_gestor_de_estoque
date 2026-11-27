@@ -54,20 +54,16 @@ void main() {
 
   Future<SalesController> ready(ProviderContainer container) async {
     final stateReady = Completer<void>();
-    final subscription = container.listen(
-      salesControllerProvider,
-      (_, state) {
-        final referenceFailure = state.referenceFailure;
-        if (referenceFailure != null && !stateReady.isCompleted) {
-          stateReady.completeError(StateError(referenceFailure));
-        } else if (state.clients.isNotEmpty &&
-            state.products.isNotEmpty &&
-            !stateReady.isCompleted) {
-          stateReady.complete();
-        }
-      },
-      fireImmediately: true,
-    );
+    final subscription = container.listen(salesControllerProvider, (_, state) {
+      final referenceFailure = state.referenceFailure;
+      if (referenceFailure != null && !stateReady.isCompleted) {
+        stateReady.completeError(StateError(referenceFailure));
+      } else if (state.clients.isNotEmpty &&
+          state.products.isNotEmpty &&
+          !stateReady.isCompleted) {
+        stateReady.complete();
+      }
+    }, fireImmediately: true);
     addTearDown(subscription.close);
     final controller = container.read(salesControllerProvider.notifier);
     await stateReady.future;
@@ -135,7 +131,10 @@ void main() {
     expect(repository.calls, 1);
     controller.incrementQuantity(product.id);
     controller.removeItem(product.id);
-    expect(container.read(salesControllerProvider).cartItems[product.id]?.quantity, 1);
+    expect(
+      container.read(salesControllerProvider).cartItems[product.id]?.quantity,
+      1,
+    );
     expect(repository.draft?.items.single.quantity, 1);
     repository.pending!.complete('11111111-2222-4333-8444-555555555555');
     await first;
@@ -144,73 +143,110 @@ void main() {
     expect(container.read(salesControllerProvider).cartItems, isEmpty);
   });
 
-  test('mantém a venda bloqueada quando o resultado não pode ser verificado', () async {
-    final repository = _SalesRepository()..pending = Completer<String>();
-    final container = createContainer(repository);
-    final controller = await ready(container);
-    controller.selectClient(client);
-    controller.addProduct(product);
-    final first = controller.registerSale();
-    final failure = expectLater(first, throwsStateError);
-    repository.pending!.completeError(StateError('resultado desconhecido'));
-    await failure;
-    expect(container.read(salesControllerProvider).isSubmissionBlocked, isTrue);
-    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
-    await expectLater(controller.registerSale(), throwsStateError);
-    expect(repository.calls, 1);
-  });
+  test(
+    'mantém a venda bloqueada quando o resultado não pode ser verificado',
+    () async {
+      final repository = _SalesRepository()..pending = Completer<String>();
+      final container = createContainer(repository);
+      final controller = await ready(container);
+      controller.selectClient(client);
+      controller.addProduct(product);
+      final first = controller.registerSale();
+      final failure = expectLater(first, throwsStateError);
+      repository.pending!.completeError(StateError('resultado desconhecido'));
+      await failure;
+      expect(
+        container.read(salesControllerProvider).isSubmissionBlocked,
+        isTrue,
+      );
+      expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+      await expectLater(controller.registerSale(), throwsStateError);
+      expect(repository.calls, 1);
+    },
+  );
 
-  test('libera nova tentativa apenas quando ausência da outbox é verificada', () async {
-    final repository = _RecoveringRepository()..pending = Completer<String>();
-    final container = createContainer(repository);
-    final controller = await ready(container);
-    controller.selectClient(client);
-    controller.addProduct(product);
-    final first = controller.registerSale();
-    final failure = expectLater(first, throwsStateError);
-    repository.pending!.completeError(StateError('falha no registro'));
-    await failure;
-    expect(container.read(salesControllerProvider).isSubmissionBlocked, isFalse);
-    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
-    repository.pending = null;
-    await controller.registerSale();
-    expect(repository.calls, 2);
-  });
+  test(
+    'libera nova tentativa apenas quando ausência da outbox é verificada',
+    () async {
+      final repository = _RecoveringRepository()..pending = Completer<String>();
+      final container = createContainer(repository);
+      final controller = await ready(container);
+      controller.selectClient(client);
+      controller.addProduct(product);
+      final first = controller.registerSale();
+      final failure = expectLater(first, throwsStateError);
+      repository.pending!.completeError(StateError('falha no registro'));
+      await failure;
+      expect(
+        container.read(salesControllerProvider).isSubmissionBlocked,
+        isFalse,
+      );
+      expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+      repository.pending = null;
+      await controller.registerSale();
+      expect(repository.calls, 2);
+    },
+  );
 
-  test('verificação posterior libera tentativa somente após consulta válida', () async {
-    final repository = _RecoveringRepository()
-      ..pending = Completer<String>()
-      ..readUnavailable = true;
-    final container = createContainer(repository);
-    final controller = await ready(container);
-    controller.selectClient(client);
-    controller.addProduct(product);
-    final first = controller.registerSale();
-    final failure = expectLater(first, throwsStateError);
-    repository.pending!.completeError(StateError('resultado desconhecido'));
-    await failure;
-    expect(await controller.reconcileSubmission(), isNull);
-    expect(container.read(salesControllerProvider).isSubmissionBlocked, isTrue);
-    repository.readUnavailable = false;
-    expect(await controller.reconcileSubmission(), isFalse);
-    expect(container.read(salesControllerProvider).isSubmissionBlocked, isFalse);
-    expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
-  });
+  test(
+    'verificação posterior libera tentativa somente após consulta válida',
+    () async {
+      final repository = _RecoveringRepository()
+        ..pending = Completer<String>()
+        ..readUnavailable = true;
+      final container = createContainer(repository);
+      const original = LocalContext(userId: '1', tenantId: '1');
+      final context = container.read(activeSyncContextProvider.notifier);
+      context.state = original;
+      final controller = await ready(container);
+      controller.selectClient(client);
+      controller.addProduct(product);
+      final first = controller.registerSale();
+      final failure = expectLater(first, throwsStateError);
+      repository.pending!.completeError(StateError('resultado desconhecido'));
+      await failure;
+      expect(await controller.reconcileSubmission(), isNull);
+      expect(
+        container.read(salesControllerProvider).isSubmissionBlocked,
+        isTrue,
+      );
+      final revision = controller.revision;
+      context.state = const LocalContext(userId: '2', tenantId: '2');
+      expect(container.read(salesControllerProvider).cartItems, isEmpty);
+      context.state = original;
+      final restored = container.read(salesControllerProvider);
+      expect(controller.isCurrentRevision(revision), isFalse);
+      expect(restored.selectedClient, client);
+      expect(restored.cartItems[product.id]?.quantity, 1);
+      expect(restored.isSubmissionBlocked, isTrue);
 
-  test('reconcilia commit com retorno perdido sem registrar novamente', () async {
-    final repository = _RecoveringRepository()
-      ..pending = Completer<String>()
-      ..committed = true;
-    final container = createContainer(repository);
-    final controller = await ready(container);
-    controller.selectClient(client);
-    controller.addProduct(product);
-    final first = controller.registerSale();
-    repository.pending!.completeError(StateError('retorno perdido'));
-    expect(await first, '11111111-2222-4333-8444-555555555555');
-    expect(repository.calls, 1);
-    expect(container.read(salesControllerProvider).cartItems, isEmpty);
-  });
+      repository.readUnavailable = false;
+      expect(await controller.reconcileSubmission(), isFalse);
+      expect(
+        container.read(salesControllerProvider).isSubmissionBlocked,
+        isFalse,
+      );
+      expect(container.read(salesControllerProvider).cartItems, isNotEmpty);
+    },
+  );
+
+  test(
+    'reconcilia commit com retorno perdido sem registrar novamente',
+    () async {
+      final repository = _RecoveringRepository()
+        ..pending = Completer<String>()
+        ..committed = true;
+      final container = createContainer(repository);
+      final controller = await ready(container);
+      controller.selectClient(client);
+      controller.addProduct(product);
+      final first = controller.registerSale();
+      repository.pending!.completeError(StateError('retorno perdido'));
+      expect(await first, '11111111-2222-4333-8444-555555555555');
+      expect(repository.calls, 1);
+      expect(container.read(salesControllerProvider).cartItems, isEmpty);
+    },
+  );
 
   test('retorno antigo não limpa carrinho de outro contexto', () async {
     final repository = _SalesRepository()..pending = Completer<String>();
@@ -266,7 +302,8 @@ class _SalesRepository implements SalesRepository {
   }
 }
 
-class _RecoveringRepository extends _SalesRepository implements SaleOutboxStore {
+class _RecoveringRepository extends _SalesRepository
+    implements SaleOutboxStore {
   bool committed = false;
   bool readUnavailable = false;
 

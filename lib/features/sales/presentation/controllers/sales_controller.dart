@@ -10,7 +10,6 @@ import '../../sales_providers.dart';
 import '../../domain/entities/sale_reference_data.dart';
 import '../../domain/entities/sale_sync.dart';
 import '../state/sales_state.dart';
-import '../state/sale_submission_gate.dart';
 
 final salesControllerProvider = NotifierProvider<SalesController, SalesState>(
   SalesController.new,
@@ -30,12 +29,16 @@ class SalesController extends Notifier<SalesState> {
     void refreshSubmission() {
       if (!ref.mounted) return;
       state = state.copyWith(
-        submissionStatus: gate.attempt(context)?.status ?? SaleSubmissionStatus.idle,
+        submissionStatus:
+            gate.attempt(context)?.status ?? SaleSubmissionStatus.idle,
       );
     }
+
     gate.addListener(refreshSubmission);
     ref.onDispose(() => gate.removeListener(refreshSubmission));
-    final submissionStatus = gate.attempt(context)?.status ?? SaleSubmissionStatus.idle;
+    final attempt = gate.attempt(context);
+    final submissionStatus = attempt?.status ?? SaleSubmissionStatus.idle;
+    final cartItems = attempt?.cartItems ?? const <String, SaleCartItem>{};
     ref.listen(salesDraftSeedProvider, (_, next) {
       next.when(
         data: _replaceReferences,
@@ -50,20 +53,23 @@ class SalesController extends Notifier<SalesState> {
       data: (seed) => SalesState(
         clients: seed.clients,
         products: seed.products,
-        cartItems: const {},
+        cartItems: cartItems,
+        selectedClient: attempt?.client,
         submissionStatus: submissionStatus,
       ),
       error: (_, _) => SalesState(
         clients: const [],
         products: const [],
-        cartItems: const {},
+        cartItems: cartItems,
+        selectedClient: attempt?.client,
         submissionStatus: submissionStatus,
         referenceFailure: 'Dados locais de clientes/produtos indisponíveis.',
       ),
       loading: () => SalesState(
         clients: const [],
         products: const [],
-        cartItems: const {},
+        cartItems: cartItems,
+        selectedClient: attempt?.client,
         submissionStatus: submissionStatus,
       ),
     );
@@ -138,7 +144,6 @@ class SalesController extends Notifier<SalesState> {
   }
 
   Future<String> registerSale() async {
-    final generation = _generation;
     final context = ref.read(activeSyncContextProvider);
     final gate = ref.read(saleSubmissionGateProvider);
     if (gate.attempt(context) != null) {
@@ -165,48 +170,59 @@ class SalesController extends Notifier<SalesState> {
     final profile = ref.read(shellProfileProvider);
     final engine = ref.read(contextSyncEngineProvider);
     final draft = SaleDraft(
-        clientId: client.id,
-        clientName: client.name,
-        items: [
-          for (final item in state.cartItems.values)
-            SaleDraftItem(
-              productId: item.productId,
-              productName: item.name,
-              productSku: item.sku,
-              quantity: item.quantity,
-              historicalUnitPrice: item.unitPrice,
-            ),
-        ],
-        soldAt: ref.read(salesClockProvider)(),
-        timezone: timezone,
+      clientId: client.id,
+      clientName: client.name,
+      items: [
+        for (final item in state.cartItems.values)
+          SaleDraftItem(
+            productId: item.productId,
+            productName: item.name,
+            productSku: item.sku,
+            quantity: item.quantity,
+            historicalUnitPrice: item.unitPrice,
+          ),
+      ],
+      soldAt: ref.read(salesClockProvider)(),
+      timezone: timezone,
     );
     final attemptId = useCase.newAttemptId();
-    if (!gate.begin(context, attemptId)) {
+    if (!gate.begin(
+      context,
+      attemptId,
+      client: client,
+      cartItems: state.cartItems,
+    )) {
       throw StateError('Já existe uma venda em processamento.');
     }
     String saleId;
     try {
       saleId = await useCase.call(
-      attemptId: attemptId,
-      access: SaleAccess(
-        hasSalesFeature: profile.features.contains('sales'),
-        canCreateSales: profile.permissions['sales_create'] == true,
-      ),
-      draft: draft,
-    );
+        attemptId: attemptId,
+        access: SaleAccess(
+          hasSalesFeature: profile.features.contains('sales'),
+          canCreateSales: profile.permissions['sales_create'] == true,
+        ),
+        draft: draft,
+      );
     } catch (_) {
       final registered = await useCase.isRegistered(attemptId);
       if (registered == null) {
         gate.uncertain(context, attemptId);
-        throw StateError('Não foi possível verificar o registro. Consulte o histórico antes de tentar novamente.');
+        throw StateError(
+          'Não foi possível verificar o registro. Consulte o histórico antes de tentar novamente.',
+        );
       }
       if (!registered) {
-        gate.finish(context, attemptId);
+        if (ref.mounted && ref.read(activeSyncContextProvider) == context) {
+          gate.finish(context, attemptId);
+        } else {
+          gate.uncertain(context, attemptId);
+        }
         rethrow;
       }
       saleId = attemptId;
     }
-    if (ref.mounted && _generation == generation && ref.read(activeSyncContextProvider) == context) {
+    if (ref.mounted && ref.read(activeSyncContextProvider) == context) {
       state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
       _requestSync(engine);
     }
@@ -215,7 +231,6 @@ class SalesController extends Notifier<SalesState> {
   }
 
   Future<bool?> reconcileSubmission() async {
-    final generation = _generation;
     final context = ref.read(activeSyncContextProvider);
     final gate = ref.read(saleSubmissionGateProvider);
     final engine = ref.read(contextSyncEngineProvider);
@@ -223,11 +238,19 @@ class SalesController extends Notifier<SalesState> {
     final useCase = ref.read(registerSaleUseCaseProvider);
     if (attempt == null ||
         attempt.status != SaleSubmissionStatus.uncertain ||
-        useCase == null) return null;
+        useCase == null) {
+      return null;
+    }
     final registered = await useCase.isRegistered(attempt.id);
     if (registered == null) return null;
     if (!identical(gate.attempt(context), attempt)) return null;
-    if (registered && ref.mounted && _generation == generation && ref.read(activeSyncContextProvider) == context) {
+    if (!registered &&
+        (!ref.mounted || ref.read(activeSyncContextProvider) != context)) {
+      return null;
+    }
+    if (registered &&
+        ref.mounted &&
+        ref.read(activeSyncContextProvider) == context) {
       state = state.copyWith(cartItems: const {}, clearSelectedClient: true);
       _requestSync(engine);
     }
@@ -238,10 +261,11 @@ class SalesController extends Notifier<SalesState> {
   void _requestSync(SyncEngine? engine) {
     if (engine == null) return;
     try {
-      unawaited(engine.sync(trigger: SyncTrigger.manual).then<void>(
-        (_) {},
-        onError: (Object _, StackTrace __) {},
-      ));
+      unawaited(
+        engine
+            .sync(trigger: SyncTrigger.manual)
+            .then<void>((_) {}, onError: (Object _, StackTrace _) {}),
+      );
     } catch (_) {
       // Local persistence already succeeded; the outbox can sync later.
     }

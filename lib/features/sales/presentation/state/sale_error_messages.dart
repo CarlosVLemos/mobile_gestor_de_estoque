@@ -7,8 +7,8 @@ abstract final class SaleErrorMessages {
       return switch (error.code) {
         'sales_create_forbidden' =>
           'Seu perfil não pode registrar vendas. Verifique seu acesso.',
-        'invalid_sale' || 'duplicate_product' =>
-          'Revise os produtos e as quantidades da venda.',
+        'invalid_sale' ||
+        'duplicate_product' => 'Revise os produtos e as quantidades da venda.',
         'iana_timezone_unavailable' || 'invalid_timezone' =>
           'Não foi possível configurar o horário. Entre em contato com o suporte.',
         'invalid_remote_id' =>

@@ -11,11 +11,7 @@ class RegisterSaleUseCase {
     required SaleClock clock,
   }) : this._(repository, idGenerator, clock);
 
-  const RegisterSaleUseCase._(
-    this._repository,
-    this._idGenerator,
-    this._clock,
-  );
+  const RegisterSaleUseCase._(this._repository, this._idGenerator, this._clock);
 
   final SalesRepository _repository;
   final SaleIdGenerator _idGenerator;
@@ -25,7 +21,7 @@ class RegisterSaleUseCase {
 
   /// Null means that the outcome could not be verified safely.
   Future<bool?> isRegistered(String id) async {
-    final repository = _repository;
+    final Object repository = _repository;
     if (repository is! SaleOutboxStore) return null;
     try {
       return await repository.read(id) != null;
