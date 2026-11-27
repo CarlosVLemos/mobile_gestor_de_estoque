@@ -25,9 +25,7 @@ void main() {
     await tester.tap(find.text('Cliente Real'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Adicionar produto'));
-    await tester.tap(
-      find.text('Adicionar produto'),
-    );
+    await tester.tap(find.text('Adicionar produto'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Produto Drift').last);
     await tester.pumpAndSettle();
@@ -47,7 +45,9 @@ void main() {
   testWidgets('busca cliente por nome, código e cidade antes da seleção', (
     tester,
   ) async {
-    await tester.pumpWidget(_page(_Repository(), references: _searchReferences()));
+    await tester.pumpWidget(
+      _page(_Repository(), references: _searchReferences()),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Selecionar cliente'));
     await tester.pumpAndSettle();
@@ -70,8 +70,10 @@ void main() {
 
     await tester.enterText(search, 'sem resultado');
     await tester.pump();
-    expect(find.text('Nenhum cliente encontrado para essa busca.'),
-        findsOneWidget);
+    expect(
+      find.text('Nenhum cliente encontrado para essa busca.'),
+      findsOneWidget,
+    );
 
     await tester.enterText(search, 'cli-202');
     await tester.pump();
@@ -81,13 +83,15 @@ void main() {
     expect(find.text('Trocar cliente'), findsOneWidget);
   });
 
-  testWidgets('busca produto por nome e SKU antes de adicionar', (tester) async {
-    await tester.pumpWidget(_page(_Repository(), references: _searchReferences()));
+  testWidgets('busca produto por nome e SKU antes de adicionar', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _page(_Repository(), references: _searchReferences()),
+    );
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Adicionar produto'));
-    await tester.tap(
-      find.text('Adicionar produto'),
-    );
+    await tester.tap(find.text('Adicionar produto'));
     await tester.pumpAndSettle();
 
     final search = find.byType(TextField);
@@ -104,8 +108,10 @@ void main() {
 
     await tester.enterText(search, 'sem resultado');
     await tester.pump();
-    expect(find.text('Nenhum produto encontrado para essa busca.'),
-        findsOneWidget);
+    expect(
+      find.text('Nenhum produto encontrado para essa busca.'),
+      findsOneWidget,
+    );
 
     await tester.enterText(search, 'sku-102');
     await tester.pump();
@@ -118,7 +124,9 @@ void main() {
   testWidgets('alterna entre nova venda e histórico sem descartar o rascunho', (
     tester,
   ) async {
-    await tester.pumpWidget(_page(_Repository(), references: _searchReferences()));
+    await tester.pumpWidget(
+      _page(_Repository(), references: _searchReferences()),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Selecionar cliente'));
@@ -193,8 +201,40 @@ void main() {
     expect(find.textContaining('internal failure'), findsNothing);
   });
 
+  testWidgets('falha no aceite orienta sem expor a exceção', (tester) async {
+    await tester.pumpWidget(
+      _page(
+        _Repository(),
+        persistedSales: [
+          PersistedSaleSummary(
+            localSaleId: 'sale-review',
+            clientName: 'Cliente em Revisão',
+            createdAt: DateTime(2026, 9, 20, 8),
+            status: SaleSyncStatus.requiresAcceptance,
+            itemCount: 1,
+            proposalRevision: 2,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _ensureVisibleAndTap(tester, _salesSegment('Histórico'));
+    await _materializeAndTap(tester, find.text('Aceitar proposta'));
+    expect(
+      find.textContaining('Não foi possível aceitar o ajuste'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Sincronização de vendas indisponível'),
+      findsNothing,
+    );
+    expect(find.textContaining('Bad state'), findsNothing);
+  });
+
   testWidgets('fechar seletor não altera cliente nem carrinho', (tester) async {
-    await tester.pumpWidget(_page(_Repository(), references: _searchReferences()));
+    await tester.pumpWidget(
+      _page(_Repository(), references: _searchReferences()),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Selecionar cliente'));
@@ -204,16 +244,16 @@ void main() {
     expect(find.text('Nenhum cliente selecionado.'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Adicionar produto'));
-    await tester.tap(
-      find.text('Adicionar produto'),
-    );
+    await tester.tap(find.text('Adicionar produto'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Fechar'));
     await tester.pumpAndSettle();
     expect(find.text('Nenhum produto adicionado'), findsOneWidget);
   });
 
-  testWidgets('seletores não causam overflow em largura compacta', (tester) async {
+  testWidgets('seletores não causam overflow em largura compacta', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(320, 700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -290,19 +330,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('desabilita registro e edição enquanto a venda é salva', (tester) async {
+  testWidgets('desabilita registro e edição enquanto a venda é salva', (
+    tester,
+  ) async {
     final repository = _Repository()..pending = Completer<String>();
     tester.view.physicalSize = const Size(320, 700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(_page(
-      repository,
-      home: const MediaQuery(
-        data: MediaQueryData(textScaler: TextScaler.linear(2)),
-        child: SalesPage(),
+    await tester.pumpWidget(
+      _page(
+        repository,
+        home: const MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: SalesPage(),
+        ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     await _ensureVisibleAndTap(tester, find.text('Selecionar cliente'));
     await _ensureVisibleAndTap(tester, find.text('Cliente Real'));
@@ -312,10 +356,9 @@ void main() {
 
     final progress = find.text('Registrando venda…');
     expect(progress, findsOneWidget);
-    final button = tester.widget<FilledButton>(find.ancestor(
-      of: progress,
-      matching: find.byType(FilledButton),
-    ).first);
+    final button = tester.widget<FilledButton>(
+      find.ancestor(of: progress, matching: find.byType(FilledButton)).first,
+    );
     expect(button.onPressed, isNull);
     expect(repository.calls, 1);
     expect(tester.takeException(), isNull);
@@ -345,10 +388,7 @@ Future<void> _returnToSalesTop(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _ensureVisibleAndTap(
-  WidgetTester tester,
-  Finder target,
-) async {
+Future<void> _ensureVisibleAndTap(WidgetTester tester, Finder target) async {
   expect(target, findsOneWidget);
   await tester.ensureVisible(target);
   await tester.pumpAndSettle();
@@ -390,27 +430,30 @@ Widget _page(
       shellProfileProvider.overrideWithValue(_profile(allowed: allowed)),
       salesDraftSeedProvider.overrideWith(
         (ref) => Stream.value(
-          references ?? SalesDraftSeed(
-            clients: const [
-              SaleClientOption(
-                id: '201',
-                name: 'Cliente Real',
-                code: 'CLI-201',
-                city: 'Belém - PA',
+          references ??
+              SalesDraftSeed(
+                clients: const [
+                  SaleClientOption(
+                    id: '201',
+                    name: 'Cliente Real',
+                    code: 'CLI-201',
+                    city: 'Belém - PA',
+                  ),
+                ],
+                products: const [
+                  SaleProductOption(
+                    id: '101',
+                    name: 'Produto Drift',
+                    sku: 'SKU-101',
+                    price: null,
+                  ),
+                ],
               ),
-            ],
-            products: const [
-              SaleProductOption(
-                id: '101',
-                name: 'Produto Drift',
-                sku: 'SKU-101',
-                price: null,
-              ),
-            ],
-          ),
         ),
       ),
-      persistedSalesProvider.overrideWith((ref) => Stream.value(persistedSales)),
+      persistedSalesProvider.overrideWith(
+        (ref) => Stream.value(persistedSales),
+      ),
       registerSaleUseCaseProvider.overrideWithValue(useCase),
       salesTimeZoneProvider.overrideWithValue('America/Belem'),
       contextSyncEngineProvider.overrideWithValue(null),

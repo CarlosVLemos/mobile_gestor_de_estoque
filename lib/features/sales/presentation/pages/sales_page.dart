@@ -19,6 +19,7 @@ import '../../domain/entities/sale_reference_data.dart';
 import '../../domain/entities/sale_sync.dart';
 import '../../sales_providers.dart';
 import '../controllers/sales_controller.dart';
+import '../state/sale_error_messages.dart';
 import '../state/sales_state.dart';
 
 class SalesPage extends ConsumerStatefulWidget {
@@ -141,15 +142,15 @@ class _SalesPageState extends ConsumerState<SalesPage> {
                               ),
                             ),
                           );
-                        } catch (_) {
+                        } catch (error) {
                           if (!context.mounted ||
                               !controller.isCurrentRevision(revision)) {
                             return;
                           }
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Não foi possível concluir o registro. Verifique o estado da venda antes de tentar novamente.',
+                                SaleErrorMessages.registration(error),
                               ),
                             ),
                           );
@@ -696,11 +697,13 @@ class _PersistedSalesSection extends StatelessWidget {
                             sale.localSaleId,
                             sale.proposalRevision,
                           );
-                        } catch (error) {
+                        } catch (_) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('$error')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(SaleErrorMessages.acceptance),
+                            ),
+                          );
                         }
                       },
                       child: const Text('Aceitar proposta'),
